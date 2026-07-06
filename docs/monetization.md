@@ -6,6 +6,28 @@ piece on for samesecond. Follow the steps in order; several of them (analytics,
 AdSense) have a real-world waiting period, so start them early even if you're
 not ready to launch yet.
 
+## What to send me, exactly, to wire this up for real
+
+Everything below is currently a clearly-labeled placeholder in the code. I
+cannot generate any of these values myself — they only exist once you create
+the accounts. Once you have them, give me whatever you have (you don't need
+all of it at once) and I'll paste them into the right files:
+
+| # | What I need from you | Where you get it | What I do with it |
+|---|---|---|---|
+| 1 | **The real domain** (e.g. `samesecond.io`) | Buy it — see domain shortlist in `README.md` | Replace `samesecond.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build_timer_pages.py`, then re-run the script |
+| 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
+| 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
+| 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build_timer_pages.py`'s template (then re-run the script) |
+| 5 | **Stripe Payment Link URL** for the $5/mo Pro tier | [stripe.com](https://stripe.com) → Product catalog → create product → Payment Links (no code needed) | Swap the `#proBtn` click handler in `assets/app.js` from the local mock to `location.href = "<your link>"` |
+| 6 | (Optional) **A real contact email** for the privacy policy | Whatever inbox you want inquiries to go to | Replace the vague "contact address listed in the footer" line in `privacy.html` with an actual `mailto:` link |
+
+Nothing else is needed from you for the code itself — everything else (the ad
+slot's position, the sitemap, the programmatic `/timers/` pages, the privacy
+policy text) is already built. Steps 2–4 specifically require you to have
+already done Step 0 below (bought the domain) since both GA4 and AdSense
+verify ownership of a live domain before they'll issue real IDs.
+
 ## What vClock actually does (the evidence)
 
 Checked by fetching `https://vclock.com/timer/` and `https://vclock.com/ads.txt`

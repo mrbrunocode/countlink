@@ -1,8 +1,12 @@
-/* samesecond — shared countdown timer logic. One file, used by index.html and every /timers/*.html page. */
+/* samesecond — split-flap countdown logic. Shared by index.html and every /timers/*.html page. */
 const $=id=>document.getElementById(id);
 let end=null,label="",sound=true,pro=false,fired=false,tick=null,total=0;
+let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
+let prevValues=null;  // last rendered digit string per tile, so we only flip tiles that changed
+let audioCtx=null;
 
-function fmt(n){return String(n).padStart(2,"0")}
+function fmt2(n){return String(n).padStart(2,"0")}
+
 function setDefaultUntil(){
   const d=new Date(Date.now()+3600e3);d.setSeconds(0,0);
   const p=n=>String(n).padStart(2,"0");
@@ -18,39 +22,141 @@ function readHash(){
   return false;
 }
 function start(ms,lab){
-  end=Date.now()+ms;label=lab;fired=false;total=ms;
+  end=Date.now()+ms;label=lab;fired=false;total=ms;prevValues=null;
+  /* Tile layout (how many digit tiles are on screen) is fixed once, from the
+     STARTING duration — not recomputed each tick. Otherwise an hour+ countdown
+     would silently drop from 6 tiles to 4 the moment it crosses under 60
+     minutes remaining, breaking the board mid-countdown. */
+  mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}`;
   render();
 }
+
+/* ---------- sound: a soft mechanical tick each second, plus a triple chime at zero ---------- */
+function ctx(){
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function tick_sound(){
+  if(!sound)return;
+  const c=ctx(),dur=.05;
+  const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(1-i/data.length);
+  const src=c.createBufferSource();src.buffer=buf;
+  const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1800;bp.Q.value=1.1;
+  const g=c.createGain();g.gain.setValueAtTime(.16,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
+  src.connect(bp).connect(g).connect(c.destination);src.start();
+}
 function beep(){
   if(!sound)return;
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const c=ctx();
   [0,.28,.56].forEach((t,i)=>{
-    const o=ctx.createOscillator(),g=ctx.createGain();
+    const o=c.createOscillator(),g=c.createGain();
     o.frequency.value=i===2?1318:880;o.type="sine";
-    g.gain.setValueAtTime(.32,ctx.currentTime+t);
-    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.24);
-    o.connect(g).connect(ctx.destination);o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.25);
+    g.gain.setValueAtTime(.32,c.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.24);
+    o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.25);
   });
 }
+
+/* ---------- split-flap tile rendering ---------- */
+function buildTiles(chars){
+  // chars: array of {t:"tile"|"sep", v:string}
+  const board=$("tiles");
+  board.innerHTML="";
+  chars.forEach((c,i)=>{
+    if(c.t==="sep"){
+      const s=document.createElement("div");
+      s.className="tile-sep";s.textContent=c.v;
+      board.appendChild(s);
+      return;
+    }
+    const tile=document.createElement("div");
+    tile.className="tile";tile.dataset.idx=i;
+    tile.innerHTML=`
+      <div class="flap"><span class="num">${c.v}</span></div>
+      <div class="half top"><span class="num">${c.v}</span></div>
+      <div class="half bottom"><span class="num">${c.v}</span></div>`;
+    board.appendChild(tile);
+  });
+}
+function updateTiles(chars){
+  const board=$("tiles");
+  const tileEls=[...board.querySelectorAll(".tile")];
+  let ti=0;
+  chars.forEach(c=>{
+    if(c.t==="sep")return;
+    const el=tileEls[ti++];
+    if(!el)return;
+    const cur=el.querySelector(".half.top .num").textContent;
+    if(cur===c.v)return;
+    const flap=el.querySelector(".flap");
+    flap.querySelector(".num").textContent=cur;      // flap shows the OLD value as it folds away
+    el.querySelector(".half.top .num").textContent=c.v;    // new value already waiting underneath
+    el.querySelector(".half.bottom .num").textContent=c.v;
+    flap.classList.remove("flipping");void flap.offsetWidth;flap.classList.add("flipping");
+    flap.addEventListener("animationend",()=>{
+      flap.classList.remove("flipping");
+      flap.querySelector(".num").textContent=c.v;
+    },{once:true});
+  });
+}
+
+function charsFor(left){
+  // Branches on the FIXED mode decided at start() — never on live h/m/s —
+  // so the tile count never changes mid-countdown (see start()).
+  const s=Math.max(0,Math.floor(left/1000));
+  if(mode==="days"){
+    const days=Math.floor(s/86400),h=Math.floor(s%86400/3600);
+    return {plain:`${days}d ${fmt2(h)}:${fmt2(Math.floor(s%3600/60))}:${fmt2(s%60)}`};
+  }
+  if(mode==="hms"){
+    const h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
+    const hh=fmt2(h),mm=fmt2(m),ss=fmt2(sec);
+    return {tiles:[
+      {t:"tile",v:hh[0]},{t:"tile",v:hh[1]},{t:"sep",v:":"},
+      {t:"tile",v:mm[0]},{t:"tile",v:mm[1]},{t:"sep",v:":"},
+      {t:"tile",v:ss[0]},{t:"tile",v:ss[1]},
+    ]};
+  }
+  const m=Math.floor(s/60),sec=s%60;
+  const mm=fmt2(m),ss=fmt2(sec);
+  return {tiles:[
+    {t:"tile",v:mm[0]},{t:"tile",v:mm[1]},{t:"sep",v:":"},
+    {t:"tile",v:ss[0]},{t:"tile",v:ss[1]},
+  ]};
+}
+
 function render(){clearInterval(tick);tick=setInterval(draw,250);draw();}
+
+let lastSecond=null;
 function draw(){
   if(!end)return;
   const left=end-Date.now();
   $("evtLabel").textContent=label||"";
-  const d=$("digits");
   if(left<=0){
-    d.textContent="00:00";d.classList.add("done");
+    if(mode==="days"||!document.querySelector(".tile")){
+      $("tiles").innerHTML=`<div class="tile-day">00:00:00</div>`;
+    }else{
+      const chars=charsFor(0).tiles;
+      if(!document.querySelector(".tile"))buildTiles(chars);else updateTiles(chars);
+    }
     $("subLine").innerHTML="<b>Time.</b> This screen — and every screen with your link — just hit zero together.";
     $("barFill").style.width="100%";
     if(!fired){fired=true;beep();}
     return;
   }
-  d.classList.remove("done");
-  const s=Math.floor(left/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60,days=Math.floor(h/24);
-  d.innerHTML=days>0
-    ? `${days}<span class="unit">d</span>${fmt(h%24)}<span class="unit">h</span>${fmt(m)}<span class="unit">m</span>${fmt(sec)}<span class="unit">s</span>`
-    : (h>0?`${fmt(h)}:${fmt(m)}:${fmt(sec)}`:`${fmt(m)}:${fmt(sec)}`);
+  const c=charsFor(left);
+  const curSecond=Math.floor(left/1000);
+  if(c.plain){
+    $("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
+  }else{
+    if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
+    else updateTiles(c.tiles);
+    if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
+  }
+  lastSecond=curSecond;
   $("subLine").innerHTML=`ends at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";
   $("shareUrl").textContent=makeLink();
@@ -77,7 +183,12 @@ $("proBtn").addEventListener("click",e=>{pro=true;e.target.textContent="Pro unlo
 
 setDefaultUntil();
 if(readHash()){
-  total=end-Date.now();render();
+  // A device opening someone else's shared link never calls start(), so the
+  // tile-count mode has to be derived here too — from the remaining time at
+  // the moment THIS device loaded the link, then fixed from that point on.
+  total=end-Date.now();
+  mode = total>=86400000?"days":total>=3600000?"hms":"ms";
+  render();
 }else{
   /* Landing pages (see /timers/) set window.SAMESECOND_DEFAULT before this script runs,
      so the tool boots straight into that page's advertised duration. */

@@ -86,9 +86,10 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta property="og:title" content="{h1}">
 <meta property="og:description" content="{meta}">
 <meta property="og:type" content="website">
+<meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bebas+Neue&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
@@ -96,27 +97,26 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 
 <header>
   <a class="logo" href="../index.html">samesecond</a>
-  <div class="head-meta">no signup · no server · <b>the link is the sync</b></div>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
 
 <div class="wrap">
   <section class="hero">
-    <div class="hero-grid">
-      <div>
-        <span class="eyebrow">{eyebrow}</span>
-        <h1>{h1}</h1>
-        <p class="lede">{intro}</p>
-      </div>
-      <div class="hero-fact">
-        <span class="n">0</span>servers to run this
-      </div>
+    <div class="hero-inner">
+      <span class="eyebrow">{eyebrow}</span>
+      <h1>{h1}</h1>
+      <p class="lede">{intro}</p>
+    </div>
+    <div class="hero-fact">
+      <span class="n">00</span>servers to run this
     </div>
   </section>
 
   <section class="stage-section">
-    <div class="stage">
+    <div class="board">
+      <span class="bolt-br"></span><span class="bolt-bl"></span>
       <div class="evt" id="evtLabel"></div>
-      <div class="digits" id="digits"></div>
+      <div class="tiles" id="tiles"></div>
       <div class="sub" id="subLine"></div>
       <div class="bar"><i id="barFill"></i></div>
       <div class="stage-btns">
@@ -146,7 +146,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
           <button class="q" data-min="30">30 min</button>
           <button class="q" data-min="60">1 hour</button>
         </div>
-        <div class="grid2">
+        <div class="stack2">
           <div>
             <label for="customMin">Custom minutes</label>
             <input id="customMin" type="number" min="1" value="{minutes}">
@@ -158,7 +158,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
         </div>
         <label for="evtName">What's it for? (shown on every screen)</label>
         <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="{label}">
-        <div class="stage-btns" style="justify-content:flex-start;margin-top:20px">
+        <div class="stage-btns" style="margin-top:20px">
           <button class="btn primary" id="startBtn">Start countdown</button>
         </div>
         <div class="share-box" id="shareUrl"></div>
