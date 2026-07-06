@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tucked — everything your family would need, in one binder</title>
+<meta name="description" content="Build your family's 'if something happens to me' binder in an afternoon. Contacts, accounts, insurance, wishes — filled in your browser, printed at home. Nothing is ever uploaded.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;500;600;700&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --linen:#f7f2ea;
+  --linen-2:#efe7da;
+  --ink:#3b2f2a;
+  --ink-soft:#7a6a60;
+  --blue:#5b7b8c;
+  --blue-deep:#41606f;
+  --terra:#c96f4a;
+  --terra-soft:#f3ddd1;
+  --line:#e2d7c6;
+  --serif:"Instrument Serif",Georgia,serif;
+  --sans:"Karla",sans-serif;
+  --hand:"Caveat",cursive;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--linen);color:var(--ink);min-height:100vh}
+::selection{background:var(--terra);color:#fff}
+
+header{
+  padding:16px 32px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(247,242,234,.92);backdrop-filter:blur(8px);z-index:50;
+}
+.logo{font-family:var(--serif);font-size:1.5rem;display:flex;align-items:center;gap:9px}
+.logo .mark{width:26px;height:26px;border-radius:8px 8px 12px 12px;background:var(--blue);position:relative}
+.logo .mark::after{content:"";position:absolute;left:5px;right:5px;top:7px;height:3px;border-radius:2px;background:var(--linen)}
+.logo .mark::before{content:"";position:absolute;left:5px;right:9px;top:13px;height:3px;border-radius:2px;background:var(--terra)}
+.head-note{font-size:.76rem;color:var(--ink-soft)}
+.head-note b{color:var(--blue-deep)}
+
+/* hero */
+.hero{max-width:1160px;margin:0 auto;padding:64px 32px 44px;display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
+@media(max-width:980px){.hero{grid-template-columns:1fr}}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.6rem,5vw,4.2rem);line-height:1.04;letter-spacing:-.01em}
+.hero h1 em{font-style:italic;color:var(--terra)}
+.hero .lede{margin-top:20px;font-size:1.06rem;line-height:1.7;color:var(--ink-soft);max-width:33rem}
+.hero .lede b{color:var(--ink)}
+.pill-row{display:flex;gap:8px;margin-top:26px;flex-wrap:wrap}
+.pill{font-size:.72rem;font-weight:600;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;color:var(--ink-soft)}
+.pill.hot{border-color:var(--terra);color:var(--terra)}
+.proof{
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px 28px;
+  box-shadow:0 24px 50px -28px rgba(59,47,42,.35);transform:rotate(1.2deg);
+}
+.proof h3{font-family:var(--hand);font-size:1.4rem;color:var(--blue-deep);margin-bottom:10px}
+.proof .row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.84rem;color:var(--ink-soft)}
+.proof .row:last-child{border:none}
+.proof .row b{color:var(--ink);text-align:right}
+@keyframes rise{from{opacity:0;transform:translateY(16px) rotate(1.2deg)}to{opacity:1;transform:rotate(1.2deg)}}
+.proof{animation:rise .7s cubic-bezier(.2,.7,.2,1) both .15s}
+
+/* app */
+.app{max-width:1160px;margin:10px auto 90px;padding:0 32px;display:grid;grid-template-columns:400px 1fr;gap:34px;align-items:start}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+
+.builder{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 14px 38px -24px rgba(59,47,42,.3)}
+.builder-h{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+.ring{position:relative;width:52px;height:52px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:.82rem;color:var(--blue-deep)}
+.builder-h .t b{display:block;font-size:.95rem}
+.builder-h .t span{font-size:.74rem;color:var(--ink-soft)}
+.sections{padding:10px 12px 20px}
+.sec{border:1px solid transparent;border-radius:12px;margin-bottom:2px}
+.sec-h{
+  display:flex;align-items:center;gap:11px;padding:11px 12px;cursor:pointer;border-radius:12px;
+  transition:background .15s;user-select:none;
+}
+.sec-h:hover{background:var(--linen)}
+.sec.open{border-color:var(--line);background:var(--linen)}
+.sec-h .dot{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:.72rem;font-weight:700;background:var(--linen-2);color:var(--ink-soft);border:1px solid var(--line);transition:all .2s}
+.sec.done .dot{background:var(--blue);border-color:var(--blue);color:#fff}
+.sec-h .nm{font-weight:600;font-size:.88rem;flex:1}
+.sec-h .st{font-size:.68rem;color:var(--ink-soft)}
+.sec-h .pro-tag{font-size:.62rem;font-weight:700;letter-spacing:.06em;background:var(--terra);color:#fff;border-radius:99px;padding:2px 9px}
+.sec-b{display:none;padding:4px 14px 16px}
+.sec.open .sec-b{display:block}
+label{display:block;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 4px}
+input,textarea{
+  width:100%;padding:9px 11px;font-family:var(--sans);font-size:.9rem;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:9px;transition:border-color .15s,box-shadow .15s;
+}
+textarea{resize:vertical;min-height:56px}
+input:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,123,140,.15)}
+.locked-note{
+  font-size:.8rem;color:var(--ink-soft);background:var(--terra-soft);border-radius:10px;padding:12px 14px;line-height:1.55;
+}
+.locked-note button{border:none;background:none;color:var(--terra);font-weight:700;cursor:pointer;font-size:.8rem;text-decoration:underline}
+
+/* binder preview */
+.binder-col .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.toolbar .save-note{font-size:.72rem;color:var(--ink-soft)}
+.btn{
+  font-family:var(--sans);font-weight:700;font-size:.82rem;padding:11px 20px;border-radius:99px;
+  border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;transition:all .15s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px -8px rgba(59,47,42,.5)}
+.btn.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn.copied{background:var(--blue);border-color:var(--blue);color:#fff}
+.binder{
+  background:#fffdf9;border:1px solid var(--line);border-radius:6px;
+  padding:54px 58px 60px;min-height:600px;
+  box-shadow:0 2px 5px rgba(59,47,42,.08),0 28px 60px -24px rgba(59,47,42,.35);
+  position:relative;
+}
+.binder::before{ /* binder rings */
+  content:"";position:absolute;left:16px;top:0;bottom:0;width:1px;
+  background:repeating-linear-gradient(var(--line) 0 1px,transparent 1px 100%) ;
+  border-left:14px solid transparent;
+  background-clip:content-box;
+}
+.binder .holes{position:absolute;left:10px;top:70px;bottom:60px;width:14px;display:flex;flex-direction:column;justify-content:space-between}
+.binder .holes i{width:13px;height:13px;border-radius:50%;background:var(--linen);border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(59,47,42,.2)}
+.b-cover{text-align:center;border-bottom:1px solid var(--line);padding-bottom:30px;margin-bottom:30px}
+.b-cover .small{font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-soft)}
+.b-cover h2{font-family:var(--serif);font-weight:400;font-size:2.3rem;margin:10px 0 4px}
+.b-cover h2 em{font-style:italic;color:var(--terra)}
+.b-cover .fam{font-family:var(--hand);font-size:1.5rem;color:var(--blue-deep)}
+.b-sec{margin-bottom:26px;page-break-inside:avoid}
+.b-sec h3{
+  font-family:var(--serif);font-weight:400;font-size:1.3rem;color:var(--blue-deep);
+  border-bottom:2px solid var(--terra);display:inline-block;padding-bottom:2px;margin-bottom:12px;
+}
+.b-sec .item{display:grid;grid-template-columns:190px 1fr;gap:12px;padding:7px 0;border-bottom:1px dotted var(--line);font-size:.88rem}
+.b-sec .item .k{color:var(--ink-soft);font-size:.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding-top:2px}
+.b-sec .item .v{white-space:pre-wrap;line-height:1.55}
+.b-sec .empty{font-size:.82rem;color:#b9aa9b;font-style:italic}
+.b-foot{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);font-size:.7rem;color:var(--ink-soft);display:flex;justify-content:space-between;gap:10px}
+
+/* paywall */
+.pwrap{position:relative}
+.paywall{position:absolute;inset:0;display:none;place-items:center;background:rgba(247,242,234,.45);backdrop-filter:blur(7px);border-radius:6px;z-index:8}
+.paywall.show{display:grid}
+.pw-card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 34px 80px -24px rgba(59,47,42,.5);padding:36px 40px;max-width:410px;text-align:center;transform:rotate(-.8deg)}
+.pw-card h4{font-family:var(--serif);font-weight:400;font-size:1.9rem}
+.pw-card h4 em{font-style:italic;color:var(--terra)}
+.pw-card p{font-size:.88rem;color:var(--ink-soft);line-height:1.65;margin:12px 0 4px}
+.pw-card .price{font-family:var(--serif);font-size:2.6rem;margin:14px 0 0}
+.pw-card .price small{font-size:.9rem;color:var(--ink-soft);font-family:var(--sans)}
+.pw-card ul{list-style:none;text-align:left;font-size:.84rem;margin:16px 0 20px;line-height:2.05}
+.pw-card ul li::before{content:"✓  ";color:var(--blue);font-weight:700}
+.pw-note{font-size:.62rem;color:#b9aa9b;margin-top:12px;text-transform:uppercase;letter-spacing:.1em}
+
+footer{border-top:1px solid var(--line);padding:38px 32px;font-size:.78rem;color:var(--ink-soft);line-height:1.9}
+.foot-in{max-width:1160px;margin:0 auto;display:flex;justify-content:space-between;gap:26px;flex-wrap:wrap}
+.foot-in .fb{font-family:var(--serif);font-size:1.2rem;color:var(--ink)}
+
+@media print{
+  header,.hero,.builder,.toolbar,footer,.paywall{display:none!important}
+  body{background:#fff}
+  .app{display:block;margin:0;padding:0;max-width:none}
+  .binder{border:none;box-shadow:none;padding:14mm;min-height:0}
+}
+@media(max-width:640px){.binder{padding:38px 26px 44px}.b-sec .item{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="mark"></span> Tucked</div>
+  <div class="head-note">Fills in your browser · <b>nothing is ever uploaded</b> · print it at home</div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>If something happened to you, <em>would they know where anything is?</em></h1>
+    <p class="lede">The bank accounts. The insurance policy. The Wi-Fi password. The person to call first. <b>Tucked</b> walks you through one calm afternoon of filling in the blanks — and turns it into a beautiful printed binder your family can pull off the shelf on the worst day of their lives.</p>
+    <div class="pill-row">
+      <span class="pill hot">100% private — works offline, nothing leaves your device</span>
+      <span class="pill">No account</span>
+      <span class="pill">Print-ready</span>
+      <span class="pill">Autosaves on this device</span>
+    </div>
+  </div>
+  <div class="proof">
+    <h3>Why this exists</h3>
+    <div class="row"><span>Copies of one PDF version sold on Etsy</span><b>5,000+</b></div>
+    <div class="row"><span>What those static PDFs cost</span><b>$15–30</b></div>
+    <div class="row"><span>Cloud "estate vaults" charge</span><b>$75/yr</b></div>
+    <div class="row"><span>Where your passwords go with Tucked</span><b>nowhere</b></div>
+  </div>
+</section>
+
+<main class="app">
+  <!-- ============ BUILDER ============ -->
+  <div class="builder">
+    <div class="builder-h">
+      <div class="ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="22" fill="none" stroke="var(--linen-2)" stroke-width="5"/>
+          <circle id="ringArc" cx="26" cy="26" r="22" fill="none" stroke="var(--blue)" stroke-width="5"
+                  stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="138.2" style="transition:stroke-dashoffset .4s"/>
+        </svg>
+        <div class="pct" id="ringPct">0%</div>
+      </div>
+      <div class="t"><b>Your binder</b><span id="ringLabel">Start anywhere — it all saves as you type.</span></div>
+    </div>
+    <div class="sections" id="sections"></div>
+  </div>
+
+  <!-- ============ BINDER PREVIEW ============ -->
+  <div class="binder-col">
+    <div class="toolbar">
+      <div class="save-note">✎ Live preview — this is the actual page your family gets</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="clearBtn">Start over</button>
+        <button class="btn primary" onclick="window.print()">Print my binder</button>
+      </div>
+    </div>
+    <div class="pwrap">
+      <div class="binder" id="binder"></div>
+      <div class="paywall" id="paywall">
+        <div class="pw-card">
+          <h4>Finish the <em>whole</em> binder</h4>
+          <p>The free sections cover the essentials. The complete binder adds the chapters families say matter most — once, forever, still 100% offline.</p>
+          <div class="price">$24 <small>one-time · yours for life</small></div>
+          <ul>
+            <li>Digital life — passwords, phone PIN, photo archives</li>
+            <li>Funeral &amp; farewell wishes</li>
+            <li>Letters to your loved ones</li>
+            <li>Printed cover, spine &amp; "where to find it" index</li>
+            <li>Yearly update reminder checklist</li>
+          </ul>
+          <button class="btn primary" id="unlockBtn">Unlock with Stripe →</button>
+          <div class="pw-note">Prototype — button simulates checkout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-in">
+    <div><div class="fb">Tucked</div>Made for the people you love. Your answers are stored only in this browser — export and clear them any time.</div>
+    <div>Not a will or legal document — it's the map to everything else.<br>Keep the printed copy somewhere your family knows about.</div>
+  </div>
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let pro=false, openSec="contacts";
+
+const SECTIONS=[
+ {id:"contacts",name:"Who to call first",free:true,fields:[
+   ["emg1","First call — name & number","Maya (sister) — 555 0141"],
+   ["emg2","Second call — name & number",""],
+   ["doctor","Family doctor",""],
+   ["lawyer","Attorney / notary",""],
+   ["employer","Employer HR contact",""]]},
+ {id:"money",name:"Money & accounts",free:true,fields:[
+   ["bank","Bank accounts (bank, type, last 4 digits)","Chase — checking — …4412"],
+   ["retire","Retirement / investments",""],
+   ["advisor","Financial advisor",""],
+   ["debts","Loans & credit cards",""]]},
+ {id:"insurance",name:"Insurance",free:true,fields:[
+   ["life","Life insurance (company & policy #)",""],
+   ["health","Health insurance",""],
+   ["homeins","Home / auto policies",""]]},
+ {id:"home",name:"Home & vehicles",free:true,fields:[
+   ["deed","Where the deed / lease is",""],
+   ["utilities","Utilities & how they're paid",""],
+   ["vehicles","Vehicles & titles",""],
+   ["keys","Spare keys / safe / codes location",""]]},
+ {id:"docs",name:"Important documents",free:true,fields:[
+   ["will","Will / trust — where it lives",""],
+   ["ids","Passports & birth certificates",""],
+   ["tax","Tax records & accountant",""]]},
+ {id:"digital",name:"Digital life",free:false,fields:[
+   ["passmgr","Password manager & master hint",""],
+   ["phone","Phone PIN / unlock note",""],
+   ["email","Primary email accounts",""],
+   ["photos","Where the photos live",""],
+   ["social","Social accounts to close or memorialize",""]]},
+ {id:"wishes",name:"Funeral & farewell wishes",free:false,fields:[
+   ["service","The kind of goodbye I'd want",""],
+   ["burial","Burial / cremation wishes",""],
+   ["music","Music, readings, small details",""]]},
+ {id:"letters",name:"Letters to loved ones",free:false,fields:[
+   ["letter1","To…",""],
+   ["letter2","And to…",""]]}
+];
+
+const store={};
+function fieldVal(fid){return (store[fid]||"").trim()}
+
+function buildSections(){
+  $("sections").innerHTML=SECTIONS.map(s=>{
+    const locked=!s.free&&!pro;
+    const body=locked
+      ?`<div class="locked-note">This chapter is part of the complete binder. <button data-unlock>Unlock everything — $24 once</button></div>`
+      :s.fields.map(([fid,lab,ph])=>`<label for="${fid}">${lab}</label><textarea id="${fid}" data-fid="${fid}" placeholder="${ph}" rows="1">${store[fid]||""}</textarea>`).join("");
+    return `<div class="sec ${openSec===s.id?"open":""}" data-sec="${s.id}">
+      <div class="sec-h">
+        <span class="dot">${s.free||pro?"✓":"✦"}</span>
+        <span class="nm">${s.name}</span>
+        ${!s.free?`<span class="pro-tag">${pro?"UNLOCKED":"PLUS"}</span>`:`<span class="st" data-count="${s.id}"></span>`}
+      </div>
+      <div class="sec-b">${body}</div>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".sec-h").forEach(h=>h.addEventListener("click",()=>{
+    const id=h.parentElement.dataset.sec;
+    openSec=openSec===id?null:id;
+    document.querySelectorAll(".sec").forEach(x=>x.classList.toggle("open",x.dataset.sec===openSec));
+    render(false);
+  }));
+  document.querySelectorAll("textarea[data-fid]").forEach(t=>{
+    autosize(t);
+    t.addEventListener("input",()=>{store[t.dataset.fid]=t.value;autosize(t);render(false);});
+  });
+  document.querySelectorAll("[data-unlock]").forEach(b=>b.addEventListener("click",unlock));
+}
+function autosize(t){t.style.height="auto";t.style.height=Math.max(38,t.scrollHeight)+"px"}
+
+function render(rebuild=true){
+  if(rebuild)buildSections();
+  // progress
+  const avail=SECTIONS.filter(s=>s.free||pro).flatMap(s=>s.fields);
+  const filled=avail.filter(([fid])=>fieldVal(fid)).length;
+  const pct=avail.length?Math.round(filled/avail.length*100):0;
+  $("ringArc").style.strokeDashoffset=138.2*(1-pct/100);
+  $("ringPct").textContent=pct+"%";
+  $("ringLabel").textContent=pct===0?"Start anywhere — it all saves as you type."
+    :pct<50?"Good start — every line is one less thing they'd have to hunt for."
+    :pct<100?"More than halfway. Your family would thank you already."
+    :"Complete. Print it and tell someone where it lives.";
+  // per-section done state
+  SECTIONS.forEach(s=>{
+    const el=document.querySelector(`.sec[data-sec="${s.id}"]`);
+    if(!el)return;
+    const f=s.fields.filter(([fid])=>fieldVal(fid)).length;
+    el.classList.toggle("done",f>0);
+    const c=el.querySelector(`[data-count]`);
+    if(c)c.textContent=f?`${f}/${s.fields.length} filled`:"";
+  });
+  // binder
+  const fam=fieldVal("emg1")?"":"";
+  const secsHTML=SECTIONS.filter(s=>s.free||pro).map(s=>{
+    const rows=s.fields.map(([fid,lab])=>{
+      const v=fieldVal(fid);
+      return v?`<div class="item"><div class="k">${lab}</div><div class="v">${v.replace(/</g,"&lt;")}</div></div>`:"";
+    }).join("");
+    return `<div class="b-sec"><h3>${s.name}</h3>${rows||`<div class="empty">Nothing here yet — your family would be guessing.</div>`}</div>`;
+  }).join("");
+  $("binder").innerHTML=`
+    <div class="holes"><i></i><i></i><i></i></div>
+    <div class="b-cover">
+      <div class="small">If you're reading this, start here</div>
+      <h2>Everything you need is <em>tucked</em> in here.</h2>
+      <div class="fam">— with love, prepared ${new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"})}</div>
+    </div>
+    ${secsHTML}
+    <div class="b-foot"><span>Prepared with Tucked — tucked.page</span><span>Review yearly · last updated ${new Date().toLocaleDateString()}</span></div>`;
+  $("paywall").classList.toggle("show", openSec&&!pro&&SECTIONS.some(s=>s.id===openSec&&!s.free));
+}
+
+function unlock(){pro=true;render();}
+$("unlockBtn").addEventListener("click",unlock);
+$("clearBtn").addEventListener("click",()=>{
+  if(confirm("Clear everything you've entered on this device?")){Object.keys(store).forEach(k=>delete store[k]);render();}
+});
+render();
+</script>
+</body>
+</html>

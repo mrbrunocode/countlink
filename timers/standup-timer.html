@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Standup Timer — Keep Daily Standups Short | samesecond</title>
+<meta name="description" content="A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.">
+<link rel="canonical" href="https://samesecond.example/timers/standup-timer.html">
+<meta property="og:title" content="Standup Timer — Keep Daily Standups Short">
+<meta property="og:description" content="A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">samesecond</a>
+  <div class="head-meta">no signup · no server · <b>the link is the sync</b></div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">Standup Timer</span>
+        <h1>Standup Timer — Keep Daily Standups Short</h1>
+        <p class="lede">The easiest way to keep a daily standup to ten minutes is a countdown everyone can see. Set the length, drop the link in your team channel, and project it during the call.</p>
+      </div>
+      <div class="hero-fact">
+        <span class="n">0</span>servers to run this
+      </div>
+    </div>
+  </section>
+
+  <section class="stage-section">
+    <div class="stage">
+      <div class="evt" id="evtLabel"></div>
+      <div class="digits" id="digits"></div>
+      <div class="sub" id="subLine"></div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="stage-btns">
+        <button class="btn primary" id="shareBtn">Copy sync link</button>
+        <button class="btn" id="fsBtn">Fullscreen</button>
+        <button class="btn" id="soundBtn">Sound: on</button>
+      </div>
+      <div class="sync-note"><span class="dot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
+    </div>
+  </section>
+
+  <div class="ad-slot">
+    <div class="ad-frame" id="adFrame">Advertisement — 728×90 responsive slot (AdSense unit goes here)</div>
+  </div>
+
+  <section class="setup-section">
+    <div class="setup">
+      <div class="panel">
+        <h2>Change the countdown</h2>
+        <div class="hint">Already running at 10 minutes above — adjust it here if you need something else.</div>
+        <label>Quick timer</label>
+        <div class="quick">
+          <button class="q" data-min="1">1 min</button>
+          <button class="q" data-min="5">5 min</button>
+          <button class="q" data-min="10">10 min</button>
+          <button class="q" data-min="15">15 min</button>
+          <button class="q" data-min="30">30 min</button>
+          <button class="q" data-min="60">1 hour</button>
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="customMin">Custom minutes</label>
+            <input id="customMin" type="number" min="1" value="10">
+          </div>
+          <div>
+            <label for="untilTime">…or until a date &amp; time</label>
+            <input id="untilTime" type="datetime-local">
+          </div>
+        </div>
+        <label for="evtName">What's it for? (shown on every screen)</label>
+        <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Standup over">
+        <div class="stage-btns" style="justify-content:flex-start;margin-top:20px">
+          <button class="btn primary" id="startBtn">Start countdown</button>
+        </div>
+        <div class="share-box" id="shareUrl"></div>
+      </div>
+
+      <div class="panel pro-panel">
+        <h2>Pro <span class="pro-tag">for facilitators</span></h2>
+        <div class="hint">For people who run rooms for a living.</div>
+        <ul>
+          <li>Your logo and colors on every countdown you share</li>
+          <li>No ads on your links — clean screens in front of clients</li>
+          <li>Agenda sequences: talk → break → Q&amp;A, one link</li>
+          <li>Custom end sound and on-zero message</li>
+        </ul>
+        <div class="pro-price">$5<small> / month, per organizer</small></div>
+        <button class="pro-link" id="proBtn">Unlock Pro →</button>
+        <div class="proto-note">Prototype — button simulates checkout</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="links-section">
+    <div class="links-grid">
+      <div class="links-col">
+        <h4>Set a timer for</h4>
+        <ul>
+          <li><a href="5-minute-timer.html">5 Minute Timer</a></li>
+          <li><a href="10-minute-timer.html">10 Minute Timer</a></li>
+          <li><a href="15-minute-timer.html">15 Minute Timer</a></li>
+          <li><a href="20-minute-timer.html">20 Minute Timer</a></li>
+          <li><a href="25-minute-timer.html">25 Minute Timer (Pomodoro)</a></li>
+          <li><a href="30-minute-timer.html">30 Minute Timer</a></li>
+          <li><a href="45-minute-timer.html">45 Minute Timer</a></li>
+          <li><a href="60-minute-timer.html">1 Hour Timer</a></li>
+        </ul>
+      </div>
+      <div class="links-col">
+        <h4>Built for</h4>
+        <ul>
+          <li><a href="exam-timer.html">Exam Timer</a></li>
+          <li><a href="classroom-timer.html">Classroom Timer</a></li>
+          <li><a href="webinar-countdown.html">Webinar Countdown</a></li>
+          <li><a href="standup-timer.html">Standup Timer</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="why">
+    <div class="why-grid">
+      <div class="why-item">
+        <span class="num">01</span>
+        <h3>Why links sync themselves</h3>
+        <p>Your link carries the end-moment as a timestamp. Every device counts down to that same instant using its own clock — no server, no lag, no account to create.</p>
+      </div>
+      <div class="why-item">
+        <span class="num">02</span>
+        <h3>Built to be projected</h3>
+        <p>Fullscreen turns any screen into a wall clock, readable from the back row, with a progress line the whole room can track without asking "how much longer?"</p>
+      </div>
+      <div class="why-item">
+        <span class="num">03</span>
+        <h3>Free stays free</h3>
+        <p>A timer costs nothing to run, so it costs you nothing to use. Pro exists only for the people who need their own name on the screen.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap foot-in">
+    <div><div class="fb">samesecond</div>A timer you can hand to a room. · <a href="../privacy.html" style="text-decoration:underline">Privacy</a></div>
+    <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
+  </div>
+</footer>
+
+<script>window.SAMESECOND_DEFAULT={minutes:10,label:"Standup over"};</script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

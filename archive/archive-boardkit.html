@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoardKit — State-compliant HOA notices in 60 seconds</title>
+<meta name="description" content="Free HOA violation notice, fine assessment and delinquent dues letter generator for self-managed boards. Checks cure periods, fine caps and hearing requirements against your state's statute. No signup, nothing stored.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#faf7f0;
+  --cream-2:#f1ecdf;
+  --pine:#12352a;
+  --pine-2:#1d4a3b;
+  --pine-3:#2c6a54;
+  --amber:#d9822b;
+  --amber-soft:#f5e3cd;
+  --brick:#b3402a;
+  --mist:#e6e1d2;
+  --ok:#2c6a54;
+  --disp:"Bricolage Grotesque",sans-serif;
+  --body:"Public Sans",sans-serif;
+  --mono:"IBM Plex Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--body);background:var(--cream);color:var(--pine);min-height:100vh}
+::selection{background:var(--amber);color:#fff}
+
+/* header */
+header{
+  background:var(--pine);color:var(--cream);
+  padding:13px 30px;display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;z-index:60;
+}
+.logo{font-family:var(--disp);font-weight:800;font-size:1.3rem;display:flex;align-items:center;gap:10px}
+.logo svg{flex:none}
+.tagline{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:#9fc4b3}
+.tagline b{color:var(--amber);font-weight:600}
+
+/* hero */
+.hero{background:var(--pine);color:var(--cream);padding:52px 30px 130px;position:relative;overflow:hidden}
+.hero::after{ /* rooftops */
+  content:"";position:absolute;left:0;right:0;bottom:-2px;height:90px;
+  background:
+    linear-gradient(135deg,transparent 49%,var(--cream) 50%) 0 0/60px 60px repeat-x,
+    linear-gradient(225deg,transparent 49%,var(--cream) 50%) 30px 0/60px 60px repeat-x,
+    linear-gradient(var(--cream),var(--cream)) 0 58px/100% 40px no-repeat;
+  opacity:.99;
+}
+.hero-in{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+.hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(2.4rem,4.6vw,3.9rem);line-height:1.02;letter-spacing:-.02em}
+.hero h1 .hl{color:var(--amber)}
+.hero p.lede{margin-top:18px;font-size:1.05rem;line-height:1.65;color:#cfe0d6;max-width:32rem}
+.hero .chips{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;border:1px solid #3c6b58;color:#bfd8cb;padding:6px 12px;border-radius:99px}
+.chip b{color:var(--amber)}
+.evidence{
+  background:var(--pine-2);border:1px solid #3c6b58;border-radius:14px;padding:22px 24px;
+  font-size:.85rem;line-height:1.7;color:#cfe0d6;
+}
+.evidence h3{font-family:var(--mono);font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.evidence .row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed #3c6b58}
+.evidence .row:last-child{border:none}
+.evidence .row b{color:#fff;text-align:right}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hero-in>*{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.hero-in>*:nth-child(2){animation-delay:.12s}
+
+/* app */
+.app{max-width:1180px;margin:-40px auto 80px;padding:0 30px;display:grid;grid-template-columns:430px 1fr;gap:30px;align-items:start;position:relative;z-index:5}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.hero-in{grid-template-columns:1fr}}
+
+.card{background:#fff;border:1px solid var(--mist);border-radius:16px;box-shadow:0 2px 6px rgba(18,53,42,.06),0 18px 44px -18px rgba(18,53,42,.18)}
+.card-h{padding:16px 22px;border-bottom:1px solid var(--mist);display:flex;justify-content:space-between;align-items:center}
+.card-h h2{font-family:var(--disp);font-weight:800;font-size:1.05rem}
+.card-h .n{font-family:var(--mono);font-size:.62rem;color:var(--amber);letter-spacing:.14em;text-transform:uppercase}
+.card-b{padding:20px 22px 24px}
+
+/* letter type tabs */
+.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-btn{
+  text-align:left;border:1.5px solid var(--mist);border-radius:10px;background:var(--cream);
+  padding:11px 13px;cursor:pointer;font-family:var(--body);transition:all .15s;position:relative;
+}
+.type-btn .t{font-weight:700;font-size:.82rem;display:block}
+.type-btn .d{font-size:.7rem;color:#6d7c72;display:block;margin-top:2px}
+.type-btn:hover{border-color:var(--pine-3)}
+.type-btn.active{background:var(--pine);border-color:var(--pine)}
+.type-btn.active .t{color:#fff}.type-btn.active .d{color:#9fc4b3}
+.type-btn .pro{position:absolute;top:-8px;right:8px;background:var(--amber);color:#fff;font-family:var(--mono);font-size:.56rem;font-weight:600;letter-spacing:.08em;padding:2px 8px;border-radius:99px}
+
+label{display:block;font-family:var(--mono);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#5c6b61;margin:15px 0 5px}
+input,select,textarea{
+  width:100%;padding:9px 11px;font-family:var(--body);font-size:.92rem;color:var(--pine);
+  background:var(--cream);border:1.5px solid var(--mist);border-radius:8px;
+  transition:border-color .15s, box-shadow .15s;
+}
+textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pine-3);box-shadow:0 0 0 3px rgba(44,106,84,.14)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+
+/* statute box */
+.statute{
+  margin-top:18px;border:1.5px solid var(--amber);background:var(--amber-soft);
+  border-radius:10px;padding:13px 15px;font-size:.78rem;line-height:1.55;
+}
+.statute h4{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.statute .cite{font-family:var(--mono);font-size:.68rem;color:#8a5a1e}
+
+/* compliance rail */
+.comp{margin-top:18px}
+.comp h4{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:#5c6b61;margin-bottom:8px}
+.check{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border-radius:8px;font-size:.8rem;line-height:1.45;margin-bottom:4px}
+.check .ic{flex:none;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#fff;margin-top:1px}
+.check.pass{background:#eaf2ec}.check.pass .ic{background:var(--ok)}
+.check.fail{background:#f8e9e4}.check.fail .ic{background:var(--brick)}
+.check.fail{color:#7c2d1c}
+
+/* letter */
+.letter-col{position:relative}
+.score{
+  display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--mist);border-radius:12px;
+  padding:12px 18px;margin-bottom:14px;box-shadow:0 2px 6px rgba(18,53,42,.06);
+}
+.score .dial{
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--disp);font-weight:800;font-size:.95rem;color:#fff;flex:none;transition:background .3s;
+}
+.score .txt{font-size:.82rem;line-height:1.4;color:#5c6b61}
+.score .txt b{color:var(--pine);font-size:.9rem;display:block}
+.letter{
+  background:#fff;border:1px solid var(--mist);border-radius:4px;
+  padding:56px 60px 62px;min-height:620px;
+  font-family:Georgia,'Times New Roman',serif;font-size:.95rem;line-height:1.8;color:#20241f;
+  box-shadow:0 2px 6px rgba(18,53,42,.08),0 24px 50px -20px rgba(18,53,42,.25);
+  position:relative;
+}
+.letter .lh{border-bottom:2.5px solid var(--pine);padding-bottom:14px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}
+.letter .lh .assoc{font-family:var(--disp);font-weight:800;font-size:1.25rem;color:var(--pine)}
+.letter .lh .assoc small{display:block;font-family:var(--mono);font-weight:400;font-size:.62rem;color:#6d7c72;letter-spacing:.08em;margin-top:3px}
+.letter .lh .kind{font-family:var(--mono);font-size:.64rem;text-align:right;color:#6d7c72;line-height:1.8}
+.letter .lh .kind b{color:var(--brick)}
+.letter h3{font-family:var(--disp);font-size:1.02rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin:22px 0 14px;color:var(--pine)}
+.letter p{margin-bottom:13px}
+.letter .box{border:1.5px solid var(--mist);border-left:4px solid var(--amber);background:var(--cream);padding:12px 16px;margin:16px 0;font-size:.88rem}
+.letter table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem}
+.letter td{padding:7px 4px;border-bottom:1px solid var(--mist)}
+.letter td:last-child{text-align:right;font-family:var(--mono);font-size:.8rem}
+.letter tr.sum td{border-top:2px solid var(--pine);border-bottom:none;font-weight:700}
+.letter .sig{margin-top:34px}
+.letter .sig .nm{font-family:var(--disp);font-weight:600;font-size:1.05rem;margin-top:26px}
+.letter .fine-print{margin-top:26px;font-size:.72rem;color:#6d7c72;border-top:1px solid var(--mist);padding-top:12px;font-family:var(--body)}
+
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn{
+  font-family:var(--disp);font-weight:600;font-size:.85rem;padding:11px 20px;border-radius:10px;
+  border:1.5px solid var(--pine);background:#fff;color:var(--pine);cursor:pointer;transition:all .15s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px -6px rgba(18,53,42,.4)}
+.btn.primary{background:var(--pine);color:#fff}
+.btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
+
+/* paywall */
+.paywall{position:absolute;inset:0;display:none;place-items:center;background:rgba(250,247,240,.5);backdrop-filter:blur(8px);border-radius:4px;z-index:8}
+.paywall.show{display:grid}
+.pw-card{background:#fff;border:1px solid var(--mist);border-radius:18px;box-shadow:0 30px 70px -20px rgba(18,53,42,.45);padding:34px 38px;max-width:400px;text-align:center}
+.pw-card .badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber);border-radius:99px;padding:4px 12px;display:inline-block}
+.pw-card h4{font-family:var(--disp);font-weight:800;font-size:1.5rem;margin:14px 0 8px}
+.pw-card p{font-size:.86rem;color:#5c6b61;line-height:1.6}
+.pw-card .price{font-family:var(--disp);font-weight:800;font-size:2.4rem;color:var(--pine);margin:16px 0 2px}
+.pw-card .price small{font-size:.85rem;color:#5c6b61;font-weight:400}
+.pw-card ul{list-style:none;text-align:left;font-size:.82rem;margin:16px 0 20px;line-height:2.05}
+.pw-card ul li::before{content:"✓  ";color:var(--ok);font-weight:700}
+.pw-note{font-family:var(--mono);font-size:.58rem;color:#8a958d;margin-top:12px;text-transform:uppercase;letter-spacing:.1em}
+
+footer{background:var(--pine);color:#9fc4b3;padding:36px 30px;font-size:.78rem;line-height:1.9}
+.foot-in{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.foot-in .fb{font-family:var(--disp);font-weight:800;font-size:1.05rem;color:var(--cream)}
+
+@media print{
+  header,.hero,.builder-col,.score,.actions,footer,.paywall{display:none!important}
+  .app{display:block;margin:0;padding:0;max-width:none}
+  .letter{border:none;box-shadow:none;padding:18mm;min-height:0}
+}
+@media(max-width:640px){.letter{padding:30px 22px}.hero{padding-bottom:110px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 3 2 12h4v11h6v-7h2v7h6V12h4L13 3z" fill="#d9822b"/></svg>
+    BoardKit
+  </div>
+  <div class="tagline">HOA notices · <b>state-law checked</b> · nothing leaves your browser</div>
+</header>
+
+<section class="hero">
+  <div class="hero-in">
+    <div>
+      <h1>The HOA letter that <span class="hl">holds up</span> — written in 60 seconds.</h1>
+      <p class="lede">Violation notices, fine assessments and delinquent-dues letters for self-managed boards. BoardKit drafts the letter <em>and</em> checks it live against your state's statute — cure periods, fine caps, hearing requirements — so enforcement doesn't get thrown out on a technicality.</p>
+      <div class="chips">
+        <span class="chip">No signup</span>
+        <span class="chip">No data stored — <b>100% in-browser</b></span>
+        <span class="chip">Print-ready PDF</span>
+      </div>
+    </div>
+    <div class="evidence">
+      <h3>Why boards use this</h3>
+      <div class="row"><span>US community associations</span><b>~370,000</b></div>
+      <div class="row"><span>Self-managed (no mgmt company)</span><b>30–40%</b></div>
+      <div class="row"><span>Fines voided for bad notice</span><b>routinely</b></div>
+      <div class="row"><span>A single attorney letter costs</span><b>$250–500</b></div>
+    </div>
+  </div>
+</section>
+
+<main class="app">
+  <!-- ================= BUILDER ================= -->
+  <div class="card builder-col">
+    <div class="card-h"><h2>Build your notice</h2><span class="n">Free · Step 1</span></div>
+    <div class="card-b">
+      <label>Notice type</label>
+      <div class="types" id="types">
+        <button class="type-btn active" data-type="courtesy"><span class="t">Courtesy Notice</span><span class="d">First contact, friendly</span></button>
+        <button class="type-btn" data-type="formal"><span class="t">Formal Violation</span><span class="d">Cure deadline + fine warning</span></button>
+        <button class="type-btn" data-type="fine"><span class="pro">PRO</span><span class="t">Fine Assessment</span><span class="d">Hearing + fine schedule</span></button>
+        <button class="type-btn" data-type="dues"><span class="t">Delinquent Dues</span><span class="d">Balance + late charges</span></button>
+      </div>
+
+      <label for="state">State</label>
+      <select id="state">
+        <option value="CA">California — Davis-Stirling Act</option>
+        <option value="TX" selected>Texas — Property Code §209</option>
+        <option value="FL">Florida — Statutes §720</option>
+        <option value="AZ">Arizona — ARS §33-1803</option>
+        <option value="NC">North Carolina — §47F</option>
+        <option value="XX">Other state — governing documents</option>
+      </select>
+
+      <div class="grid2">
+        <div><label for="hoaName">Association name</label><input id="hoaName" value="Oak Hollow HOA"></div>
+        <div><label for="boardRole">Signed by</label><input id="boardRole" value="Jane Rivera, Board Secretary"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="owner">Homeowner</label><input id="owner" value="Mr. & Mrs. Thompson"></div>
+        <div><label for="lot">Property / lot</label><input id="lot" value="114 Sycamore Ct (Lot 27)"></div>
+      </div>
+
+      <div id="violFields">
+        <label for="violDesc">Violation</label>
+        <textarea id="violDesc">Trailer parked on the street in front of the residence for more than 72 hours</textarea>
+        <div class="grid2">
+          <div><label for="ccr">Governing rule (CC&amp;R)</label><input id="ccr" value="Article VIII, §8.3 — Vehicles & Parking"></div>
+          <div><label for="cureDays">Days to cure</label><input id="cureDays" type="number" value="30" min="1"></div>
+        </div>
+        <div class="grid2" id="fineFields" style="display:none">
+          <div><label for="fineAmt">Fine amount ($)</label><input id="fineAmt" type="number" value="100" min="0"></div>
+          <div><label for="hearingDays">Hearing in (days)</label><input id="hearingDays" type="number" value="14" min="0"></div>
+        </div>
+      </div>
+
+      <div id="duesFields" style="display:none">
+        <div class="grid2">
+          <div><label for="duesAmt">Assessments owed ($)</label><input id="duesAmt" type="number" value="840" min="0"></div>
+          <div><label for="duesMonths">Months delinquent</label><input id="duesMonths" type="number" value="3" min="1"></div>
+        </div>
+        <div class="grid2">
+          <div><label for="lateFee">Late fee charged ($)</label><input id="lateFee" type="number" value="30" min="0"></div>
+          <div><label for="payByDays">Pay within (days)</label><input id="payByDays" type="number" value="30" min="1"></div>
+        </div>
+      </div>
+
+      <div class="statute" id="statute"></div>
+      <div class="comp"><h4>Compliance check — live</h4><div id="checks"></div></div>
+    </div>
+  </div>
+
+  <!-- ================= LETTER ================= -->
+  <div class="letter-col">
+    <div class="score" id="scoreBar"></div>
+    <div style="position:relative">
+      <div class="letter" id="letter"></div>
+      <div class="paywall" id="paywall">
+        <div class="pw-card">
+          <span class="badge">Board Pack</span>
+          <h4>Unlock Fine Assessments</h4>
+          <p>The letter that levies the fine is the one owners' attorneys attack. Get the hearing-compliant version, plus every letter type, for your whole board.</p>
+          <div class="price">$49 <small>/ year per association</small></div>
+          <ul>
+            <li>Fine assessment + hearing notices, all 50 states</li>
+            <li>Certified-mail &amp; hearing checklist</li>
+            <li>Escalation tracker for repeat violations</li>
+            <li>Unlimited letters, entire board can use it</li>
+          </ul>
+          <button class="btn primary" id="unlockBtn">Unlock with Stripe →</button>
+          <div class="pw-note">Prototype — button simulates checkout</div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="copyBtn">Copy letter</button>
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" id="txtBtn">Download .txt</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-in">
+    <div><div class="fb">BoardKit</div>Built for volunteer boards. Everything runs client-side — no homeowner data is ever transmitted or stored.</div>
+    <div>Statute summaries are simplified guidance, not legal advice.<br>Always confirm against your governing documents and current state law.</div>
+  </div>
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let type="courtesy", proUnlocked=false;
+
+/* Simplified statutory rules per state (prototype dataset) */
+const RULES={
+  CA:{name:"California",cite:"Civ. Code §§5850–5855 (Davis-Stirling)",cure:null,fineCap:null,hearing:10,
+      note:"Fines require board hearing with at least 10 days' written notice; the adopted fine schedule must have been distributed to members. Discipline imposed without a compliant hearing is unenforceable.",
+      dues:"Late fee max: greater of $10 or 10% of the delinquent assessment; interest up to 12% p.a. starting 30 days after due date (Civ. Code §5650)."},
+  TX:{name:"Texas",cite:"Prop. Code §209.006–.007",cure:30,fineCap:null,hearing:30,
+      note:"Before a fine, the owner must receive written notice by certified mail describing the violation, and — for curable violations — a reasonable period of at least 30 days to cure. Owner may request a hearing within 30 days.",
+      dues:"Notice must state each delinquent amount and give at least 45 days to cure before further collection action (§209.0064). Certified mail required."},
+  FL:{name:"Florida",cite:"Fla. Stat. §720.305",cure:14,fineCap:100,hearing:14,
+      note:"Fines up to $100/day (max $1,000 aggregate unless governing docs allow more) require at least 14 days' notice and an opportunity for hearing before an independent committee.",
+      dues:"Before recovering attorney fees, association must give 45 days' notice of intent to lien / to pursue collection (§720.3085)."},
+  AZ:{name:"Arizona",cite:"ARS §33-1803",cure:null,fineCap:null,hearing:21,
+      note:"Violation notice must state the violation, the specific provision violated, and inform the owner of the right to respond within 21 days. No fine before the response window closes.",
+      dues:"Late fee max: greater of $15 or 10% of the unpaid assessment (ARS §33-1803(A))."},
+  NC:{name:"North Carolina",cite:"NCGS §47F-3-107.1",cure:null,fineCap:100,hearing:10,
+      note:"Owner must be given notice and an opportunity for a hearing before an adjudicatory panel; fines up to $100 per violation and $100/day for continuing violations, only after decision.",
+      dues:"Assessment lien may be filed only after owner is given 15 days' notice of the claim of lien."},
+  XX:{name:"Other",cite:"Your CC&Rs / bylaws",cure:null,fineCap:null,hearing:null,
+      note:"No state profile loaded — follow the notice, cure and hearing procedures in your governing documents. Most attorneys recommend ≥14 days to cure and a hearing offer before any fine.",
+      dues:"Check your declaration for authorized late fees and interest before charging them."}
+};
+
+const money=n=>"$"+(+n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const dateIn=days=>{const d=new Date();d.setDate(d.getDate()+ +days);return d.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})};
+const today=()=>new Date().toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"});
+
+function rules(){return RULES[$("state").value]}
+
+function complianceChecks(){
+  const r=rules(), out=[];
+  if(type==="dues"){
+    const payBy=+$("payByDays").value||0;
+    const min=$("state").value==="TX"?45:$("state").value==="FL"?45:15;
+    out.push({ok:payBy>=min,txt:`Payment window of ${payBy} days ${payBy>=min?"meets":"is below"} the recommended ${min}-day minimum for ${r.name} (${r.cite}).`});
+    out.push({ok:true,txt:"Itemized statement of amounts included — required before most collection escalation."});
+    out.push({ok:true,txt:"Sent-by-certified-mail line included in the letter footer."});
+    return out;
+  }
+  const cure=+$("cureDays").value||0;
+  if(r.cure!==null) out.push({ok:cure>=r.cure,txt:`Cure period of ${cure} days ${cure>=r.cure?"satisfies":"violates"} the ${r.cure}-day statutory minimum (${r.cite}).`});
+  else out.push({ok:cure>=14,txt:`Cure period of ${cure} days ${cure>=14?"meets":"is below"} the 14-day best-practice minimum.`});
+  out.push({ok:!!$("ccr").value.trim(),txt:"Cites the specific governing-document provision violated — required in "+r.name+"."});
+  if(type==="fine"){
+    const h=+$("hearingDays").value||0, f=+$("fineAmt").value||0;
+    if(r.hearing!==null) out.push({ok:h>=r.hearing,txt:`Hearing notice of ${h} days ${h>=r.hearing?"satisfies":"violates"} the ${r.hearing}-day requirement (${r.cite}).`});
+    if(r.fineCap!==null) out.push({ok:f<=r.fineCap,txt:`Fine of ${money(f)} ${f<=r.fineCap?"is within":"exceeds"} the ${money(r.fineCap)} per-violation statutory cap.`});
+    out.push({ok:true,txt:"Offers the owner a hearing before the fine takes effect — the #1 reason fines get voided."});
+  }
+  if(type==="formal") out.push({ok:true,txt:"Warns of the fine schedule without levying it — keeps the escalation record clean."});
+  if(type==="courtesy") out.push({ok:true,txt:"No sanction language — a courtesy notice preserves goodwill and still documents first contact."});
+  return out;
+}
+
+function letterHTML(){
+  const r=rules();
+  const hoa=$("hoaName").value||"[Association]";
+  const owner=$("owner").value||"[Owner]";
+  const lot=$("lot").value||"[Property]";
+  const by=$("boardRole").value||"[Board member]";
+  const kindLabel={courtesy:"COURTESY NOTICE",formal:"NOTICE OF VIOLATION",fine:"NOTICE OF FINE & HEARING",dues:"DELINQUENCY NOTICE"}[type];
+  const head=`<div class="lh">
+      <div class="assoc">${hoa}<small>BOARD OF DIRECTORS · SENT ${today().toUpperCase()}</small></div>
+      <div class="kind">RE: <b>${kindLabel}</b><br>${lot}<br>VIA CERTIFIED MAIL</div>
+    </div><p>Dear ${owner},</p>`;
+  const sig=`<div class="sig"><p>Sincerely,</p><div class="nm">${by}</div>${hoa}</div>
+    <div class="fine-print">Statutory basis: ${r.cite}. This notice was prepared with BoardKit and reviewed against ${r.name} notice requirements. Retain a copy and the certified-mail receipt for the association's enforcement file.</div>`;
+
+  if(type==="dues"){
+    const a=+$("duesAmt").value||0,lf=+$("lateFee").value||0,m=$("duesMonths").value,pd=$("payByDays").value;
+    return head+`<h3>Delinquent assessment notice</h3>
+      <p>Association records show that assessments for <strong>${lot}</strong> are <strong>${m} months past due</strong>. As of today, the following amounts are owed:</p>
+      <table><tr><td>Unpaid assessments</td><td>${money(a)}</td></tr>
+      <tr><td>Late charges (per governing documents)</td><td>${money(lf)}</td></tr>
+      <tr class="sum"><td>Total due</td><td>${money(a+lf)}</td></tr></table>
+      <p>Please remit the total by <strong>${dateIn(pd)}</strong> (${pd} days from this notice). If you are experiencing hardship, the Board will consider a written payment-plan request received before that date.</p>
+      <div class="box">If payment is not received, the Board may pursue remedies available under the governing documents and ${r.cite}, which can include a lien on the property and recovery of collection costs.</div>
+      <p>If you believe this notice is in error, reply in writing with supporting records and we will review promptly.</p>${sig}`;
+  }
+  const v=$("violDesc").value||"[violation]",ccr=$("ccr").value||"[CC&R provision]",cure=$("cureDays").value;
+  if(type==="courtesy")return head+`<h3>A friendly note from your board</h3>
+    <p>During a routine community review, we noted the following at your property:</p>
+    <div class="box">${v}<br><em>Reference: ${ccr}</em></div>
+    <p>This is a <strong>courtesy notice</strong> — no fine or enforcement action is attached. Often these matters are simple oversights, and we appreciate your help keeping ${hoa} a community we're all proud of.</p>
+    <p>If the condition has already been addressed, thank you — no further action is needed. If you have questions or believe this was noted in error, just reply to the board.</p>${sig}`;
+  if(type==="formal")return head+`<h3>Notice of violation — action required</h3>
+    <p>Following our earlier courtesy notice, the condition below remains unresolved at <strong>${lot}</strong>:</p>
+    <div class="box">${v}<br><em>In violation of: ${ccr}</em></div>
+    <p>You are requested to cure this violation by <strong>${dateIn(cure)}</strong> (${cure} days from the date of this notice)${r.cure?`, consistent with the ${r.cure}-day period provided by ${r.cite}`:""}.</p>
+    <p>If the violation is not cured by that date, the Board may assess fines in accordance with the association's adopted fine schedule, and you will be offered a hearing before any fine takes effect.</p>
+    <p>If you believe this notice is in error, or need additional time for good cause, submit a written response to the Board within the cure period.</p>${sig}`;
+  const f=+$("fineAmt").value||0,h=$("hearingDays").value;
+  return head+`<h3>Notice of proposed fine and hearing</h3>
+    <p>Despite prior notices, the following violation remains uncured at <strong>${lot}</strong>:</p>
+    <div class="box">${v}<br><em>In violation of: ${ccr}</em></div>
+    <p>In accordance with the association's adopted fine schedule and ${r.cite}, the Board proposes to assess a fine of <strong>${money(f)}</strong>.</p>
+    <p>Before any fine takes effect, you are entitled to a hearing. A hearing has been scheduled for <strong>${dateIn(h)}</strong> (${h} days from this notice), where you may appear, present evidence, and be heard. You may also submit a written statement in advance.</p>
+    <table><tr><td>Proposed fine</td><td>${money(f)}</td></tr>
+    <tr><td>If violation continues after hearing</td><td>per fine schedule</td></tr>
+    <tr class="sum"><td>Due only if upheld at hearing</td><td>${money(f)}</td></tr></table>
+    <p>Curing the violation before the hearing date will resolve this matter, and the Board will gladly close the file.</p>${sig}`;
+}
+
+function render(){
+  const r=rules();
+  $("violFields").style.display=type==="dues"?"none":"block";
+  $("duesFields").style.display=type==="dues"?"block":"none";
+  $("fineFields").style.display=type==="fine"?"grid":"none";
+  $("statute").innerHTML=`<h4>${r.name} rule in effect</h4>${type==="dues"?r.dues:r.note}<div class="cite">${r.cite}</div>`;
+  const checks=complianceChecks();
+  $("checks").innerHTML=checks.map(c=>`<div class="check ${c.ok?"pass":"fail"}"><span class="ic">${c.ok?"✓":"!"}</span><span>${c.txt}</span></div>`).join("");
+  const passed=checks.filter(c=>c.ok).length, pct=Math.round(passed/checks.length*100);
+  $("scoreBar").innerHTML=`<div class="dial" style="background:${pct===100?"var(--ok)":pct>=60?"var(--amber)":"var(--brick)"}">${pct}</div>
+    <div class="txt"><b>${pct===100?"Ready to send":"Fix the flagged items before sending"}</b>${passed}/${checks.length} compliance checks passed for ${r.name}</div>`;
+  $("letter").innerHTML=letterHTML();
+  $("paywall").classList.toggle("show",type==="fine"&&!proUnlocked);
+}
+
+document.querySelectorAll(".type-btn").forEach(b=>b.addEventListener("click",()=>{
+  type=b.dataset.type;
+  document.querySelectorAll(".type-btn").forEach(x=>x.classList.toggle("active",x===b));
+  render();
+}));
+["state","hoaName","boardRole","owner","lot","violDesc","ccr","cureDays","fineAmt","hearingDays","duesAmt","duesMonths","lateFee","payByDays"]
+  .forEach(id=>$(id).addEventListener("input",render));
+$("unlockBtn").addEventListener("click",()=>{proUnlocked=true;render();});
+$("copyBtn").addEventListener("click",async e=>{
+  await navigator.clipboard.writeText($("letter").innerText);
+  e.target.classList.add("copied");e.target.textContent="Copied ✓";
+  setTimeout(()=>{e.target.classList.remove("copied");e.target.textContent="Copy letter";},1600);
+});
+$("txtBtn").addEventListener("click",()=>{
+  const blob=new Blob([$("letter").innerText],{type:"text/plain"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="hoa-notice.txt";a.click();
+});
+render();
+</script>
+</body>
+</html>

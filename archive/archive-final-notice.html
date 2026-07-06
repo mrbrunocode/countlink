@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Final Notice — Turn your unpaid invoice into a letter they can't ignore</title>
+<meta name="description" content="Free late-payment demand letter generator for freelancers. Calculates statutory interest and late fees (UK, EU, US) and writes the escalating letter for you. Copy, print, get paid.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Archivo:wght@400;500;700&family=Spline+Sans+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f1e7;
+  --paper-deep:#efe7d7;
+  --ink:#1c1a16;
+  --ink-soft:#57524a;
+  --line:#d8cdb8;
+  --red:#c22f1e;
+  --red-deep:#9e2314;
+  --green:#1e5c3a;
+  --serif:"Fraunces",Georgia,serif;
+  --sans:"Archivo",sans-serif;
+  --mono:"Spline Sans Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--paper);
+  color:var(--ink);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 70% -10%, rgba(194,47,30,.06), transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(28,26,22,.035) 27px 28px);
+  min-height:100vh;
+}
+::selection{background:var(--red);color:var(--paper)}
+
+/* ---------- header ---------- */
+header{
+  border-bottom:2px solid var(--ink);
+  padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--paper);z-index:50;
+}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-weight:900;font-size:1.25rem;letter-spacing:-.02em}
+.brand .seal{
+  width:34px;height:34px;border:2.5px solid var(--red);border-radius:50%;
+  display:grid;place-items:center;color:var(--red);
+  font-family:var(--mono);font-size:.8rem;font-weight:700;
+  transform:rotate(-8deg);
+}
+.header-meta{font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.12em}
+.header-meta b{color:var(--red)}
+
+/* ---------- hero ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:64px 28px 40px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:end}
+.hero h1{
+  font-family:var(--serif);font-weight:900;font-size:clamp(2.6rem,5.4vw,4.6rem);
+  line-height:.98;letter-spacing:-.03em;
+}
+.hero h1 em{font-style:italic;color:var(--red)}
+.hero p.lede{margin-top:20px;font-size:1.08rem;line-height:1.6;color:var(--ink-soft);max-width:34rem}
+.hero .stat-strip{
+  border:1.5px solid var(--ink);background:#fff;
+  padding:18px 20px;font-family:var(--mono);font-size:.8rem;line-height:2;
+  box-shadow:6px 6px 0 var(--ink);
+  transform:rotate(1deg);
+}
+.hero .stat-strip .row{display:flex;justify-content:space-between;gap:16px;border-bottom:1px dashed var(--line)}
+.hero .stat-strip .row:last-child{border-bottom:none}
+.hero .stat-strip b{color:var(--red)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.hero>*:nth-child(2){animation-delay:.12s}
+
+/* ---------- app ---------- */
+.app{max-width:1200px;margin:24px auto 90px;padding:0 28px;display:grid;grid-template-columns:420px 1fr;gap:36px;align-items:start}
+@media(max-width:980px){.app{grid-template-columns:1fr}.hero{grid-template-columns:1fr}}
+
+.panel{
+  background:#fff;border:1.5px solid var(--ink);
+  box-shadow:8px 8px 0 rgba(28,26,22,.9);
+}
+.panel h2{
+  font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  background:var(--ink);color:var(--paper);padding:10px 18px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.panel h2 .step{color:var(--red);filter:brightness(1.6)}
+.panel .body{padding:20px 18px 24px}
+fieldset{border:none;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+label{
+  display:block;font-family:var(--mono);font-size:.66rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--ink-soft);
+  margin:14px 0 5px;
+}
+input,select{
+  width:100%;padding:9px 10px;font-family:var(--sans);font-size:.95rem;color:var(--ink);
+  background:var(--paper);border:1.5px solid var(--line);border-radius:0;
+  transition:border-color .15s, box-shadow .15s;
+}
+input:focus,select:focus{outline:none;border-color:var(--ink);box-shadow:3px 3px 0 rgba(194,47,30,.25)}
+.hint{font-size:.72rem;color:var(--ink-soft);margin-top:4px;line-height:1.4}
+
+/* stage selector */
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.stage-btn{
+  border:1.5px solid var(--ink);background:#fff;padding:10px 6px;cursor:pointer;
+  font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  transition:all .15s;position:relative;
+}
+.stage-btn small{display:block;font-family:var(--sans);font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;color:var(--ink-soft);margin-top:3px}
+.stage-btn:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--ink)}
+.stage-btn.active{background:var(--ink);color:var(--paper)}
+.stage-btn.active small{color:var(--line)}
+.stage-btn .lock{position:absolute;top:-9px;right:-6px;background:var(--red);color:#fff;font-size:.6rem;padding:2px 6px;transform:rotate(6deg)}
+
+/* tally */
+.tally{
+  margin-top:22px;border:1.5px dashed var(--red);background:rgba(194,47,30,.045);
+  padding:14px 16px;font-family:var(--mono);font-size:.78rem;
+}
+.tally .row{display:flex;justify-content:space-between;padding:3px 0}
+.tally .row.total{border-top:1.5px solid var(--red);margin-top:6px;padding-top:8px;font-weight:700;font-size:.95rem;color:var(--red-deep)}
+.tally .days{font-weight:700;color:var(--red)}
+
+/* ---------- letter ---------- */
+.letter-wrap{position:relative}
+.letter{
+  background:#fffdf8;border:1px solid var(--line);
+  padding:58px 62px 66px;min-height:640px;
+  font-family:var(--serif);font-size:.98rem;line-height:1.75;color:var(--ink);
+  box-shadow:0 1px 2px rgba(28,26,22,.12),0 14px 40px -12px rgba(28,26,22,.28);
+  position:relative;overflow:hidden;
+  transition:opacity .25s;
+}
+.letter::before{ /* deckle top edge */
+  content:"";position:absolute;inset:0 0 auto 0;height:5px;
+  background:repeating-linear-gradient(90deg,var(--red) 0 14px,var(--ink) 14px 28px);
+}
+.letter .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:34px}
+.letter .from{font-weight:600;font-size:1.05rem}
+.letter .from small{display:block;font-family:var(--mono);font-weight:400;font-size:.68rem;color:var(--ink-soft);margin-top:4px;letter-spacing:.06em}
+.letter .refbox{font-family:var(--mono);font-size:.7rem;text-align:right;color:var(--ink-soft);line-height:1.9}
+.letter .refbox b{color:var(--ink)}
+.letter h3{font-family:var(--serif);font-weight:900;font-size:1.15rem;letter-spacing:.01em;margin:26px 0 16px;text-transform:uppercase}
+.letter p{margin-bottom:14px}
+.letter table{width:100%;border-collapse:collapse;margin:18px 0;font-family:var(--mono);font-size:.78rem}
+.letter table td{padding:7px 4px;border-bottom:1px solid var(--line)}
+.letter table td:last-child{text-align:right}
+.letter table tr.sum td{border-bottom:none;border-top:2px solid var(--ink);font-weight:700;font-size:.92rem}
+.letter .sign{margin-top:36px}
+.letter .sign .name{font-family:var(--serif);font-style:italic;font-size:1.3rem}
+
+.stamp{
+  position:absolute;top:96px;right:44px;
+  font-family:var(--mono);font-weight:700;font-size:1.5rem;letter-spacing:.22em;
+  color:var(--red);border:4px double var(--red);padding:10px 22px;
+  transform:rotate(9deg);opacity:.82;pointer-events:none;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+  mask-size:130px;
+  animation:stampIn .45s cubic-bezier(.34,1.56,.64,1) both .3s;
+}
+@keyframes stampIn{from{opacity:0;transform:rotate(9deg) scale(2.2)}to{opacity:.82;transform:rotate(9deg) scale(1)}}
+
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn{
+  font-family:var(--mono);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:12px 20px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;
+  transition:all .15s;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+.btn.primary{background:var(--red);border-color:var(--red-deep);color:#fff}
+.btn.primary:hover{box-shadow:4px 4px 0 var(--red-deep)}
+.btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+
+/* paywall */
+.paywall{
+  position:absolute;inset:0;display:none;place-items:center;
+  background:rgba(246,241,231,.55);backdrop-filter:blur(7px);z-index:5;
+}
+.paywall.show{display:grid}
+.paywall .card{
+  background:#fff;border:2px solid var(--ink);box-shadow:10px 10px 0 var(--ink);
+  padding:36px 40px;max-width:380px;text-align:center;transform:rotate(-1deg);
+}
+.paywall .card h4{font-family:var(--serif);font-weight:900;font-size:1.6rem;letter-spacing:-.02em}
+.paywall .card p{font-size:.88rem;color:var(--ink-soft);line-height:1.6;margin:12px 0 20px}
+.paywall .price{font-family:var(--mono);font-size:2.2rem;font-weight:700;color:var(--red)}
+.paywall .price small{font-size:.8rem;color:var(--ink-soft)}
+.paywall ul{list-style:none;text-align:left;font-size:.82rem;margin:14px 0 22px;line-height:2}
+.paywall ul li::before{content:"✓ ";color:var(--green);font-weight:700}
+.paywall .demo-note{font-family:var(--mono);font-size:.62rem;color:var(--ink-soft);margin-top:12px;text-transform:uppercase;letter-spacing:.1em}
+
+/* footer */
+footer{border-top:2px solid var(--ink);padding:34px 28px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);letter-spacing:.05em;line-height:1.9}
+footer .big{font-family:var(--serif);font-size:1.1rem;font-weight:900;color:var(--ink)}
+
+@media print{
+  header,.hero,.panel-col,.actions,footer,.stamp{display:none!important}
+  body{background:#fff}
+  .app{display:block;margin:0;padding:0;max-width:none}
+  .letter{border:none;box-shadow:none;padding:20mm}
+}
+@media(max-width:640px){
+  .letter{padding:34px 24px 44px}
+  .stamp{right:12px;font-size:1.1rem}
+  .hero{padding-top:36px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="seal">FN</span> Final Notice</div>
+  <div class="header-meta">Est. today · <b>$0 backend</b> · your data never leaves this page</div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>They owe you.<br>Make it <em>official.</em></h1>
+    <p class="lede">Paste in your unpaid invoice. We calculate the late-payment interest and statutory compensation you're legally entitled to — then write the escalating demand letter for you. Copy it, send it, get paid.</p>
+  </div>
+  <div class="stat-strip">
+    <div class="row"><span>Invoices paid late worldwide</span><b>~50%</b></div>
+    <div class="row"><span>UK statutory interest (B2B)</span><b>8% + base</b></div>
+    <div class="row"><span>Letters that get ignored</span><b>polite ones</b></div>
+    <div class="row"><span>Cost to run this site</span><b>$0/mo</b></div>
+  </div>
+</section>
+
+<main class="app">
+  <!-- ============ FORM ============ -->
+  <div class="panel panel-col">
+    <h2><span>The Facts</span><span class="step">Step 01</span></h2>
+    <div class="body">
+      <div class="grid2">
+        <div><label for="fromName">Your name / business</label><input id="fromName" value="Ada Freelance Studio"></div>
+        <div><label for="toName">Client / company</label><input id="toName" value="Acme Corp Ltd"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="invNo">Invoice number</label><input id="invNo" value="INV-0042"></div>
+        <div><label for="amount">Amount owed</label><input id="amount" type="number" value="4800" min="0" step="0.01"></div>
+      </div>
+      <div class="grid2">
+        <div><label for="currency">Currency</label>
+          <select id="currency">
+            <option value="GBP">£ GBP</option><option value="USD" selected>$ USD</option>
+            <option value="EUR">€ EUR</option><option value="AUD">$ AUD</option>
+          </select></div>
+        <div><label for="dueDate">Payment was due</label><input id="dueDate" type="date"></div>
+      </div>
+      <label for="jur">Jurisdiction / interest rule</label>
+      <select id="jur">
+        <option value="UK">United Kingdom — statutory 8% + Bank of England base, plus fixed compensation</option>
+        <option value="EU">European Union — ECB rate + 8 points (Late Payment Directive)</option>
+        <option value="US" selected>United States / other — contractual monthly late fee</option>
+      </select>
+      <div id="usRateWrap">
+        <label for="usRate">Monthly late fee %</label>
+        <input id="usRate" type="number" value="1.5" step="0.1" min="0">
+        <div class="hint">1.5%/month is the customary rate on US freelance invoices. Use the rate on your contract or invoice terms if stated.</div>
+      </div>
+
+      <label>Escalation stage</label>
+      <div class="stages">
+        <button class="stage-btn active" data-stage="1">Nudge<small>Day 1–14 · friendly</small></button>
+        <button class="stage-btn" data-stage="2">Firm<small>Day 14–30 · formal</small></button>
+        <button class="stage-btn" data-stage="3">Final<small>Day 30+ · pre-legal<span class="lock">PRO</span></small></button>
+      </div>
+
+      <div class="tally" id="tally"></div>
+    </div>
+  </div>
+
+  <!-- ============ LETTER ============ -->
+  <div>
+    <div class="letter-wrap">
+      <div class="stamp" id="stamp">OVERDUE</div>
+      <div class="letter" id="letter"></div>
+      <div class="paywall" id="paywall">
+        <div class="card">
+          <h4>The Final Notice pack</h4>
+          <p>Stage 3 is the letter before legal action — the one that gets 30-day-old invoices paid. One payment, yours forever.</p>
+          <div class="price">$9 <small>one-time</small></div>
+          <ul>
+            <li>Letter-before-action wording (solicitor-reviewed)</li>
+            <li>Small-claims court next-steps checklist</li>
+            <li>All future invoices — unlimited use</li>
+          </ul>
+          <button class="btn primary" id="unlockBtn">Unlock with Stripe →</button>
+          <div class="demo-note">Prototype: button simulates a completed checkout</div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="copyBtn">Copy letter</button>
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" id="txtBtn">Download .txt</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div>
+    <div class="big">Final Notice</div>
+    Everything runs in your browser. No account, no server, no invoice data stored — ever.
+  </div>
+  <div>
+    UK: Late Payment of Commercial Debts (Interest) Act 1998<br>
+    EU: Directive 2011/7/EU on combating late payment<br>
+    Not legal advice. For debts over small-claims limits, talk to a professional.
+  </div>
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const SYM={GBP:"£",USD:"$",EUR:"€",AUD:"$"};
+const UK_BASE=4.0; // BoE base %, editable assumption
+let stage=1, proUnlocked=false;
+
+// default due date: 21 days ago
+const d=new Date(); d.setDate(d.getDate()-21);
+$("dueDate").value=d.toISOString().slice(0,10);
+
+function money(n,c){return SYM[c]+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtDate(dt){return dt.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"})}
+
+function calc(){
+  const amount=parseFloat($("amount").value)||0;
+  const cur=$("currency").value;
+  const due=new Date($("dueDate").value||Date.now());
+  const days=Math.max(0,Math.floor((Date.now()-due)/864e5));
+  const jur=$("jur").value;
+  let rate, interest, comp=0, ruleLabel;
+  if(jur==="UK"){
+    rate=8+UK_BASE;
+    interest=amount*(rate/100)*(days/365);
+    comp=amount<1000?40:amount<10000?70:100;
+    ruleLabel=`Statutory interest at ${rate.toFixed(2)}% p.a. (8% + Bank of England base rate) under the Late Payment of Commercial Debts (Interest) Act 1998`;
+  }else if(jur==="EU"){
+    rate=8+3.15;
+    interest=amount*(rate/100)*(days/365);
+    comp=40;
+    ruleLabel=`Interest at ${rate.toFixed(2)}% p.a. (ECB reference rate + 8 percentage points) under Directive 2011/7/EU`;
+  }else{
+    const m=parseFloat($("usRate").value)||0;
+    rate=m*12;
+    interest=amount*(m/100)*(days/30.44);
+    ruleLabel=`A late fee of ${m}% per month as provided in the invoice payment terms`;
+  }
+  return {amount,cur,due,days,interest,comp,ruleLabel,total:amount+interest+comp};
+}
+
+function renderTally(c){
+  $("tally").innerHTML=`
+    <div class="row"><span>DAYS OVERDUE</span><span class="days">${c.days} days</span></div>
+    <div class="row"><span>Principal</span><span>${money(c.amount,c.cur)}</span></div>
+    <div class="row"><span>Interest accrued</span><span>${money(c.interest,c.cur)}</span></div>
+    ${c.comp?`<div class="row"><span>Fixed compensation</span><span>${money(c.comp,c.cur)}</span></div>`:""}
+    <div class="row total"><span>THEY NOW OWE</span><span>${money(c.total,c.cur)}</span></div>`;
+}
+
+function letterBody(c){
+  const from=$("fromName").value||"[Your name]";
+  const to=$("toName").value||"[Client]";
+  const inv=$("invNo").value||"[Invoice #]";
+  const today=fmtDate(new Date());
+  const table=`<table>
+    <tr><td>Invoice ${inv} — principal</td><td>${money(c.amount,c.cur)}</td></tr>
+    <tr><td>Interest (${c.days} days overdue)</td><td>${money(c.interest,c.cur)}</td></tr>
+    ${c.comp?`<tr><td>Fixed recovery compensation</td><td>${money(c.comp,c.cur)}</td></tr>`:""}
+    <tr class="sum"><td>Total now due</td><td>${money(c.total,c.cur)}</td></tr>
+  </table>`;
+  const head=`<div class="head">
+      <div class="from">${from}<small>SENT ${today.toUpperCase()}</small></div>
+      <div class="refbox">RE: <b>${inv}</b><br>DUE: <b>${fmtDate(c.due)}</b><br>OVERDUE: <b>${c.days} DAYS</b></div>
+    </div><p>Dear ${to},</p>`;
+  const sign=`<div class="sign"><p>Yours sincerely,</p><div class="name">${from}</div></div>`;
+
+  if(stage===1)return head+
+    `<h3>Payment reminder — invoice ${inv}</h3>
+     <p>I hope you're well. This is a friendly reminder that invoice <strong>${inv}</strong> for <strong>${money(c.amount,c.cur)}</strong> was due on ${fmtDate(c.due)} and remains unpaid — it is now <strong>${c.days} days overdue</strong>.</p>
+     <p>I appreciate this may simply be an oversight. Could you confirm when payment will be made? If it has already been sent, please disregard this note and accept my thanks.</p>
+     <p>For reference, my payment terms provide for late-payment interest, which I would prefer not to apply. Settling the invoice this week keeps things simple for both of us.</p>${sign}`;
+
+  if(stage===2)return head+
+    `<h3>Formal notice of overdue payment</h3>
+     <p>Despite my previous reminder, invoice <strong>${inv}</strong> remains unpaid <strong>${c.days} days</strong> after its due date of ${fmtDate(c.due)}.</p>
+     <p>${c.ruleLabel} now applies to this debt. As of today, the amount owed is:</p>${table}
+     <p>Interest continues to accrue daily until the balance is settled. I require payment of the total above within <strong>7 days</strong> of the date of this letter.</p>
+     <p>I value our working relationship and would prefer to resolve this directly. Please treat this matter as urgent.</p>${sign}`;
+
+  return head+
+    `<h3>Final notice before legal action</h3>
+     <p>Invoice <strong>${inv}</strong> is now <strong>${c.days} days overdue</strong>. Previous reminders have gone unanswered. This letter is my final request for payment before I begin formal recovery proceedings.</p>
+     <p>${c.ruleLabel}. The full amount now due is:</p>${table}
+     <p>If payment of <strong>${money(c.total,c.cur)}</strong> is not received within <strong>7 days</strong>, I will issue a claim without further notice. You may then also become liable for court fees and further interest. A copy of this letter will be presented to the court as evidence that you were given every opportunity to pay.</p>
+     <p>Payment should be made using the details on the invoice. If there is a genuine dispute regarding this debt, you must set it out in writing within the same 7 days.</p>${sign}`;
+}
+
+function render(){
+  const c=calc();
+  renderTally(c);
+  $("usRateWrap").style.display=$("jur").value==="US"?"block":"none";
+  $("letter").innerHTML=letterBody(c);
+  $("stamp").textContent=stage===3?"FINAL NOTICE":stage===2?"OVERDUE":"REMINDER";
+  $("stamp").style.animation="none";$("stamp").offsetHeight;$("stamp").style.animation="";
+  $("paywall").classList.toggle("show",stage===3&&!proUnlocked);
+}
+
+document.querySelectorAll(".stage-btn").forEach(b=>b.addEventListener("click",()=>{
+  stage=+b.dataset.stage;
+  document.querySelectorAll(".stage-btn").forEach(x=>x.classList.toggle("active",x===b));
+  render();
+}));
+["fromName","toName","invNo","amount","currency","dueDate","jur","usRate"].forEach(id=>$(id).addEventListener("input",render));
+
+$("unlockBtn").addEventListener("click",()=>{proUnlocked=true;render();});
+$("copyBtn").addEventListener("click",async e=>{
+  await navigator.clipboard.writeText($("letter").innerText);
+  e.target.classList.add("copied");e.target.textContent="Copied ✓";
+  setTimeout(()=>{e.target.classList.remove("copied");e.target.textContent="Copy letter";},1600);
+});
+$("txtBtn").addEventListener("click",()=>{
+  const blob=new Blob([$("letter").innerText],{type:"text/plain"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=($("invNo").value||"letter")+"-demand-letter.txt";a.click();
+});
+
+render();
+</script>
+</body>
+</html>

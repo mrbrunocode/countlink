@@ -1,0 +1,158 @@
+# Monetization checklist
+
+This is the actual, verified model this site is copying — pulled directly from
+vClock.com's live HTML (not a guess), plus the concrete steps to switch each
+piece on for samesecond. Follow the steps in order; several of them (analytics,
+AdSense) have a real-world waiting period, so start them early even if you're
+not ready to launch yet.
+
+## What vClock actually does (the evidence)
+
+Checked by fetching `https://vclock.com/timer/` and `https://vclock.com/ads.txt`
+directly on 2026-07-06:
+
+- **Ad network:** pure Google AdSense, direct relationship. Their `ads.txt`
+  contains `google.com, pub-4140552492902680, DIRECT, f08c47fec0942fa0`. No
+  Ezoic, Mediavine, or other premium network in between.
+- **Ad placement:** exactly **one** ad unit per page — a single horizontal,
+  full-width-responsive AdSense slot (`data-ad-format="horizontal"
+  data-full-width-responsive="true"`), placed **directly below the timer
+  controls**, above a "related tools" links panel. Not a sidebar, not a
+  sticky/anchor unit, not multiple stacked ads.
+- **Analytics:** Google Analytics via `gtag.js`.
+- **The real revenue driver is not the ad, it's the traffic shape:** vClock
+  has hundreds of individually-indexed pages —
+  `/set-timer-for-5-minutes/`, `/set-timer-for-90-seconds/`, etc. — each
+  targeting one long-tail search query, all funnelling into the same tool
+  with the same single ad slot. One homepage doesn't get 5.4M visits/month;
+  hundreds of duration-specific landing pages do.
+
+Estimated result: ~5.4M monthly visits, ~$500K/yr in AdSense revenue
+(BoringCashCow's estimate; not vClock's own disclosed figure).
+
+samesecond's `index.html` + `/timers/*.html` already replicate this structure
+exactly — one ad slot in the same position, plus 12 starter landing pages.
+The rest of this document is about switching the pieces on for real and
+growing the landing-page count.
+
+## Step 0 — buy a domain
+
+See the shortlist in `README.md`. Recommendation: **samesecond.io** or
+**samesecond.link**. Do this first — AdSense review and Search Console both
+key off a live domain, so the sooner it's registered the sooner the clock on
+approval starts.
+
+Once you have it:
+1. Point DNS at your host (see README "Deployment").
+2. Update `SITE_URL` in `scripts/build_timer_pages.py`.
+3. Update the `canonical` and `og:*` URLs in `index.html` and `privacy.html`
+   from `samesecond.example` to the real domain.
+4. Re-run `python3 scripts/build_timer_pages.py` and redeploy.
+
+## Step 1 — Google Analytics (GA4)
+
+Free, and useful before you have any ad revenue to see if the programmatic
+pages are actually getting indexed/visited.
+
+1. Go to [analytics.google.com](https://analytics.google.com) → Admin →
+   Create Property → enter your domain.
+2. Create a **Web** data stream for your domain; copy the Measurement ID
+   (looks like `G-XXXXXXXXXX`).
+3. In `index.html`, uncomment the analytics block in `<head>` and replace
+   both `G-XXXXXXXXXX` placeholders with your real ID.
+4. Repeat for `scripts/build_timer_pages.py`'s `PAGE_TEMPLATE` head comment
+   (or, simpler, extract the snippet into its own small file later — for now,
+   pasting the same two lines into the template's head comment and
+   re-running the generator is enough).
+5. Also add it to `privacy.html`'s `<head>`.
+6. Deploy, then check GA4's Realtime report to confirm it's firing.
+
+## Step 2 — Google AdSense
+
+This is the actual revenue mechanism, and it has real approval requirements —
+plan for **1–4 weeks** of review, sometimes longer.
+
+1. Apply at [adsense.google.com](https://www.google.com/adsense/).
+2. AdSense wants to see: a live domain, original content, a visible privacy
+   policy (`privacy.html` is already built for this — make sure it's linked
+   from every page's footer, which it is), and no broken navigation. Having
+   the 12 `/timers/` pages live and indexable before you apply gives Google
+   more than just a single-page site to review.
+3. Once approved, AdSense gives you:
+   - A publisher ID like `ca-pub-XXXXXXXXXXXXXXXX`.
+   - An ad unit — create a **Display ad**, format **Horizontal**, responsive.
+4. Fill in `ads.txt` at the repo root with the real line AdSense shows you
+   (format: `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`).
+   This file **must** be reachable at `https://yourdomain/ads.txt` — without
+   it, AdSense pays out at a fraction of the normal rate even after approval.
+5. In `index.html`, uncomment the AdSense `<script>` tag in `<head>` and set
+   your real `client=ca-pub-...` value.
+6. Replace the placeholder `<div class="ad-frame">...</div>` in `index.html`
+   with the real ad unit AdSense gives you:
+   ```html
+   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+   ```
+7. Do the same in `scripts/build_timer_pages.py`'s template (search for
+   `ad-frame`), then re-run the generator so every `/timers/` page picks it
+   up — **don't** hand-edit the individual files in `/timers/`, they'll be
+   overwritten next time the script runs.
+8. Keep the ad to this one slot for now. vClock's data shows one well-placed
+   unit is the proven pattern; adding more (sidebar, sticky, in-content)
+   raises revenue per visit only marginally and measurably hurts return
+   visits on a utility tool like this — the whole value proposition is speed.
+
+## Step 3 — grow `/timers/` (this is the actual growth lever)
+
+vClock's traffic is not one page ranking well, it's hundreds of pages each
+ranking for one query. Follow `README.md`'s "Adding a new programmatic
+landing page" section. Ideas for the next batch, roughly in order of
+likely search volume:
+
+- Duration pages: 1 minute, 2 minute, 3 minute, 90 seconds, 40 minutes,
+  50 minutes, 90 minutes, 2 hour.
+- Use-case pages: "quiz timer", "presentation timer", "meeting timer",
+  "cooking timer" (careful — high competition, big incumbents already rank),
+  "study timer", "break timer", "sports timer", "auction countdown".
+- Always write the intro paragraph and meta description from scratch per
+  page — copy-pasted boilerplate with only the number changed is the single
+  most common reason these get excluded from Google's index rather than
+  ranked.
+
+Submit `sitemap.xml` in [Google Search Console](https://search.google.com/search-console)
+once the domain is verified there, so new `/timers/` pages get crawled faster
+than waiting for organic discovery.
+
+## Step 4 — Pro tier (Stripe)
+
+Currently `#proBtn` in `assets/app.js` just flips a local `pro` flag with no
+real payment — it's a working mock for demos, not a live upsell. To make it
+real:
+
+1. Create a [Stripe](https://stripe.com) account, add the $5/month Pro
+   product, and create a **Payment Link** (no code needed for a first
+   version — Payment Links handle checkout hosted by Stripe).
+2. In `assets/app.js`, change the `#proBtn` click handler from setting
+   `pro=true` locally to `location.href = "https://buy.stripe.com/your-link"`.
+3. Decide how "Pro" actually changes the experience once paid — the current
+   prototype doesn't persist anything server-side (there's no server), so a
+   real Pro tier needs *some* minimal backend or a client-side license-key
+   scheme (e.g., Stripe redirects back with a session ID you exchange for a
+   signed token via a small serverless function on Cloudflare Workers/Vercel
+   — this is the one piece of the product that can't stay 100% static if you
+   want to actually gate features). Flag this as a follow-up decision rather
+   than something to build blind — the free tool works completely without it.
+
+## Rough economics (so expectations are calibrated)
+
+- Hosting: **$0/month** (static site on Cloudflare Pages/Netlify free tier).
+- Domain: **~$10–15/year**.
+- AdSense, at vClock's realistic per-page-view rate and a much smaller
+  traffic base while `/timers/` is only 12 pages deep: expect low, possibly
+  $0, revenue for the first few months while pages get indexed. Growth is
+  driven almost entirely by adding more `/timers/` pages and by any organic
+  sharing of the sync-link feature itself (which vClock doesn't have).
+- This is a slow-build, low-maintenance asset, not a launch-week payoff —
+  consistent with every "boring cash cow" case study researched for this
+  project.
