@@ -11,8 +11,12 @@ name: Deploy to Cloudflare Pages
 # publicly servable. An earlier version of this workflow deployed `.`
 # directly and briefly uploaded those alongside the real site; this list
 # must stay in sync with the "public site files" set (index.html,
-# privacy.html, compare.html, robots.txt, sitemap.xml, llms.txt, ads.txt,
-# _headers, assets/, timers/) if that set ever changes.
+# privacy.html, compare.html, about.html, how-it-works.html, terms.html,
+# contact.html, robots.txt, sitemap.xml, llms.txt, ads.txt, _headers,
+# assets/, timers/) if that set ever changes — every hand-written .html
+# page added to STATIC_PAGES in scripts/build-timer-pages.mjs needs a
+# matching entry in the `cp` line below, or its nav/footer links will
+# resolve everywhere except the one place that matters: production.
 on:
   push:
     branches: [main]
@@ -28,7 +32,8 @@ jobs:
       - name: Build dist/ (public site files only)
         run: |
           mkdir -p dist
-          cp index.html privacy.html compare.html robots.txt sitemap.xml llms.txt ads.txt _headers dist/
+          cp index.html privacy.html compare.html about.html how-it-works.html terms.html contact.html \
+             robots.txt sitemap.xml llms.txt ads.txt _headers dist/
           cp -r assets dist/
           cp -r timers dist/
           # IndexNow key file (32-hex-char name) — must be reachable at the

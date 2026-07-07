@@ -6,8 +6,12 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 
 ## Primary pages
 - [Home / timer tool](https://countlink.app/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
+- [How It Works](https://countlink.app/how-it-works.html): the link-timestamp sync mechanic explained in depth
 - [Comparison: CountLink vs ShareMyTimer vs Stagetimer](https://countlink.app/compare.html): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [About](https://countlink.app/about.html): who builds this and why
 - [Privacy policy](https://countlink.app/privacy.html): what data is (and isn't) collected
+- [Terms of Service](https://countlink.app/terms.html)
+- [Contact](https://countlink.app/contact.html)
 
 ## Duration timers
 - [5 Minute Timer](https://countlink.app/timers/5-minute-timer.html)

@@ -317,6 +317,14 @@ ${faqSchema(p.faq)}
   <a class="logo" href="../index.html">${BRAND}</a>
   <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
+<nav class="main-nav">
+  <a href="../how-it-works.html">How It Works</a>
+  <a href="../compare.html">Compare</a>
+  <a href="../about.html">About</a>
+  <a href="../privacy.html">Privacy</a>
+  <a href="../terms.html">Terms</a>
+  <a href="../contact.html">Contact</a>
+</nav>
 
 <div class="wrap">
   <section class="hero">
@@ -412,7 +420,7 @@ ${faqSchema(p.faq)}
       ${timerLinks}
     </div>
     <div class="foot-in">
-      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
+      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="../how-it-works.html">How It Works</a> · <a href="../about.html">About</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../contact.html">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
@@ -424,7 +432,7 @@ ${faqSchema(p.faq)}
 </html>
 `;
 
-const STATIC_PAGES = ["privacy.html", "compare.html"];
+const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
 const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}.html</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
@@ -454,8 +462,12 @@ ${BRAND} is a static web app: no signup, no backend, no per-viewer cost. The syn
 
 ## Primary pages
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
+- [How It Works](${SITE_URL}/how-it-works.html): the link-timestamp sync mechanic explained in depth
 - [Comparison: ${BRAND} vs ShareMyTimer vs Stagetimer](${SITE_URL}/compare.html): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [About](${SITE_URL}/about.html): who builds this and why
 - [Privacy policy](${SITE_URL}/privacy.html): what data is (and isn't) collected
+- [Terms of Service](${SITE_URL}/terms.html)
+- [Contact](${SITE_URL}/contact.html)
 
 ## Duration timers
 ${durationLines}

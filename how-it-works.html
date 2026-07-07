@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How CountLink Works — Link-Based Countdown Sync Explained</title>
+<meta name="description" content="How CountLink keeps a countdown in sync on every device using a timestamp embedded in the URL — no server, no account, no push connection — explained step by step.">
+<link rel="canonical" href="https://countlink.app/how-it-works.html">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How CountLink Works — Link-Based Countdown Sync Explained",
+  "description": "How CountLink keeps a countdown in sync on every device using a timestamp embedded in the URL — no server, no account, no push connection.",
+  "url": "https://countlink.app/how-it-works.html",
+  "author": { "@type": "Organization", "name": "CountLink" },
+  "publisher": { "@type": "Organization", "name": "CountLink" },
+  "datePublished": "2026-07-08",
+  "dateModified": "2026-07-08"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does CountLink need a server to keep timers in sync?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The countdown's end time is written into the shared link as a timestamp when you press Start. Every device that opens the link reads that same timestamp and counts down to it using its own local clock — there's no server involved after the link is generated, and no ongoing connection to maintain." }
+    },
+    {
+      "@type": "Question",
+      "name": "What exactly is stored in the link?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Two pieces of information: the exact moment the countdown should reach zero (a Unix timestamp), and the label you typed in — nothing else. No personal data, no session identifier, no account reference." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why can't the timer be paused or extended for everyone at once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because there's no live connection between devices, there's no channel to push a pause command through. Each device is independently doing local math against the timestamp in its own copy of the link — there's no shared, ongoing session to interrupt. The practical fix if plans change is starting a fresh countdown and sharing the new link." }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html">CountLink</a>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
+</header>
+<nav class="main-nav">
+  <a href="how-it-works.html" class="active">How It Works</a>
+  <a href="compare.html">Compare</a>
+  <a href="about.html">About</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="terms.html">Terms</a>
+  <a href="contact.html">Contact</a>
+</nav>
+<div class="wrap">
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">How it works</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">The link is the sync</h1>
+      <p class="lede">No server keeps score. Here's exactly what happens between pressing Start and everyone's screen hitting zero together.</p>
+    </div>
+  </section>
+  <section class="seo-intro" style="max-width:70ch;padding-bottom:20px">
+    <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:0 0 10px;color:var(--paper-text)">The problem with "just start a timer"</h2>
+    <p style="margin-bottom:16px">If five people each start their own countdown for the same event, they'll each start it a second or two apart — one person clicked slightly later, one person's app took a moment to load. Multiply that by a class of thirty students, or a webinar audience of a few thousand, and "everyone's timer" quietly becomes thirty or a few thousand slightly different timers. The usual fix is a server: one central clock that every device connects to and takes instructions from. That works, but it means running infrastructure, and infrastructure costs money per connected device — which is exactly why most shared-timer products cap how many free viewers or timers you get.</p>
+
+    <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">CountLink's approach: put the answer in the question</h2>
+    <p style="margin-bottom:16px">Instead of a server tracking "how much time is left," CountLink calculates the one fact that actually matters — the exact moment the countdown should hit zero — the instant you press Start, and writes it directly into the URL you copy, as a plain timestamp. That link is now a self-contained answer to "when does this end," not a pointer to somewhere else that holds the answer. Anyone who opens it, on any device, reads that same timestamp and does simple subtraction against their own device's clock: end time minus right now equals time remaining. No round trip to a server is needed to answer that question, because the link already contains everything required to answer it.</p>
+
+    <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">Step by step</h2>
+    <ol style="margin:0 0 16px 1.2em;line-height:1.9">
+      <li>You pick a duration (a quick preset, a custom number of minutes, or an exact date and time) and, optionally, a label like "Exam ends" or "Doors open."</li>
+      <li>The moment you press <b>Start countdown</b>, your browser calculates the target timestamp — right now, plus your chosen duration — entirely on your own device.</li>
+      <li>That timestamp and label are encoded into a URL, which you copy and send however you'd send any link: chat, email, a slide, a QR code.</li>
+      <li>Everyone who opens that link loads the same static page, reads the same timestamp out of the URL, and starts a local countdown to it using their own device's clock.</li>
+      <li>Every screen reaches zero at the same instant — not because anything was pushed to them, but because they were always all counting down to the identical, fixed point in time.</li>
+    </ol>
+
+    <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">What this means in practice</h2>
+    <p style="margin-bottom:16px"><b>No account, because there's nothing to save.</b> There's no user record for the system to attach a countdown to — the countdown lives entirely in the link, so there's nothing an account could add.</p>
+    <p style="margin-bottom:16px"><b>No viewer limit, because one more viewer is free.</b> Serving the same static page to the 2nd person or the 20,000th person costs the same amount — nothing — since nobody's holding a connection open per viewer.</p>
+    <p style="margin-bottom:16px"><b>Sync accuracy tracks device-clock accuracy.</b> Because each device does its own math against its own clock, the countdown is only as precise as that device's system clock — typically accurate within a second on any modern phone or computer, the same margin you'd trust for anything else time-sensitive on that device.</p>
+    <p style="margin-bottom:16px"><b>The honest trade-off: nothing can be pushed mid-countdown.</b> Because there's no ongoing connection between devices, there's no channel to broadcast a live pause, a "+2 minutes," or a message to everyone who already has the link open. If plans genuinely change, the direct fix is to start a new countdown and share the new link — for a fixed-duration exam, class, or webinar segment, the duration is normally known in advance, so this doesn't come up often. For anyone who specifically needs live mid-session control pushed to an audience, that's a real, different requirement — see <a href="compare.html" style="text-decoration:underline">how CountLink compares to real-time tools</a> for the honest recommendation on which is the better fit.</p>
+  </section>
+</div>
+<footer>
+  <div class="wrap foot-in">
+    <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="about.html" style="text-decoration:underline">About</a> · <a href="terms.html" style="text-decoration:underline">Terms</a> · <a href="contact.html" style="text-decoration:underline">Contact</a> · <a href="mailto:hello@countlink.app" style="text-decoration:underline">hello@countlink.app</a></div>
+    <div><a href="index.html" style="text-decoration:underline">Back to the timer</a></div>
+  </div>
+</footer>
+</body>
+</html>

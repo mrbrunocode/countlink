@@ -43,8 +43,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 
 /* ============ HEADER ============ */
 header{
-  border-bottom:1px solid var(--panel-line);
-  padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:13px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
 }
 @media(min-width:640px){header{padding:18px 32px}}
 .logo{
@@ -58,8 +57,24 @@ header{
 .head-meta{font-family:var(--mono);font-size:.62rem;color:var(--paper-dim);letter-spacing:.02em;line-height:1.6}
 .head-meta b{color:var(--amber);font-weight:500}
 
+/* Site-wide nav — a second, thin row below the header so every page (not
+   just the footer) links to the legal/trust pages AdSense review looks for:
+   How It Works, Compare, About, Privacy, Terms, Contact. Deliberately quiet
+   (small, muted, no border until hover) so it reads as utility chrome, not
+   a competing content block above the fold. */
+.main-nav{
+  display:flex;flex-wrap:wrap;gap:4px 5px;padding:0 20px 10px;border-bottom:1px solid var(--panel-line);
+}
+@media(min-width:640px){.main-nav{padding:0 32px 10px}}
+.main-nav a{
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.02em;color:var(--paper-dim);text-decoration:none;
+  padding:3px 8px;border-radius:99px;border:1px solid transparent;white-space:nowrap;
+}
+.main-nav a:hover{color:var(--amber);border-color:var(--panel-line)}
+.main-nav a.active{color:var(--paper-text);border-color:var(--panel-line);background:var(--panel)}
+
 /* ============ HERO ============ */
-.hero{padding:36px 0 30px}
+.hero{padding:26px 0 24px}
 @media(min-width:640px){.hero{padding:56px 0 40px}}
 .eyebrow{
   font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);

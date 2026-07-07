@@ -45,7 +45,8 @@ const NEW_SITE_URL = `https://${NEW_HOST}`;
 // add it here too — this list is the only thing standing between a rename
 // and stale URLs surviving in whichever file isn't on it.
 const FILES = [
-  "index.html", "privacy.html", "compare.html", "robots.txt", "README.md",
+  "index.html", "privacy.html", "compare.html", "about.html", "how-it-works.html",
+  "terms.html", "contact.html", "robots.txt", "README.md",
   "docs/monetization.md", "docs/seo-outreach-plan.md",
   "scripts/submit-indexnow.mjs", // only appears in a comment there, harmless to include
 ];

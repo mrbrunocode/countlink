@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About CountLink</title>
+<meta name="description" content="Why CountLink exists, how the link-based sync mechanic works, and who builds it — a free shared countdown timer with no account, no server, and no viewer limit.">
+<link rel="canonical" href="https://countlink.app/about.html">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "About CountLink",
+  "url": "https://countlink.app/about.html",
+  "isPartOf": { "@type": "WebSite", "name": "CountLink", "url": "https://countlink.app/" },
+  "datePublished": "2026-07-08",
+  "dateModified": "2026-07-08"
+}
+</script>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html">CountLink</a>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
+</header>
+<nav class="main-nav">
+  <a href="how-it-works.html">How It Works</a>
+  <a href="compare.html">Compare</a>
+  <a href="about.html" class="active">About</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="terms.html">Terms</a>
+  <a href="contact.html">Contact</a>
+</nav>
+<div class="wrap">
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">About</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">Why CountLink exists</h1>
+      <p class="lede">A small, deliberately narrow tool — built to solve one specific annoyance well, not to become everything a "timer app" could be.</p>
+    </div>
+  </section>
+  <section class="seo-intro" style="max-width:70ch;padding-bottom:50px">
+    <p style="margin-bottom:16px"><b>The problem was small and specific.</b> Running a class, an exam, a webinar, or a workshop segment usually means someone starts a timer on their own device and everyone else just has to trust it — or, more often, starts their own separate timer on their own phone, and the two drift apart within a minute. Video-call countdown apps solve this for meetings; classroom timer sites solve it for a single projector. Nothing solved it for "I need to hand a room, or a Zoom call, or a Discord server, one exact number that's the same on every screen, without anyone installing anything." That gap is what CountLink was built to close.</p>
+
+    <p style="margin-bottom:16px"><b>The mechanism is the whole idea.</b> Instead of running a server that keeps every viewer's timer in sync — the way most "shared timer" products work, and the reason most of them cap free-tier viewers or devices — CountLink writes the countdown's end time directly into the shared link itself, as a timestamp. Every device that opens that link does its own simple math against its own clock: "how long until this timestamp." No server ever needs to be involved after the link is generated, which means there's nothing to keep running, nothing that can go down, and no reason to charge more once a link gets shared with one person or ten thousand. See <a href="how-it-works.html" style="text-decoration:underline">How It Works</a> for the full technical walkthrough.</p>
+
+    <p style="margin-bottom:16px"><b>That architecture is a trade-off, not a free lunch, and this project is upfront about it.</b> Because there's no ongoing connection, nobody can push a live "pause" or "add two minutes" to everyone who already has the link open — if the plan changes mid-countdown, the practical fix is starting a fresh countdown and re-sharing the new link. For a fixed-duration exam, class, or webinar segment, that limitation rarely matters, because the duration was already known in advance. For a stage manager adjusting a live speaker's time in real time, it would matter, and a real-time tool is the more honest recommendation there — see the <a href="compare.html" style="text-decoration:underline">comparison page</a> for exactly where CountLink is and isn't the right tool.</p>
+
+    <p style="margin-bottom:16px"><b>Free means free, not "free with an upsell."</b> Because the zero-backend design means showing the countdown to one extra viewer costs nothing, there's no viewer cap, no device cap, and no paid tier gating basic features like sound alerts or fullscreen mode. That isn't a promotional discount — it's a direct, structural consequence of how the tool is built, and it's the reason the pricing page doesn't have anything on it beyond "free."</p>
+
+    <p style="margin-bottom:16px"><b>Built and maintained independently.</b> CountLink is a small, independently built and operated project, not a venture-backed product with a roadmap driven by fundraising. It exists because the specific problem it solves was real and annoying enough to be worth building for. If something's broken, unclear, or missing, the fastest way to reach the person who actually maintains it is the <a href="contact.html" style="text-decoration:underline">contact page</a> — real questions get read by a real person, not a support queue.</p>
+  </section>
+</div>
+<footer>
+  <div class="wrap foot-in">
+    <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="how-it-works.html" style="text-decoration:underline">How It Works</a> · <a href="terms.html" style="text-decoration:underline">Terms</a> · <a href="contact.html" style="text-decoration:underline">Contact</a> · <a href="mailto:hello@countlink.app" style="text-decoration:underline">hello@countlink.app</a></div>
+    <div><a href="index.html" style="text-decoration:underline">Back to the timer</a></div>
+  </div>
+</footer>
+</body>
+</html>

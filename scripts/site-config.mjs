@@ -15,8 +15,8 @@ export const NAME_LOWER = "countlink";  // used in URLs, slugs, footer copyright
 export const TAGLINE = "One countdown. Every screen. Exactly in sync.";
 export const SITE_URL = "https://countlink.app"; // update once the real domain is bought (see README domain shortlist)
 export const CONTACT_EMAIL = "hello@countlink.app"; // update alongside SITE_URL — privacy.html and every footer reference this
-export const LAST_UPDATED = "July 7, 2026"; // bump by hand whenever privacy.html's actual policy text changes — never auto-generate this from the current date
-export const CONTENT_DATE = "2026-07-07"; // ISO date used for datePublished/dateModified JSON-LD across pages — bump when page copy actually changes
+export const LAST_UPDATED = "July 8, 2026"; // bump by hand whenever privacy.html's actual policy text changes — never auto-generate this from the current date
+export const CONTENT_DATE = "2026-07-08"; // ISO date used for datePublished/dateModified JSON-LD across pages — bump when page copy actually changes
 export const DESCRIPTION =
   "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync — " +
   "no account, no server, no app. Built for classrooms, exams, webinars, workshops and standups.";
