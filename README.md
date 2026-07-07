@@ -132,3 +132,14 @@ GitHub whenever you want.
 
 See `docs/monetization.md` for the full, ordered checklist (analytics →
 AdSense application → ads.txt → Pro/Stripe wiring → growing `/timers/`).
+
+## SEO / backlink outreach
+
+See `docs/seo-outreach-plan.md` for the full plan — what's genuinely
+automatable (IndexNow, Search Console API) versus what deliberately stays
+a manual step (directory submissions, Show HN, Reddit) and why.
+
+```bash
+node scripts/submit-indexnow.mjs             # after every deploy with new/changed pages
+node scripts/generate-submission-kit.mjs     # regenerate docs/submission-checklist.md
+```

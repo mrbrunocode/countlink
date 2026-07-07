@@ -1,0 +1,122 @@
+{
+  "generated_at": "2026-07-07T10:23:12.568Z",
+  "copy": {
+    "name": "samesecond",
+    "url": "https://samesecond.example",
+    "tagline": "One countdown. Every screen. Exactly in sync.",
+    "one_liner": "A free shared countdown timer — set it once, share the link, everyone sees the same countdown in sync.",
+    "short_description": "samesecond is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.",
+    "long_description": "samesecond solves a specific, small problem well: getting a room (or a remote team, or a class taking an exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between devices. It includes a fullscreen \"projector\" mode and three display styles (a mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier removes ads and adds custom branding for people running it in front of clients.",
+    "category_tags": [
+      "Productivity",
+      "Education",
+      "Web App",
+      "Time Management",
+      "Free Tools",
+      "Utilities"
+    ],
+    "pricing": "Free — optional $5/mo Pro (removes ads, adds branding, for recurring facilitators)",
+    "contact_email": "you@example.com",
+    "repo_note": "Static site, no account system, no tracking beyond optional GA4/AdSense once configured (see docs/monetization.md)."
+  },
+  "directories": [
+    {
+      "name": "AlternativeTo",
+      "url": "https://alternativeto.net/software/new/",
+      "method": "form",
+      "tier": 2,
+      "notes": "List as an alternative to vClock/online-stopwatch/Google Timer. Needs a screenshot."
+    },
+    {
+      "name": "SaaSHub",
+      "url": "https://www.saashub.com/submit",
+      "method": "form",
+      "tier": 2,
+      "notes": "Submit as a free tool; category Productivity/Education."
+    },
+    {
+      "name": "Slant",
+      "url": "https://www.slant.co/",
+      "method": "form",
+      "tier": 2,
+      "notes": "Best added as an answer/option on an existing relevant question (e.g. 'best online timers') rather than a blind submission."
+    },
+    {
+      "name": "StackShare",
+      "url": "https://stackshare.io/tools/new",
+      "method": "form",
+      "tier": 2,
+      "notes": "Developer-tool leaning audience; frame around the zero-backend/URL-state mechanic."
+    },
+    {
+      "name": "BetaList",
+      "url": "https://betalist.com/submit",
+      "method": "form",
+      "tier": 2,
+      "notes": "Aimed at pre-launch/early products — best used once, near actual launch, not after the fact."
+    },
+    {
+      "name": "SourceForge",
+      "url": "https://sourceforge.net/software/vendors/",
+      "method": "form",
+      "tier": 2,
+      "notes": "Business/web-app software directory; free vendor listing available."
+    },
+    {
+      "name": "Product Hunt",
+      "url": "https://www.producthunt.com/posts/new",
+      "method": "form+event",
+      "tier": 2,
+      "notes": "Prep copy/assets here, but the actual launch (day, timing, replying to comments) is Tier 3 — see plan doc."
+    },
+    {
+      "name": "GitHub awesome-lists (education)",
+      "url": "https://github.com/search?q=awesome+education&type=repositories",
+      "method": "pull-request",
+      "tier": 2,
+      "notes": "Opening the PR is scriptable (gh CLI); wording + the maintainer's merge decision are not. One PR per relevant list, not a mass campaign."
+    },
+    {
+      "name": "GitHub awesome-lists (free software / self-hosted-adjacent)",
+      "url": "https://github.com/search?q=awesome+free-software&type=repositories",
+      "method": "pull-request",
+      "tier": 2,
+      "notes": "Same as above — only lists where a free browser timer genuinely fits the theme."
+    },
+    {
+      "name": "Show HN (Hacker News)",
+      "url": "https://news.ycombinator.com/submit",
+      "method": "manual-social",
+      "tier": 3,
+      "notes": "One real post, real account, good title, be present to answer comments. Never automate HN submissions."
+    },
+    {
+      "name": "r/SideProject",
+      "url": "https://www.reddit.com/r/SideProject/",
+      "method": "manual-social",
+      "tier": 3,
+      "notes": "Reddit's own rules prohibit automated posting; do this by hand, once, with a genuine account."
+    },
+    {
+      "name": "r/InternetIsBeautiful",
+      "url": "https://www.reddit.com/r/InternetIsBeautiful/",
+      "method": "manual-social",
+      "tier": 3,
+      "notes": "Strict about self-promotion — read community rules before posting; may need someone else to post it."
+    },
+    {
+      "name": "r/Teachers / r/Professors",
+      "url": "https://www.reddit.com/r/Teachers/",
+      "method": "manual-social",
+      "tier": 3,
+      "notes": "Frame as a free classroom/exam tool, not a launch announcement — different norms than r/SideProject."
+    },
+    {
+      "name": "Teacher/workshop-tool blog roundups",
+      "url": "",
+      "method": "manual-outreach",
+      "tier": 3,
+      "notes": "Find existing 'best free online timers' posts and email the author asking to be added. Personalize each email — do not mail-merge at scale."
+    }
+  ]
+}
