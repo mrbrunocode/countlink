@@ -70,13 +70,12 @@ h1{
   font-family:var(--display);font-weight:400;font-size:clamp(2.1rem,8vw,3.6rem);
   line-height:1.02;letter-spacing:.005em;color:var(--paper-text);max-width:16ch;text-transform:uppercase;
 }
-.lede{margin-top:18px;font-size:.98rem;line-height:1.65;color:var(--paper-dim);max-width:44ch}
+.lede{margin-top:14px;font-size:.98rem;line-height:1.6;color:var(--paper-dim);max-width:44ch}
 .lede b{color:var(--paper-text);font-weight:600}
-.use-list{
-  margin-top:20px;font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);
-  display:flex;flex-wrap:wrap;gap:8px;
-}
-.use-list span{border:1px solid var(--panel-line);padding:5px 10px;white-space:nowrap}
+/* A quiet caption, not a row of chip buttons — states the use cases without
+   competing visually with the actual product (the timer, one scroll below).
+   The same list is a real, clickable nav in the footer; this is context only. */
+.use-line{margin-top:10px;font-size:.78rem;color:var(--paper-dim);opacity:.8;max-width:42ch;line-height:1.5}
 .hero-fact{display:none}
 @media(min-width:760px){
   .hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
@@ -86,7 +85,6 @@ h1{
   }
   .hero-fact .n{font-family:var(--display);font-size:2rem;color:var(--amber);display:block;line-height:1}
   .hero-inner{grid-column:1}
-  .use-list{grid-column:1/-1}
 }
 
 /* ============ BOARD / STAGE ============ */
