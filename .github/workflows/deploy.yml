@@ -1,0 +1,25 @@
+name: Deploy to Cloudflare Pages
+
+# This project deploys via direct-upload (wrangler pages deploy), not
+# Cloudflare's GitHub-App-connected Pages source — that connection method
+# has to be authorized through the Cloudflare dashboard's OAuth flow and
+# can't be created via the API, so this workflow is the equivalent
+# auto-deploy-on-push behavior without needing that dashboard step.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy . --project-name=countlink --branch=main

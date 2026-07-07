@@ -1,0 +1,16 @@
+# Cloudflare Pages upload exclusions — keeps dev tooling and internal
+# planning docs out of the publicly-servable deploy, even though they stay
+# in the git repo. Without this, /scripts/*.mjs and /docs/*.md would be
+# reachable at https://countlink.app/scripts/... and /docs/... since Pages
+# direct-upload serves whatever's in the deployed directory as static files.
+.git
+.claude
+.gitignore
+.assetsignore
+README.md
+package.json
+package-lock.json
+scripts
+docs
+archive
+node_modules
