@@ -1,0 +1,34 @@
+# CountLink
+
+> Free shared countdown timer. Set a duration, copy the link, and everyone who opens it sees the identical countdown — synced by encoding the end timestamp in the URL itself, with no account and no server round-trip.
+
+CountLink is a static web app: no signup, no backend, no per-viewer cost. The sync mechanic (timestamp embedded in the shared link) is the core differentiator versus real-time-server competitors like ShareMyTimer and Stagetimer.io — see the comparison page below for specifics.
+
+## Primary pages
+- [Home / timer tool](https://countlink.example/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
+- [Comparison: CountLink vs ShareMyTimer vs Stagetimer](https://countlink.example/compare.html): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [Privacy policy](https://countlink.example/privacy.html): what data is (and isn't) collected
+
+## Duration timers
+- [5 Minute Timer](https://countlink.example/timers/5-minute-timer.html)
+- [10 Minute Timer](https://countlink.example/timers/10-minute-timer.html)
+- [15 Minute Timer](https://countlink.example/timers/15-minute-timer.html)
+- [20 Minute Timer](https://countlink.example/timers/20-minute-timer.html)
+- [25 Minute Timer](https://countlink.example/timers/25-minute-timer.html)
+- [30 Minute Timer](https://countlink.example/timers/30-minute-timer.html)
+- [45 Minute Timer](https://countlink.example/timers/45-minute-timer.html)
+- [1 Hour Timer](https://countlink.example/timers/60-minute-timer.html)
+
+## Use-case timers
+- [Exam Timer](https://countlink.example/timers/exam-timer.html)
+- [Classroom Timer](https://countlink.example/timers/classroom-timer.html)
+- [Webinar Countdown](https://countlink.example/timers/webinar-countdown.html)
+- [Standup Timer](https://countlink.example/timers/standup-timer.html)
+- [Zoom Meeting Timer](https://countlink.example/timers/zoom-meeting-timer.html)
+- [Google Meet Timer](https://countlink.example/timers/google-meet-timer.html)
+- [OBS Countdown Timer](https://countlink.example/timers/obs-countdown-timer.html)
+- [Twitch Stream Timer](https://countlink.example/timers/twitch-stream-timer.html)
+- [Workshop Timer](https://countlink.example/timers/workshop-timer.html)
+- [Group Study Timer](https://countlink.example/timers/group-study-timer.html)
+- [Game Night Timer](https://countlink.example/timers/game-night-timer.html)
+- [Auction Countdown](https://countlink.example/timers/auction-countdown.html)

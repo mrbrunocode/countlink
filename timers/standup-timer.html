@@ -9,12 +9,18 @@
 <meta property="og:title" content="Standup Timer — Keep Daily Standups Short">
 <meta property="og:description" content="A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://countlink.example/assets/og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.example/assets/og-image.svg">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.example/timers/standup-timer.html","description":"A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.example/timers/standup-timer.html","description":"A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"datePublished":"2026-07-07","dateModified":"2026-07-07"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.example/"},{"@type":"ListItem","position":2,"name":"Standup Timer","item":"https://countlink.example/timers/standup-timer.html"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I pin this link in Slack for the team to reuse?","acceptedAnswer":{"@type":"Answer","text":"You can pin it, but remember each link is tied to a specific end time — for a genuinely reusable daily habit, it's quickest to hit the same quick-timer button each morning and share that day's fresh link."}},{"@type":"Question","name":"Does everyone need to join a call to see it?","acceptedAnswer":{"@type":"Answer","text":"No — anyone with the link can open it on their own device, whether they're in a video call, in the office, or just watching from a browser tab."}},{"@type":"Question","name":"Will remote and in-office teammates see the same countdown?","acceptedAnswer":{"@type":"Answer","text":"Yes — the deadline is one shared instant regardless of device or location, so remote and in-office teammates see identical time remaining."}}]}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
@@ -109,6 +115,16 @@
       <button class="pro-link" id="proBtn">$5/mo — Unlock Pro →</button>
     </div>
   </section>
+  
+  
+  <section class="faq">
+    <h2>Common questions</h2>
+    <dl class="faq-grid">
+      <div class="faq-item"><h3>Can I pin this link in Slack for the team to reuse?</h3><dd>You can pin it, but remember each link is tied to a specific end time — for a genuinely reusable daily habit, it's quickest to hit the same quick-timer button each morning and share that day's fresh link.</dd></div>
+      <div class="faq-item"><h3>Does everyone need to join a call to see it?</h3><dd>No — anyone with the link can open it on their own device, whether they're in a video call, in the office, or just watching from a browser tab.</dd></div>
+      <div class="faq-item"><h3>Will remote and in-office teammates see the same countdown?</h3><dd>Yes — the deadline is one shared instant regardless of device or location, so remote and in-office teammates see identical time remaining.</dd></div>
+    </dl>
+  </section>
 </div>
 
 <footer>
@@ -136,13 +152,13 @@
           <a href="auction-countdown.html">Auction Countdown</a>
     </div>
     <div class="foot-in">
-      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a></div>
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="mailto:hello@countlink.example">hello@countlink.example</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
 </footer>
 
 <script>window.COUNTLINK_DEFAULT={minutes:10,label:"Standup over"};</script>
-<script src="../assets/app.js"></script>
+<script src="../assets/app.js" defer></script>
 </body>
 </html>

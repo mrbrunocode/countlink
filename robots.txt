@@ -1,4 +1,42 @@
 User-agent: *
 Allow: /
 
+# Explicit lines for AI search/citation crawlers are not required — the
+# wildcard block above already allows every crawler that has no more-specific
+# rule of its own — but they're listed anyway as a defensive, self-documenting
+# choice: it makes it obvious nobody accidentally added a training-bot block
+# that silently shadows search/citation access too. See docs/battle-plan-*.md.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Training-only crawlers (not search/citation) — uncomment to opt out of
+# training use while still allowing the search/citation crawlers above.
+# User-agent: CCBot
+# Disallow: /
+# User-agent: anthropic-ai
+# Disallow: /
+# User-agent: cohere-ai
+# Disallow: /
+
 Sitemap: https://countlink.example/sitemap.xml

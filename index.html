@@ -9,6 +9,13 @@
 <meta property="og:title" content="CountLink — Shared Timer, Synced by Link">
 <meta property="og:description" content="Set a countdown, share the link. Everyone who opens it sees the identical timer, synced automatically — no account, no server.">
 <meta property="og:type" content="website">
+<!-- og:image is SVG for now — fine for Discord/Slack/iMessage previews, but
+     Twitter/X and Facebook require a raster PNG/JPG and will show no image
+     until this is converted (e.g. export assets/og-image.svg at 1200x630). -->
+<meta property="og:image" content="https://countlink.example/assets/og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.example/assets/og-image.svg">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +31,26 @@
   "description": "A free shared timer. Set a countdown and share the link — everyone who opens it sees the exact same countdown, synced automatically, with no signup and no server.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any (web browser)",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "datePublished": "2026-07-07",
+  "dateModified": "2026-07-07"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "CountLink",
+  "url": "https://countlink.example/",
+  "description": "CountLink builds a free, serverless shared countdown timer used for classrooms, exams, webinars, workshops and standups."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "CountLink",
+  "url": "https://countlink.example/"
 }
 </script>
 <script type="application/ld+json">
@@ -45,12 +71,22 @@
     {
       "@type": "Question",
       "name": "How does the timer stay in sync across devices?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The countdown's end time is encoded directly in the shared link as a timestamp. Every device that opens the link counts down to that same instant using its own clock, so there's no server round-trip and nothing to go out of sync." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The countdown's end time is encoded directly in the shared link as a timestamp — not stored on a server. When you press start, CountLink calculates the exact moment the countdown should hit zero and writes it into the URL you copy. Every device that opens that link reads the same timestamp and counts down to it using its own local clock, so there's no server round-trip, no polling, and nothing to fall out of sync." }
     },
     {
       "@type": "Question",
       "name": "Can the timer go down or lose sync if a server has an outage?",
       "acceptedAnswer": { "@type": "Answer", "text": "No — there is no server in the sync path at all, so there's nothing to go down. Each device is doing its own local math against the shared timestamp." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I pause or extend a countdown that's already running?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not pushed live to everyone who already has the link open — since there's no ongoing connection, there's no channel to broadcast a pause through. If plans change, the quickest fix is to start a fresh countdown and re-share the new link; for a fixed-duration class, exam, or webinar this rarely comes up." }
+    },
+    {
+      "@type": "Question",
+      "name": "What if two people's device clocks are slightly different?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Sync accuracy depends on each device's own clock being roughly correct, typically within a second — the same margin any phone or laptop clock holds day to day. The countdown itself doesn't drift; any tiny difference you'd see between two screens comes from the devices' clocks, not from CountLink." }
     }
   ]
 }
@@ -70,7 +106,7 @@
 <body>
 
 <header>
-  <a class="logo" href="/">CountLink</a>
+  <a class="logo" href="index.html">CountLink</a>
   <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
 
@@ -167,23 +203,33 @@
   </section>
 
   <section class="faq">
+    <h2>Why is CountLink's free tier unlimited when competitors cap viewers?</h2>
+    <p class="seo-intro" style="max-width:75ch;margin-bottom:24px">Real-time competitors like ShareMyTimer and Stagetimer push live control changes (pause, extend, messages) to every open viewer instantly — that needs a server keeping a connection open per viewer, which costs money to run, so their free tiers cap devices and timers to control that cost. CountLink's sync works differently: the countdown's end time is written into the shared link itself, so every device just does its own local math against that timestamp. There's no ongoing connection and no per-viewer cost, which is the direct reason CountLink can offer unlimited viewers for free, indefinitely — showing the countdown to one person or ten thousand costs the exact same amount of nothing.</p>
     <h2>Common questions</h2>
     <dl class="faq-grid">
       <div class="faq-item">
-        <dt>Is CountLink free?</dt>
+        <h3>Is CountLink free?</h3>
         <dd>Yes, the shared timer is free with no viewer limit and no device limit — because syncing happens entirely in the link itself, not on a server, showing one more viewer costs nothing.</dd>
       </div>
       <div class="faq-item">
-        <dt>Do I need to sign up or make an account?</dt>
+        <h3>Do I need to sign up or make an account?</h3>
         <dd>No. Nobody — neither the person who starts the timer nor anyone who opens the shared link — ever needs an account.</dd>
       </div>
       <div class="faq-item">
-        <dt>How does the timer stay in sync across devices?</dt>
-        <dd>The countdown's end time is encoded directly in the shared link as a timestamp. Every device that opens the link counts down to that same instant using its own clock, so there's no server round-trip and nothing to go out of sync.</dd>
+        <h3>How does the timer stay in sync across devices?</h3>
+        <dd>The countdown's end time is encoded directly in the shared link as a timestamp — not stored on a server. When you press start, CountLink calculates the exact moment the countdown should hit zero and writes it into the URL you copy. Every device that opens that link reads the same timestamp and counts down to it using its own local clock, so there's no server round-trip, no polling, and nothing to fall out of sync.</dd>
       </div>
       <div class="faq-item">
-        <dt>Can the timer go down or lose sync if a server has an outage?</dt>
+        <h3>Can the timer go down or lose sync if a server has an outage?</h3>
         <dd>No — there is no server in the sync path at all, so there's nothing to go down. Each device is doing its own local math against the shared timestamp.</dd>
+      </div>
+      <div class="faq-item">
+        <h3>Can I pause or extend a countdown that's already running?</h3>
+        <dd>Not pushed live to everyone who already has the link open — since there's no ongoing connection, there's no channel to broadcast a pause through. If plans change, the quickest fix is to start a fresh countdown and re-share the new link; for a fixed-duration class, exam, or webinar this rarely comes up.</dd>
+      </div>
+      <div class="faq-item">
+        <h3>What if two people's device clocks are slightly different?</h3>
+        <dd>Sync accuracy depends on each device's own clock being roughly correct, typically within a second — the same margin any phone or laptop clock holds day to day. The countdown itself doesn't drift; any tiny difference you'd see between two screens comes from the devices' clocks, not from CountLink.</dd>
       </div>
     </dl>
   </section>
@@ -218,12 +264,12 @@
       <!-- FOOT_LINKS_END -->
     </div>
     <div class="foot-in">
-      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="privacy.html">Privacy</a> · <a href="compare.html">Vs. ShareMyTimer &amp; Stagetimer</a></div>
+      <div><div class="fb">CountLink</div>A timer you can hand to a room, built because most shared-timer tools charge for basics like sound alerts or a viewer past device #3. · <a href="privacy.html">Privacy</a> · <a href="compare.html">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="mailto:hello@countlink.example">hello@countlink.example</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
 </footer>
 
-<script src="assets/app.js"></script>
+<script src="assets/app.js" defer></script>
 </body>
 </html>

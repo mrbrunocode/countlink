@@ -4,7 +4,6 @@
    run every airport and station clock for the last 60 years: split-flap
    tiles, riveted steel chassis, amber signal, mechanical everything.
    =================================================================== */
-@font-face{font-display:swap}
 :root{
   --board:#1c1c1a;         /* chassis / page background */
   --board-deep:#131311;
@@ -94,14 +93,21 @@ h1{
 .stage-section{padding:26px 0 0}
 @media(min-width:640px){.stage-section{padding:36px 0 0}}
 .board{
+  /* Tile size lives here, not on .tile, so .tiles can reserve its own height
+     via var(--th) BEFORE any .tile element exists in the DOM (they're injected
+     by assets/app.js). Without this, the board has zero height until JS runs,
+     then snaps to full size — a real, measured CLS hit on every page load. */
+  --tw:34px;--th:48px;--fs:1.7rem;
   background:linear-gradient(180deg,var(--panel),var(--board-deep));
   border:1px solid var(--panel-line);border-radius:10px;
   padding:24px 8px 22px;text-align:center;position:relative;
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 30px 60px -30px rgba(0,0,0,.8);
 }
-@media(min-width:420px){.board{padding:26px 16px 24px}}
-@media(min-width:640px){.board{padding:40px 32px 34px}}
-@media(min-width:900px){.board{padding:52px 40px 44px}}
+@media(min-width:360px){.board{--tw:38px;--th:54px;--fs:1.9rem}}
+@media(min-width:420px){.board{padding:26px 16px 24px;--tw:50px;--th:68px;--fs:2.5rem}}
+@media(min-width:640px){.board{padding:40px 32px 34px;--tw:64px;--th:88px;--fs:3.3rem}}
+@media(min-width:900px){.board{padding:52px 40px 44px;--tw:78px;--th:110px;--fs:4rem}}
+@media(min-width:1200px){.board{--tw:92px;--th:130px;--fs:4.8rem}}
 /* corner bolts — purely decorative, sells the "physical chassis" idea */
 .board::before,.board::after,.board .bolt-br,.board .bolt-bl{
   content:"";position:absolute;width:7px;height:7px;border-radius:50%;
@@ -138,21 +144,18 @@ h1{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--amber);text-transform:uppercase;
   min-height:1.4em;margin-bottom:14px;
 }
-.tiles{display:flex;justify-content:center;align-items:center;gap:3px;flex-wrap:nowrap}
+.tiles{
+  display:flex;justify-content:center;align-items:center;gap:3px;flex-wrap:nowrap;
+  min-height:var(--th); /* reserves the row's height before JS injects any .tile — see .board */
+}
 @media(min-width:420px){.tiles{gap:5px}}
 @media(min-width:480px){.tiles{gap:7px}}
 @media(min-width:900px){.tiles{gap:10px}}
 @media(min-width:1200px){.tiles{gap:13px}}
 .tile{
-  --tw:34px;--th:48px;--fs:1.7rem;
   width:var(--tw);height:var(--th);position:relative;perspective:240px;flex:none;
   transition:width .2s,height .2s;
 }
-@media(min-width:360px){.tile{--tw:38px;--th:54px;--fs:1.9rem}}
-@media(min-width:420px){.tile{--tw:50px;--th:68px;--fs:2.5rem}}
-@media(min-width:640px){.tile{--tw:64px;--th:88px;--fs:3.3rem}}
-@media(min-width:900px){.tile{--tw:78px;--th:110px;--fs:4rem}}
-@media(min-width:1200px){.tile{--tw:92px;--th:130px;--fs:4.8rem}}
 .tile .num{
   position:absolute;left:0;right:0;top:0;height:var(--th);line-height:var(--th);
   font-family:var(--display);font-size:var(--fs);color:var(--flap-ink);text-align:center;
@@ -304,8 +307,20 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
 .faq h2{font-family:var(--display);font-weight:400;font-size:1.3rem;letter-spacing:.02em;text-transform:uppercase;margin-bottom:16px;color:var(--paper-text)}
 .faq-grid{display:flex;flex-direction:column;gap:18px}
 @media(min-width:760px){.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px}}
-.faq-item dt{font-family:var(--sans);font-weight:600;font-size:.9rem;color:var(--paper-text);margin-bottom:6px}
-.faq-item dd{font-size:.84rem;color:var(--paper-dim);line-height:1.6}
+.faq-item h3{font-family:var(--sans);font-weight:600;font-size:.9rem;color:var(--paper-text);margin-bottom:6px}
+.faq-item dd{font-size:.84rem;color:var(--paper-dim);line-height:1.6;margin:0}
+
+/* per-page "extra" block (OBS setup steps, Zoom comparison, exam Light-style
+   callout) — a distinct structural element beyond prose, per the SXO/content
+   audit finding that a reworded intro alone reads as thin/templated */
+.obs-extra{
+  margin:26px 0 0;padding:20px 22px;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;
+}
+.obs-extra h3{font-family:var(--display);font-weight:400;font-size:1.05rem;letter-spacing:.02em;text-transform:uppercase;margin-bottom:10px;color:var(--paper-text)}
+.obs-extra p{font-size:.86rem;color:var(--paper-dim);line-height:1.6;margin-bottom:10px}
+.obs-extra p:last-child{margin-bottom:0}
+.obs-extra ol{margin:0 0 10px 1.2em;font-size:.86rem;color:var(--paper-dim);line-height:1.7}
+.obs-extra ol li::marker{color:var(--amber);font-family:var(--mono)}
 
 /* ============ FOOTER (also carries the internal SEO links — see docs/monetization.md) ============ */
 footer{border-top:1px solid var(--panel-line);padding:24px 0 28px;margin-top:34px}
@@ -332,11 +347,10 @@ body.fs .wrap>*:not(.stage-section),body.fs header,body.fs footer,body.fs .ad-sl
 body.fs .stage-section{padding:0}
 body.fs .wrap{max-width:none;padding:0}
 body.fs{display:grid;place-items:center;min-height:100vh}
-body.fs .board{border:none;border-radius:0;width:100vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--board)}
-body.fs .tile{--tw:42px;--th:60px;--fs:2.1rem}
-@media(min-width:420px){body.fs .tile{--tw:56px;--th:80px;--fs:2.9rem}}
-@media(min-width:640px){body.fs .tile{--tw:70px;--th:100px;--fs:3.6rem}}
-@media(min-width:900px){body.fs .tile{--tw:120px;--th:170px;--fs:6.2rem}}
+body.fs .board{border:none;border-radius:0;width:100vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--board);--tw:42px;--th:60px;--fs:2.1rem}
+@media(min-width:420px){body.fs .board{--tw:56px;--th:80px;--fs:2.9rem}}
+@media(min-width:640px){body.fs .board{--tw:70px;--th:100px;--fs:3.6rem}}
+@media(min-width:900px){body.fs .board{--tw:120px;--th:170px;--fs:6.2rem}}
 body.fs .tiles{gap:4px}
 @media(min-width:420px){body.fs .tiles{gap:8px}}
 @media(min-width:640px){body.fs .tiles{gap:12px}}
@@ -353,11 +367,11 @@ body.overlay-mode .wrap{max-width:none;padding:0}
 body.overlay-mode{display:grid;place-items:center;min-height:100vh}
 body.overlay-mode .board{
   border:none;background:transparent;box-shadow:none;padding:16px;width:auto;min-height:0;
+  --tw:56px;--th:80px;--fs:2.9rem;
 }
+@media(min-width:640px){body.overlay-mode .board{--tw:78px;--th:110px;--fs:4rem}}
 body.overlay-mode .board .bolt-br,body.overlay-mode .board .bolt-bl,
 body.overlay-mode .board::before,body.overlay-mode .board::after,
 body.overlay-mode .style-toggle,body.overlay-mode .sync-note,
 body.overlay-mode .bar,body.overlay-mode .stage-btns{display:none}
-body.overlay-mode .tile{--tw:56px;--th:80px;--fs:2.9rem}
-@media(min-width:640px){body.overlay-mode .tile{--tw:78px;--th:110px;--fs:4rem}}
 body.overlay-mode .tiles{gap:8px}

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1c1c1a"/>
+  <rect width="1200" height="630" fill="url(#grain)" opacity="0.4"/>
+  <defs>
+    <pattern id="grain" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#1c1c1a"/>
+      <rect width="4" height="1" fill="#ffffff" opacity="0.02"/>
+    </pattern>
+  </defs>
+
+  <circle cx="90" cy="90" r="10" fill="#e8a53d"/>
+  <text x="120" y="100" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="40" letter-spacing="1" fill="#f0ead9">COUNTLINK</text>
+
+  <text x="90" y="230" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#f0ead9">ONE SHARED TIMER.</text>
+  <text x="90" y="310" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#f0ead9">EVERY SCREEN.</text>
+  <text x="90" y="390" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#e8a53d">EXACTLY IN SYNC.</text>
+
+  <!-- simplified split-flap tile row -->
+  <g transform="translate(90,450)">
+    <g>
+      <rect width="80" height="110" rx="8" fill="#f0ead9"/>
+      <line x1="0" y1="55" x2="80" y2="55" stroke="#1c1c1a" stroke-opacity="0.3" stroke-width="2"/>
+      <text x="40" y="78" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#211f1a" text-anchor="middle">1</text>
+    </g>
+    <g transform="translate(96,0)">
+      <rect width="80" height="110" rx="8" fill="#f0ead9"/>
+      <line x1="0" y1="55" x2="80" y2="55" stroke="#1c1c1a" stroke-opacity="0.3" stroke-width="2"/>
+      <text x="40" y="78" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#211f1a" text-anchor="middle">0</text>
+    </g>
+    <text x="205" y="70" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="60" fill="#e8a53d">:</text>
+    <g transform="translate(230,0)">
+      <rect width="80" height="110" rx="8" fill="#f0ead9"/>
+      <line x1="0" y1="55" x2="80" y2="55" stroke="#1c1c1a" stroke-opacity="0.3" stroke-width="2"/>
+      <text x="40" y="78" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#211f1a" text-anchor="middle">0</text>
+    </g>
+    <g transform="translate(326,0)">
+      <rect width="80" height="110" rx="8" fill="#f0ead9"/>
+      <line x1="0" y1="55" x2="80" y2="55" stroke="#1c1c1a" stroke-opacity="0.3" stroke-width="2"/>
+      <text x="40" y="78" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#211f1a" text-anchor="middle">0</text>
+    </g>
+  </g>
+
+  <text x="530" y="520" font-family="Arial, sans-serif" font-size="26" fill="#a29c8c">No signup · no server · unlimited viewers, free forever</text>
+</svg>

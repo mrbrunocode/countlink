@@ -230,6 +230,17 @@ if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
   $("qrWrap").style.display="block";$("qrBtn").textContent="Hide QR code";
 });
+/* OBS/Twitch pages only: same link, plus ?overlay=1 so whoever pastes it into
+   a Browser Source gets the transparent, chrome-stripped view automatically —
+   see docs/battle-plan-sharemytimer.md §2 and the SXO audit finding that this
+   feature existed in code but was never surfaced on its own landing pages. */
+if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
+  const u=new URL(makeLink());
+  u.searchParams.set("overlay","1");
+  await navigator.clipboard.writeText(u.toString());
+  e.target.textContent="Overlay link copied — paste into OBS";
+  setTimeout(()=>{e.target.textContent="Copy OBS overlay link →";},2200);
+});
 $("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
   $("fsBtn").textContent=document.body.classList.contains("fs")?"Exit fullscreen":"Fullscreen";
