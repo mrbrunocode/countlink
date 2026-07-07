@@ -184,6 +184,7 @@ $("proBtn").addEventListener("click",e=>{pro=true;e.target.textContent="Pro unlo
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){
   $("boardEl").classList.toggle("style-minimal",name==="minimal");
+  $("boardEl").classList.toggle("style-light",name==="light");
   document.querySelectorAll(".style-toggle button").forEach(b=>b.classList.toggle("active",b.dataset.style===name));
   try{localStorage.setItem("samesecond_style",name)}catch(e){}
 }

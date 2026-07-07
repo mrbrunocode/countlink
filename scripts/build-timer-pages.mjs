@@ -125,6 +125,7 @@ const page = (p) => `<!DOCTYPE html>
       <div class="style-toggle">
         <button type="button" data-style="board">Board</button>
         <button type="button" data-style="minimal">Minimal</button>
+        <button type="button" data-style="light">Light</button>
       </div>
       <div class="evt" id="evtLabel"></div>
       <div class="tiles" id="tiles"></div>

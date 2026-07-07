@@ -184,6 +184,20 @@ h1{
 .board.style-minimal .tile::after{display:none}
 .board.style-minimal .tile .flap{box-shadow:none}
 
+/* "Light" style — for projecting in a bright room: dark backgrounds wash out
+   to gray under ambient light, dark-on-light stays legible. Re-declares the
+   board's CSS custom properties in this one scope only (the marketing page
+   around it — hero, header, footer — is untouched; nobody projects that).
+   Everything inside .board already reads these variables, so this is the
+   entire theme — no per-element overrides needed. */
+.board.style-light{
+  --board:#f7f4ec; --board-deep:#ffffff; --panel:#f7f4ec; --panel-line:#ddd6c4;
+  --flap:#ffffff; --flap-ink:#1c1a16; --paper-text:#1c1a16; --paper-dim:#6e6858;
+  --amber:#c07f2a; --amber-deep:#9c631c; --ok:#2f6b45;
+  background:var(--board);border-color:var(--panel-line);
+  box-shadow:0 1px 0 rgba(0,0,0,.03) inset, 0 24px 50px -26px rgba(0,0,0,.16);
+}
+
 .tile-sep{
   font-family:var(--display);font-size:1.3rem;color:var(--amber);align-self:center;
   width:5px;text-align:center;line-height:1;opacity:.85;flex:none;
@@ -212,8 +226,10 @@ h1{
 }
 @media(min-width:480px){.btn{width:auto}}
 .btn:hover{border-color:var(--amber);color:var(--amber)}
-.btn.primary{background:var(--amber);color:var(--board-deep);border-color:var(--amber-deep);font-weight:700}
-.btn.primary:hover{background:var(--amber-deep);color:var(--board);border-color:var(--amber-deep)}
+/* fixed dark ink, not board-deep/board — amber stays a mid-tone accent in
+   every theme, so dark text reads correctly on it regardless of dark/light. */
+.btn.primary{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:700}
+.btn.primary:hover{background:var(--amber-deep);color:var(--flap-ink);border-color:var(--amber-deep)}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
 .sync-note{
   display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);
