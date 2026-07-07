@@ -31,6 +31,12 @@ jobs:
           cp index.html privacy.html compare.html robots.txt sitemap.xml llms.txt ads.txt _headers dist/
           cp -r assets dist/
           cp -r timers dist/
+          # IndexNow key file (32-hex-char name) — must be reachable at the
+          # domain root for IndexNow to verify ownership before accepting
+          # submissions. Globbed rather than hardcoded since the filename IS
+          # the key value; shopt -s nullglob avoids an error if none exists.
+          shopt -s nullglob
+          cp [0-9a-f]*.txt dist/ 2>/dev/null || true
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
