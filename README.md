@@ -99,28 +99,30 @@ Steps (Cloudflare Pages):
 
 ## Domain name research
 
-Checked via WHOIS/RDAP on 2026-07-06:
+Availability confirmed via direct registry RDAP on 2026-07-07 (Verisign for
+`.com`, Google Registry for `.app`, Identity Digital for `.io`, GoDaddy WHOIS
+for the rest); pricing confirmed via a live Porkbun quote the same day:
 
-| Domain | Status |
-|---|---|
-| countlink.com | **Taken** (registered 2025-07-01, Namecheap — unrelated registrant) |
-| countlink.app | **Taken** |
-| countlink.io | Available |
-| countlink.co | Available |
-| countlink.link | Available |
-| countlink.live | Available |
-| countlink.tools | Available |
-| getcountlink.com | Available |
-| thecountlink.com | Available |
-| countlink.net | Available |
-| countlink.org | Available |
+| Domain | Status | 1st year | Renews at |
+|---|---|---|---|
+| countlink.com | **Taken** — registered, parked/unresolvable, unrelated holder (not a live brand, just unavailable to buy without approaching them) | — | — |
+| countlink.app | Available | $8.75 | $14.93/yr |
+| countlink.io | Available | $28.12 (sale) | $51.80/yr |
+| countlink.dev | Available | $8.75 | $12.87/yr |
+| countlink.co | Available (not in Porkbun's default results — search `.co` directly) | — | ~$25–30/yr typical |
+| countlink.link | Available (confirmed via WHOIS; also not in Porkbun's default TLD set — search `.link` directly) | — | — |
+| countl.ink | Available — domain-hack split ("count" + Iceland-style `.ink` gTLD) | $2.06 | $26.26/yr |
+| count.link | Available but **premium-priced** — a short dictionary word on `.link` | $382.61/yr flat | $382.61/yr |
 
-Recommendation: **countlink.io** or **countlink.link** — `.link` is on-brand
-for a product whose entire pitch is "the link is the sync," is memorable, and
-is inexpensive. `.io` is the more conventional/trusted-feeling choice if you'd
-rather not explain the TLD. Avoid `.app` workarounds like `getcountlink.com`
-unless price is the deciding factor — the extra word costs you the clean
-"type it from memory" quality that makes a share-link tool spread.
+Recommendation: **countlink.app** over countlink.io. Both are equally modern
+and trustworthy-feeling for a web tool, `.app` enforces HTTPS by default (a
+small built-in security/trust signal), and at $14.93/yr renewal vs $51.80/yr
+for `.io` it's roughly $185 cheaper over 5 years for no real downside. Only
+reason to pick `.io` instead: if you specifically don't want to explain a
+newer TLD to a less tech-savvy audience — `.io` reads as slightly more
+conventional to some users, `.app` less universally recognized (yet). Skip
+`countl.ink`/`count.link` — cute wordplay, but harder to say aloud correctly
+and the premium pricing on `count.link` isn't worth it for the novelty.
 
 ## Git / version control
 
