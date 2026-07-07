@@ -29,7 +29,7 @@ timers/                 programmatic SEO landing pages (see docs/monetization.md
   5-minute-timer.html
   ...
 scripts/
-  build_timer_pages.py  regenerates everything in /timers/ + sitemap.xml from one data list
+  build-timer-pages.mjs  regenerates everything in /timers/ + sitemap.xml from one data list
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
 ads.txt                 AdSense seller-verification file (fill in once approved)
@@ -64,14 +64,14 @@ The real growth engine (per vClock's model — see `docs/monetization.md`) is
 having many indexed pages, each targeting one specific search query, all
 funnelling into the same tool.
 
-1. Open `scripts/build_timer_pages.py`.
+1. Open `scripts/build-timer-pages.mjs`.
 2. Add a new entry to the `PAGES` list at the top — every field must be
    **unique** (title, meta description, intro paragraph). Duplicate content
    across pages is the most common reason these get filtered out of Google's
    index instead of ranked.
 3. Run:
    ```bash
-   python3 scripts/build_timer_pages.py
+   node scripts/build-timer-pages.mjs
    ```
    This regenerates every file in `/timers/` plus `sitemap.xml` from the
    template, so editing shared structure only ever happens in one place.
@@ -90,7 +90,7 @@ Steps (Cloudflare Pages):
 2. In Cloudflare dashboard → Workers & Pages → Create → Pages → connect the repo.
 3. Build command: none. Output directory: `/` (repo root).
 4. Add your domain under Custom Domains once purchased.
-5. Update `SITE_URL` in `scripts/build_timer_pages.py` and the `canonical`/`og:url`
+5. Update `SITE_URL` in `scripts/build-timer-pages.mjs` and the `canonical`/`og:url`
    values in `index.html` from `samesecond.example` to the real domain, then
    re-run the build script and redeploy.
 

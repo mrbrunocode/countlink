@@ -56,105 +56,62 @@
   </div>
 
   <section class="setup-section">
-    <div class="setup">
-      <div class="panel">
-        <h2>Change the countdown</h2>
-        <div class="hint">Already running at 10 minutes above — adjust it here if you need something else.</div>
-        <label>Quick timer</label>
-        <div class="quick">
-          <button class="q" data-min="1">1 min</button>
-          <button class="q" data-min="5">5 min</button>
-          <button class="q" data-min="10">10 min</button>
-          <button class="q" data-min="15">15 min</button>
-          <button class="q" data-min="30">30 min</button>
-          <button class="q" data-min="60">1 hour</button>
-        </div>
-        <div class="stack2">
-          <div>
-            <label for="customMin">Custom minutes</label>
-            <input id="customMin" type="number" min="1" value="10">
-          </div>
-          <div>
-            <label for="untilTime">…or until a date &amp; time</label>
-            <input id="untilTime" type="datetime-local">
-          </div>
-        </div>
-        <label for="evtName">What's it for? (shown on every screen)</label>
-        <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Back to it">
-        <div class="stage-btns" style="margin-top:20px">
-          <button class="btn primary" id="startBtn">Start countdown</button>
-        </div>
-        <div class="share-box" id="shareUrl"></div>
+    <div class="panel">
+      <h2>Change the countdown</h2>
+      <div class="hint">Already running at 10 minutes above — adjust it here if you need something else.</div>
+      <label>Quick timer</label>
+      <div class="quick">
+        <button class="q" data-min="1">1 min</button>
+        <button class="q" data-min="5">5 min</button>
+        <button class="q" data-min="10">10 min</button>
+        <button class="q" data-min="15">15 min</button>
+        <button class="q" data-min="30">30 min</button>
+        <button class="q" data-min="60">1 hour</button>
       </div>
-
-      <div class="panel pro-panel">
-        <h2>Pro <span class="pro-tag">for facilitators</span></h2>
-        <div class="hint">For people who run rooms for a living.</div>
-        <ul>
-          <li>Your logo and colors on every countdown you share</li>
-          <li>No ads on your links — clean screens in front of clients</li>
-          <li>Agenda sequences: talk → break → Q&amp;A, one link</li>
-          <li>Custom end sound and on-zero message</li>
-        </ul>
-        <div class="pro-price">$5<small> / month, per organizer</small></div>
-        <button class="pro-link" id="proBtn">Unlock Pro →</button>
-        <div class="proto-note">Prototype — button simulates checkout</div>
+      <div class="stack2">
+        <div>
+          <label for="customMin">Custom minutes</label>
+          <input id="customMin" type="number" min="1" value="10">
+        </div>
+        <div>
+          <label for="untilTime">…or until a date &amp; time</label>
+          <input id="untilTime" type="datetime-local">
+        </div>
       </div>
+      <label for="evtName">What's it for? (shown on every screen)</label>
+      <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Back to it">
+      <div class="stage-btns" style="margin-top:20px">
+        <button class="btn primary" id="startBtn">Start countdown</button>
+      </div>
+      <div class="share-box" id="shareUrl"></div>
     </div>
-  </section>
-
-  <section class="links-section">
-    <div class="links-grid">
-      <div class="links-col">
-        <h4>Set a timer for</h4>
-        <ul>
-          <li><a href="5-minute-timer.html">5 Minute Timer</a></li>
-          <li><a href="10-minute-timer.html">10 Minute Timer</a></li>
-          <li><a href="15-minute-timer.html">15 Minute Timer</a></li>
-          <li><a href="20-minute-timer.html">20 Minute Timer</a></li>
-          <li><a href="25-minute-timer.html">25 Minute Timer (Pomodoro)</a></li>
-          <li><a href="30-minute-timer.html">30 Minute Timer</a></li>
-          <li><a href="45-minute-timer.html">45 Minute Timer</a></li>
-          <li><a href="60-minute-timer.html">1 Hour Timer</a></li>
-        </ul>
-      </div>
-      <div class="links-col">
-        <h4>Built for</h4>
-        <ul>
-          <li><a href="exam-timer.html">Exam Timer</a></li>
-          <li><a href="classroom-timer.html">Classroom Timer</a></li>
-          <li><a href="webinar-countdown.html">Webinar Countdown</a></li>
-          <li><a href="standup-timer.html">Standup Timer</a></li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="why">
-    <div class="why-grid">
-      <div class="why-item">
-        <span class="num">01</span>
-        <h3>Why links sync themselves</h3>
-        <p>Your link carries the end-moment as a timestamp. Every device counts down to that same instant using its own clock — no server, no lag, no account to create.</p>
-      </div>
-      <div class="why-item">
-        <span class="num">02</span>
-        <h3>Built to be projected</h3>
-        <p>Fullscreen turns any screen into a wall clock, readable from the back row, with a progress line the whole room can track without asking "how much longer?"</p>
-      </div>
-      <div class="why-item">
-        <span class="num">03</span>
-        <h3>Free stays free</h3>
-        <p>A timer costs nothing to run, so it costs you nothing to use. Pro exists only for the people who need their own name on the screen.</p>
-      </div>
+    <div class="pro-banner">
+      <span>Running this for clients? <b>Pro</b> removes ads and adds your branding.</span>
+      <button class="pro-link" id="proBtn">$5/mo — Unlock Pro →</button>
     </div>
   </section>
 </div>
 
 <footer>
-  <div class="wrap foot-in">
-    <div><div class="fb">samesecond</div>A timer you can hand to a room. · <a href="../privacy.html" style="text-decoration:underline">Privacy</a></div>
-    <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="5-minute-timer.html">5 Minute Timer</a>
+          <a href="10-minute-timer.html">10 Minute Timer</a>
+          <a href="15-minute-timer.html">15 Minute Timer</a>
+          <a href="20-minute-timer.html">20 Minute Timer</a>
+          <a href="25-minute-timer.html">25 Minute Timer</a>
+          <a href="30-minute-timer.html">30 Minute Timer</a>
+          <a href="45-minute-timer.html">45 Minute Timer</a>
+          <a href="60-minute-timer.html">1 Hour Timer</a>
+          <a href="exam-timer.html">Exam Timer</a>
+          <a href="classroom-timer.html">Classroom Timer</a>
+          <a href="webinar-countdown.html">Webinar Countdown</a>
+          <a href="standup-timer.html">Standup Timer</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">samesecond</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a></div>
+      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
   </div>
 </footer>
 

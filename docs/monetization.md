@@ -15,10 +15,10 @@ all of it at once) and I'll paste them into the right files:
 
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
-| 1 | **The real domain** (e.g. `samesecond.io`) | Buy it — see domain shortlist in `README.md` | Replace `samesecond.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build_timer_pages.py`, then re-run the script |
+| 1 | **The real domain** (e.g. `samesecond.io`) | Buy it — see domain shortlist in `README.md` | Replace `samesecond.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build-timer-pages.mjs`, then re-run the script |
 | 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
 | 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
-| 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build_timer_pages.py`'s template (then re-run the script) |
+| 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
 | 5 | **Stripe Payment Link URL** for the $5/mo Pro tier | [stripe.com](https://stripe.com) → Product catalog → create product → Payment Links (no code needed) | Swap the `#proBtn` click handler in `assets/app.js` from the local mock to `location.href = "<your link>"` |
 | 6 | (Optional) **A real contact email** for the privacy policy | Whatever inbox you want inquiries to go to | Replace the vague "contact address listed in the footer" line in `privacy.html` with an actual `mailto:` link |
 
@@ -66,10 +66,10 @@ approval starts.
 
 Once you have it:
 1. Point DNS at your host (see README "Deployment").
-2. Update `SITE_URL` in `scripts/build_timer_pages.py`.
+2. Update `SITE_URL` in `scripts/build-timer-pages.mjs`.
 3. Update the `canonical` and `og:*` URLs in `index.html` and `privacy.html`
    from `samesecond.example` to the real domain.
-4. Re-run `python3 scripts/build_timer_pages.py` and redeploy.
+4. Re-run `node scripts/build-timer-pages.mjs` and redeploy.
 
 ## Step 1 — Google Analytics (GA4)
 
@@ -82,7 +82,7 @@ pages are actually getting indexed/visited.
    (looks like `G-XXXXXXXXXX`).
 3. In `index.html`, uncomment the analytics block in `<head>` and replace
    both `G-XXXXXXXXXX` placeholders with your real ID.
-4. Repeat for `scripts/build_timer_pages.py`'s `PAGE_TEMPLATE` head comment
+4. Repeat for `scripts/build-timer-pages.mjs`'s `PAGE_TEMPLATE` head comment
    (or, simpler, extract the snippet into its own small file later — for now,
    pasting the same two lines into the template's head comment and
    re-running the generator is enough).
@@ -116,7 +116,7 @@ plan for **1–4 weeks** of review, sometimes longer.
         data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
    ```
-7. Do the same in `scripts/build_timer_pages.py`'s template (search for
+7. Do the same in `scripts/build-timer-pages.mjs`'s template (search for
    `ad-frame`), then re-run the generator so every `/timers/` page picks it
    up — **don't** hand-edit the individual files in `/timers/`, they'll be
    overwritten next time the script runs.
