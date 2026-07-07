@@ -5,6 +5,14 @@ name: Deploy to Cloudflare Pages
 # has to be authorized through the Cloudflare dashboard's OAuth flow and
 # can't be created via the API, so this workflow is the equivalent
 # auto-deploy-on-push behavior without needing that dashboard step.
+#
+# Deploys from a `dist/` staging copy, not the repo root — the repo root
+# also contains scripts/, docs/, README.md etc. which aren't meant to be
+# publicly servable. An earlier version of this workflow deployed `.`
+# directly and briefly uploaded those alongside the real site; this list
+# must stay in sync with the "public site files" set (index.html,
+# privacy.html, compare.html, robots.txt, sitemap.xml, llms.txt, ads.txt,
+# _headers, assets/, timers/) if that set ever changes.
 on:
   push:
     branches: [main]
@@ -17,9 +25,15 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Build dist/ (public site files only)
+        run: |
+          mkdir -p dist
+          cp index.html privacy.html compare.html robots.txt sitemap.xml llms.txt ads.txt _headers dist/
+          cp -r assets dist/
+          cp -r timers dist/
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=countlink --branch=main
+          command: pages deploy dist --project-name=countlink --branch=main
