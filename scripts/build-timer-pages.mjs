@@ -120,8 +120,12 @@ const page = (p) => `<!DOCTYPE html>
   </section>
 
   <section class="stage-section">
-    <div class="board">
+    <div class="board" id="boardEl">
       <span class="bolt-br"></span><span class="bolt-bl"></span>
+      <div class="style-toggle">
+        <button type="button" data-style="board">Board</button>
+        <button type="button" data-style="minimal">Minimal</button>
+      </div>
       <div class="evt" id="evtLabel"></div>
       <div class="tiles" id="tiles"></div>
       <div class="sub" id="subLine"></div>

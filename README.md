@@ -40,11 +40,14 @@ archive/                earlier prototype ideas explored before samesecond (kept
 
 ## Running it locally
 
-No build step, no dependencies. Any static file server works:
+No build step, no dependencies. Any static file server works, but use the
+included one during development — it sends `Cache-Control: no-store` so
+edits always show up on reload (a plain file server can leave your browser
+serving stale CSS/JS after a change):
 
 ```bash
 cd /Users/bruno/onepage
-python3 -m http.server 4173
+node scripts/dev-server.mjs 4173
 # open http://localhost:4173
 ```
 

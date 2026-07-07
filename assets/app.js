@@ -181,6 +181,17 @@ $("fsBtn").addEventListener("click",()=>{
 $("soundBtn").addEventListener("click",e=>{sound=!sound;e.target.textContent="Sound: "+(sound?"on":"off")});
 $("proBtn").addEventListener("click",e=>{pro=true;e.target.textContent="Pro unlocked ✓";});
 
+/* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
+function applyStyle(name){
+  $("boardEl").classList.toggle("style-minimal",name==="minimal");
+  document.querySelectorAll(".style-toggle button").forEach(b=>b.classList.toggle("active",b.dataset.style===name));
+  try{localStorage.setItem("samesecond_style",name)}catch(e){}
+}
+document.querySelectorAll(".style-toggle button").forEach(b=>b.addEventListener("click",()=>applyStyle(b.dataset.style)));
+let savedStyle="board";
+try{savedStyle=localStorage.getItem("samesecond_style")||"board"}catch(e){}
+applyStyle(savedStyle);
+
 setDefaultUntil();
 if(readHash()){
   // A device opening someone else's shared link never calls start(), so the

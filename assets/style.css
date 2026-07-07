@@ -101,6 +101,7 @@ h1{
 }
 @media(min-width:420px){.board{padding:26px 16px 24px}}
 @media(min-width:640px){.board{padding:40px 32px 34px}}
+@media(min-width:900px){.board{padding:52px 40px 44px}}
 /* corner bolts — purely decorative, sells the "physical chassis" idea */
 .board::before,.board::after,.board .bolt-br,.board .bolt-bl{
   content:"";position:absolute;width:7px;height:7px;border-radius:50%;
@@ -111,6 +112,28 @@ h1{
 .board .bolt-bl{bottom:9px;left:9px}
 .board .bolt-br{bottom:9px;right:9px}
 
+/* style toggle — a viewer's own local preference, never encoded in the shared
+   link, since the sync mechanic only needs everyone to agree on the TIME, not
+   the skin. Small and out of the way on purpose: this is a corner setting,
+   not a feature. */
+/* In-flow and centered on narrow screens (an absolute corner position risks
+   overlapping a long event label when there's no room beside it); only
+   floats into the corner once there's enough width for both to coexist. */
+.style-toggle{
+  display:flex;justify-content:center;gap:2px;margin:0 0 14px;
+  background:var(--board-deep);border:1px solid var(--panel-line);border-radius:99px;padding:2px;
+  width:max-content;margin-left:auto;margin-right:auto;
+}
+.style-toggle button{
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.03em;color:var(--paper-dim);
+  border:none;background:none;padding:5px 9px;border-radius:99px;min-height:0;width:auto;
+}
+.style-toggle button.active{background:var(--panel-line);color:var(--paper-text)}
+@media(min-width:640px){
+  .style-toggle{position:absolute;top:28px;right:26px;margin:0}
+  .style-toggle button{padding:6px 12px;font-size:.64rem}
+}
+
 .evt{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--amber);text-transform:uppercase;
   min-height:1.4em;margin-bottom:14px;
@@ -118,13 +141,18 @@ h1{
 .tiles{display:flex;justify-content:center;align-items:center;gap:3px;flex-wrap:nowrap}
 @media(min-width:420px){.tiles{gap:5px}}
 @media(min-width:480px){.tiles{gap:7px}}
+@media(min-width:900px){.tiles{gap:10px}}
+@media(min-width:1200px){.tiles{gap:13px}}
 .tile{
   --tw:34px;--th:48px;--fs:1.7rem;
   width:var(--tw);height:var(--th);position:relative;perspective:240px;flex:none;
+  transition:width .2s,height .2s;
 }
 @media(min-width:360px){.tile{--tw:38px;--th:54px;--fs:1.9rem}}
 @media(min-width:420px){.tile{--tw:50px;--th:68px;--fs:2.5rem}}
 @media(min-width:640px){.tile{--tw:64px;--th:88px;--fs:3.3rem}}
+@media(min-width:900px){.tile{--tw:78px;--th:110px;--fs:4rem}}
+@media(min-width:1200px){.tile{--tw:92px;--th:130px;--fs:4.8rem}}
 .tile .num{
   position:absolute;left:0;right:0;top:0;height:var(--th);line-height:var(--th);
   font-family:var(--display);font-size:var(--fs);color:var(--flap-ink);text-align:center;
@@ -147,12 +175,23 @@ h1{
   content:"";position:absolute;left:0;right:0;top:calc(var(--th)/2 - 1px);height:2px;
   background:rgba(0,0,0,.35);z-index:5;pointer-events:none;
 }
+/* "Minimal" style — same tiles, same flip mechanic, no physical card chrome.
+   Toggled via .board.style-minimal by assets/app.js; pure CSS, no separate
+   render path needed. */
+.board.style-minimal .tile .half,
+.board.style-minimal .tile .flap{background:transparent;box-shadow:none}
+.board.style-minimal .tile .num{color:var(--paper-text)}
+.board.style-minimal .tile::after{display:none}
+.board.style-minimal .tile .flap{box-shadow:none}
+
 .tile-sep{
   font-family:var(--display);font-size:1.3rem;color:var(--amber);align-self:center;
   width:5px;text-align:center;line-height:1;opacity:.85;flex:none;
 }
 @media(min-width:420px){.tile-sep{font-size:1.8rem;width:7px}}
 @media(min-width:640px){.tile-sep{font-size:2.4rem;width:10px}}
+@media(min-width:900px){.tile-sep{font-size:2.9rem;width:12px}}
+@media(min-width:1200px){.tile-sep{font-size:3.4rem;width:14px}}
 .tile-day{
   font-family:var(--mono);font-size:.8rem;color:var(--paper-dim);align-self:center;margin-right:4px;
 }
