@@ -15,7 +15,7 @@
  *   - The site must already be deployed at its real domain (this only
  *     works once SITE_URL in scripts/build-timer-pages.mjs is the real,
  *     live domain — IndexNow verifies ownership by fetching the key file
- *     from that domain, so it's meaningless against samesecond.example).
+ *     from that domain, so it's meaningless against countlink.example).
  *   - Run once with no key file present to generate one (writes
  *     <key>.txt to the repo root — that file must be deployed as-is,
  *     it's how IndexNow verifies you own the domain).

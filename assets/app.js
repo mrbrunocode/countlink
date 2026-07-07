@@ -1,4 +1,4 @@
-/* samesecond — split-flap countdown logic. Shared by index.html and every /timers/*.html page. */
+/* CountLink — split-flap countdown logic. Shared by index.html and every /timers/*.html page. */
 const $=id=>document.getElementById(id);
 let end=null,label="",sound=true,pro=false,fired=false,tick=null,total=0;
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
@@ -202,9 +202,9 @@ if(readHash()){
   mode = total>=86400000?"days":total>=3600000?"hms":"ms";
   render();
 }else{
-  /* Landing pages (see /timers/) set window.SAMESECOND_DEFAULT before this script runs,
+  /* Landing pages (see /timers/) set window.COUNTLINK_DEFAULT before this script runs,
      so the tool boots straight into that page's advertised duration. */
-  const d=window.SAMESECOND_DEFAULT||{minutes:10,label:"Workshop resumes"};
+  const d=window.COUNTLINK_DEFAULT||{minutes:10,label:"Workshop resumes"};
   if($("evtName")&&!$("evtName").value)$("evtName").value=d.label;
   if($("customMin"))$("customMin").value=d.minutes;
   start(d.minutes*60e3,d.label);

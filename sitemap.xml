@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://samesecond.example/</loc></url>
-  <url><loc>https://samesecond.example/timers/5-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/10-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/15-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/20-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/25-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/30-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/45-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/60-minute-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/exam-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/classroom-timer.html</loc></url>
-  <url><loc>https://samesecond.example/timers/webinar-countdown.html</loc></url>
-  <url><loc>https://samesecond.example/timers/standup-timer.html</loc></url>
+  <url><loc>https://countlink.example/</loc></url>
+  <url><loc>https://countlink.example/timers/5-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/10-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/15-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/20-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/25-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/30-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/45-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/60-minute-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/exam-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/classroom-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/webinar-countdown.html</loc></url>
+  <url><loc>https://countlink.example/timers/standup-timer.html</loc></url>
 </urlset>

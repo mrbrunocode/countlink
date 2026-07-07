@@ -2,7 +2,7 @@
 
 This is the actual, verified model this site is copying — pulled directly from
 vClock.com's live HTML (not a guess), plus the concrete steps to switch each
-piece on for samesecond. Follow the steps in order; several of them (analytics,
+piece on for CountLink. Follow the steps in order; several of them (analytics,
 AdSense) have a real-world waiting period, so start them early even if you're
 not ready to launch yet.
 
@@ -15,7 +15,7 @@ all of it at once) and I'll paste them into the right files:
 
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
-| 1 | **The real domain** (e.g. `samesecond.io`) | Buy it — see domain shortlist in `README.md` | Replace `samesecond.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build-timer-pages.mjs`, then re-run the script |
+| 1 | **The real domain** (e.g. `countlink.io`) | Buy it — see domain shortlist in `README.md` | Replace `countlink.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build-timer-pages.mjs`, then re-run the script |
 | 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
 | 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
 | 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
@@ -52,15 +52,15 @@ directly on 2026-07-06:
 Estimated result: ~5.4M monthly visits, ~$500K/yr in AdSense revenue
 (BoringCashCow's estimate; not vClock's own disclosed figure).
 
-samesecond's `index.html` + `/timers/*.html` already replicate this structure
+CountLink's `index.html` + `/timers/*.html` already replicate this structure
 exactly — one ad slot in the same position, plus 12 starter landing pages.
 The rest of this document is about switching the pieces on for real and
 growing the landing-page count.
 
 ## Step 0 — buy a domain
 
-See the shortlist in `README.md`. Recommendation: **samesecond.io** or
-**samesecond.link**. Do this first — AdSense review and Search Console both
+See the shortlist in `README.md`. Recommendation: **countlink.io** or
+**countlink.link**. Do this first — AdSense review and Search Console both
 key off a live domain, so the sooner it's registered the sooner the clock on
 approval starts.
 
@@ -68,7 +68,7 @@ Once you have it:
 1. Point DNS at your host (see README "Deployment").
 2. Update `SITE_URL` in `scripts/build-timer-pages.mjs`.
 3. Update the `canonical` and `og:*` URLs in `index.html` and `privacy.html`
-   from `samesecond.example` to the real domain.
+   from `countlink.example` to the real domain.
 4. Re-run `node scripts/build-timer-pages.mjs` and redeploy.
 
 ## Step 1 — Google Analytics (GA4)

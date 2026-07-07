@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://samesecond.example/sitemap.xml
+Sitemap: https://countlink.example/sitemap.xml

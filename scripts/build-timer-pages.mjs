@@ -17,6 +17,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
+import { NAME, SITE_URL } from "./site-config.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT_DIR = join(ROOT, "timers");
@@ -77,8 +78,7 @@ const PAGES = [
     intro: "The easiest way to keep a daily standup to ten minutes is a countdown everyone can see. Set the length, drop the link in your team channel, and project it during the call." },
 ];
 
-const SITE_URL = "https://samesecond.example"; // update once the real domain is live
-const BRAND = "samesecond"; // update alongside SITE_URL once the name is finalized
+const BRAND = NAME; // imported from ./site-config.mjs — the one place these values live
 
 const timerLinks = PAGES.map(p => `<a href="${p.slug}.html">${p.eyebrow}</a>`).join("\n          ");
 
@@ -193,7 +193,7 @@ const page = (p) => `<!DOCTYPE html>
   </div>
 </footer>
 
-<script>window.SAMESECOND_DEFAULT={minutes:${p.minutes},label:${JSON.stringify(p.label)}};</script>
+<script>window.COUNTLINK_DEFAULT={minutes:${p.minutes},label:${JSON.stringify(p.label)}};</script>
 <script src="../assets/app.js"></script>
 </body>
 </html>
@@ -223,7 +223,7 @@ async function main() {
   const sitemapPath = join(ROOT, "sitemap.xml");
   await writeFile(sitemapPath, sitemap(), "utf-8");
   console.log(`Wrote ${relative(ROOT, sitemapPath)} (${PAGES.length + 1} URLs)`);
-  console.log("\nReminder: update SITE_URL and BRAND in this script once the domain/name are final, then re-run.");
+  console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");
 }
 
 main();

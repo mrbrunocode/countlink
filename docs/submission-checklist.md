@@ -6,16 +6,16 @@ Generated from `scripts/generate-submission-kit.mjs` — edit the data there, no
 
 ## Copy to paste (source of truth: `docs/submission-kit.json`)
 
-**Name:** samesecond
+**Name:** CountLink
 **Tagline:** One countdown. Every screen. Exactly in sync.
 **One-liner:** A free shared countdown timer — set it once, share the link, everyone sees the same countdown in sync.
-**Short description:** samesecond is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.
+**Short description:** CountLink is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.
 **Tags:** Productivity, Education, Web App, Time Management, Free Tools, Utilities
 **Pricing:** Free — optional $5/mo Pro (removes ads, adds branding, for recurring facilitators)
 
 <details><summary>Long description (for sites that want more)</summary>
 
-samesecond solves a specific, small problem well: getting a room (or a remote team, or a class taking an exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between devices. It includes a fullscreen "projector" mode and three display styles (a mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier removes ads and adds custom branding for people running it in front of clients.
+CountLink solves a specific, small problem well: getting a room (or a remote team, or a class taking an exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between devices. It includes a fullscreen "projector" mode and three display styles (a mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier removes ads and adds custom branding for people running it in front of clients.
 
 </details>
 

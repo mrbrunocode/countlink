@@ -1,4 +1,4 @@
-# samesecond
+# CountLink
 
 A free, zero-backend countdown timer. Set a duration, copy the link, send it to
 a room — everyone who opens that link sees the identical countdown, perfectly
@@ -13,7 +13,7 @@ Full research and reasoning is in the project memory (see `/Users/bruno/.claude/
 but the short version: single-purpose "boring" utility sites (vClock, Wheel of
 Names, word counters) generate real, verifiable ad revenue at near-zero
 operating cost. vClock specifically — a free online timer — earns an
-estimated ~$500K/yr from Google AdSense on ~5.4M monthly visits. samesecond
+estimated ~$500K/yr from Google AdSense on ~5.4M monthly visits. CountLink
 copies that proven *business model* (free tool, one ad slot, programmatic SEO
 pages) while adding a genuine feature vClock doesn't have: shareable,
 synced-by-link countdowns.
@@ -35,7 +35,7 @@ docs/
 ads.txt                 AdSense seller-verification file (fill in once approved)
 robots.txt              allows crawling, points to sitemap.xml
 sitemap.xml             generated — do not hand-edit, re-run the build script instead
-archive/                earlier prototype ideas explored before samesecond (kept for reference)
+archive/                earlier prototype ideas explored before CountLink (kept for reference)
 ```
 
 ## Running it locally
@@ -94,7 +94,7 @@ Steps (Cloudflare Pages):
 3. Build command: none. Output directory: `/` (repo root).
 4. Add your domain under Custom Domains once purchased.
 5. Update `SITE_URL` in `scripts/build-timer-pages.mjs` and the `canonical`/`og:url`
-   values in `index.html` from `samesecond.example` to the real domain, then
+   values in `index.html` from `countlink.example` to the real domain, then
    re-run the build script and redeploy.
 
 ## Domain name research
@@ -103,22 +103,22 @@ Checked via WHOIS/RDAP on 2026-07-06:
 
 | Domain | Status |
 |---|---|
-| samesecond.com | **Taken** (registered 2025-07-01, Namecheap — unrelated registrant) |
-| samesecond.app | **Taken** |
-| samesecond.io | Available |
-| samesecond.co | Available |
-| samesecond.link | Available |
-| samesecond.live | Available |
-| samesecond.tools | Available |
-| getsamesecond.com | Available |
-| thesamesecond.com | Available |
-| samesecond.net | Available |
-| samesecond.org | Available |
+| countlink.com | **Taken** (registered 2025-07-01, Namecheap — unrelated registrant) |
+| countlink.app | **Taken** |
+| countlink.io | Available |
+| countlink.co | Available |
+| countlink.link | Available |
+| countlink.live | Available |
+| countlink.tools | Available |
+| getcountlink.com | Available |
+| thecountlink.com | Available |
+| countlink.net | Available |
+| countlink.org | Available |
 
-Recommendation: **samesecond.io** or **samesecond.link** — `.link` is on-brand
+Recommendation: **countlink.io** or **countlink.link** — `.link` is on-brand
 for a product whose entire pitch is "the link is the sync," is memorable, and
 is inexpensive. `.io` is the more conventional/trusted-feeling choice if you'd
-rather not explain the TLD. Avoid `.app` workarounds like `getsamesecond.com`
+rather not explain the TLD. Avoid `.app` workarounds like `getcountlink.com`
 unless price is the deciding factor — the extra word costs you the clean
 "type it from memory" quality that makes a share-link tool spread.
 

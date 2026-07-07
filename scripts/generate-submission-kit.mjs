@@ -18,21 +18,23 @@
 import { writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { NAME, SITE_URL, TAGLINE } from "./site-config.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// ---- Update these once the name/domain are final, then re-run ----
+// name/url/tagline come from site-config.mjs (single source of truth) — only
+// the fields specific to directory submissions live here.
 const COPY = {
-  name: "samesecond", // placeholder — update once the CountLink/OurCountdown decision is made
-  url: "https://samesecond.example",
-  tagline: "One countdown. Every screen. Exactly in sync.",
+  name: NAME,
+  url: SITE_URL,
+  tagline: TAGLINE,
   one_liner: "A free shared countdown timer — set it once, share the link, everyone sees the same countdown in sync.",
   short_description:
-    "samesecond is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. " +
+    `${NAME} is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. ` +
     "Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline " +
     "is a timestamp inside the link itself, not stored on a server.",
   long_description:
-    "samesecond solves a specific, small problem well: getting a room (or a remote team, or a class taking an " +
+    `${NAME} solves a specific, small problem well: getting a room (or a remote team, or a class taking an ` +
     "exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of " +
     "sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a " +
     "projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, " +

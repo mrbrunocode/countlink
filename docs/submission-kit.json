@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-07-07T10:23:12.568Z",
+  "generated_at": "2026-07-07T10:37:28.063Z",
   "copy": {
-    "name": "samesecond",
-    "url": "https://samesecond.example",
+    "name": "CountLink",
+    "url": "https://countlink.example",
     "tagline": "One countdown. Every screen. Exactly in sync.",
     "one_liner": "A free shared countdown timer — set it once, share the link, everyone sees the same countdown in sync.",
-    "short_description": "samesecond is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.",
-    "long_description": "samesecond solves a specific, small problem well: getting a room (or a remote team, or a class taking an exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between devices. It includes a fullscreen \"projector\" mode and three display styles (a mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier removes ads and adds custom branding for people running it in front of clients.",
+    "short_description": "CountLink is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.",
+    "long_description": "CountLink solves a specific, small problem well: getting a room (or a remote team, or a class taking an exam) to agree on exactly how much time is left, without everyone starting their own timer slightly out of sync. Set a duration or a target time, copy the generated link, and send it anywhere — Slack, email, a projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between devices. It includes a fullscreen \"projector\" mode and three display styles (a mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier removes ads and adds custom branding for people running it in front of clients.",
     "category_tags": [
       "Productivity",
       "Education",
