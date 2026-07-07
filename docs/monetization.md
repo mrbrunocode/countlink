@@ -15,12 +15,15 @@ all of it at once) and I'll paste them into the right files:
 
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
-| 1 | **The real domain** (e.g. `countlink.io`) | Buy it — see domain shortlist in `README.md` | Replace `countlink.example` in `index.html`, `privacy.html`, and `SITE_URL` in `scripts/build-timer-pages.mjs`, then re-run the script |
+| 1 | **The real domain** (e.g. `countlink.io`) | Buy it — see domain shortlist in `README.md` | Run `node scripts/rename-brand.mjs "CountLink" yourdomain.tld` — updates `scripts/site-config.mjs` and every hand-written file, then regenerates everything built from it |
 | 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
 | 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
 | 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
-| 5 | **Stripe Payment Link URL** for the $5/mo Pro tier | [stripe.com](https://stripe.com) → Product catalog → create product → Payment Links (no code needed) | Swap the `#proBtn` click handler in `assets/app.js` from the local mock to `location.href = "<your link>"` |
-| 6 | (Optional) **A real contact email** for the privacy policy | Whatever inbox you want inquiries to go to | Replace the vague "contact address listed in the footer" line in `privacy.html` with an actual `mailto:` link |
+
+Two rows that used to be here are done already, not pending: the real contact
+email (`CONTACT_EMAIL` in `scripts/site-config.mjs`) is wired in everywhere,
+and there is currently no Pro/Stripe row — Pro was deliberately deferred
+before launch (see Step 4 below) rather than shipped as a non-functional mock.
 
 Nothing else is needed from you for the code itself — everything else (the ad
 slot's position, the sitemap, the programmatic `/timers/` pages, the privacy
@@ -146,25 +149,38 @@ Submit `sitemap.xml` in [Google Search Console](https://search.google.com/search
 once the domain is verified there, so new `/timers/` pages get crawled faster
 than waiting for organic discovery.
 
-## Step 4 — Pro tier (Stripe)
+## Step 4 — Pro tier (deferred, deliberately not shipped)
 
-Currently `#proBtn` in `assets/app.js` just flips a local `pro` flag with no
-real payment — it's a working mock for demos, not a live upsell. To make it
-real:
+The Pro banner/`#proBtn` mock was pulled from the site before launch (see
+[[project-countlink]] memory) — a non-functional "$5/mo — Unlock Pro" button
+that didn't actually charge anyone or change anything was judged worse than
+no button at all: a real visitor who clicked it got a fake "Pro unlocked ✓"
+with nothing behind it, a trust problem the moment anyone tried it.
 
-1. Create a [Stripe](https://stripe.com) account, add the $5/month Pro
-   product, and create a **Payment Link** (no code needed for a first
-   version — Payment Links handle checkout hosted by Stripe).
-2. In `assets/app.js`, change the `#proBtn` click handler from setting
-   `pro=true` locally to `location.href = "https://buy.stripe.com/your-link"`.
-3. Decide how "Pro" actually changes the experience once paid — the current
-   prototype doesn't persist anything server-side (there's no server), so a
-   real Pro tier needs *some* minimal backend or a client-side license-key
-   scheme (e.g., Stripe redirects back with a session ID you exchange for a
-   signed token via a small serverless function on Cloudflare Workers/Vercel
-   — this is the one piece of the product that can't stay 100% static if you
-   want to actually gate features). Flag this as a follow-up decision rather
-   than something to build blind — the free tool works completely without it.
+The comparable sites that anchor this project (vClock, online-stopwatch.com)
+are pure ad-supported with **no paid tier at all** — that's the proven model
+for a simple free utility at this traffic profile. ShareMyTimer/Stagetimer.io
+charge because they run real server infrastructure (WebSockets, accounts)
+that costs money per user; CountLink's static, zero-backend architecture has
+no such cost, so ads-only is not just simpler but structurally the right
+default, not a stopgap.
+
+**Don't rebuild Pro speculatively.** Revisit only once there's a real signal
+worth acting on — e.g. actual user requests for white-label/no-ads, or
+traffic large enough that a small paid segment would be worth the added
+complexity. If/when that happens:
+
+1. Create a [Stripe](https://stripe.com) account, add the Pro product, and
+   create a **Payment Link** (no code needed for a first version).
+2. Add a real button whose click handler is `location.href =
+   "https://buy.stripe.com/your-link"` — do not ship a local-only mock again.
+3. Decide how "Pro" actually changes the experience once paid — this project
+   has no server, so gating a feature needs *some* minimal backend or a
+   client-side license-key scheme (e.g., Stripe redirects back with a
+   session ID exchanged for a signed token via a small serverless function
+   on Cloudflare Workers — the one piece of the product that can't stay
+   100% static if you want to actually gate something). Decide this deliberately
+   when there's real demand, not blind.
 
 ## Rough economics (so expectations are calibrated)
 

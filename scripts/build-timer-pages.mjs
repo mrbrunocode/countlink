@@ -398,10 +398,6 @@ ${faqSchema(p.faq)}
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="../privacy.html" style="text-decoration:underline">Privacy</a>.</div>
       </div>
     </div>
-    <div class="pro-banner">
-      <span>Running this for clients? <b>Pro</b> removes ads and adds your branding.</span>
-      <button class="pro-link" id="proBtn">$5/mo — Unlock Pro →</button>
-    </div>
   </section>
   ${p.extra || ""}
   ${faqHtml(p.faq)}

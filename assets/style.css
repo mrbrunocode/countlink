@@ -288,14 +288,6 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   font-size:.72rem;color:var(--amber);word-break:break-all;font-family:var(--mono);
 }
 
-/* pro banner: a single quiet line, not a competing feature panel */
-.pro-banner{
-  margin-top:14px;padding:14px 18px;border:1px solid var(--panel-line);border-radius:10px;
-  display:flex;flex-direction:column;gap:10px;align-items:flex-start;
-  font-size:.82rem;color:var(--paper-dim);
-}
-@media(min-width:600px){.pro-banner{flex-direction:row;align-items:center;justify-content:space-between}}
-.pro-banner b{color:var(--paper-text);font-weight:600}
 .pro-link{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.03em;color:var(--amber);text-decoration:underline;text-underline-offset:3px;
   background:none;border:none;padding:8px 0;display:inline-block;min-height:44px;white-space:nowrap;

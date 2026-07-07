@@ -1,6 +1,6 @@
 /* CountLink — split-flap countdown logic. Shared by index.html and every /timers/*.html page. */
 const $=id=>document.getElementById(id);
-let end=null,label="",sound=true,pro=false,fired=false,tick=null,total=0;
+let end=null,label="",sound=true,fired=false,tick=null,total=0;
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
 let prevValues=null;  // last rendered digit string per tile, so we only flip tiles that changed
 let audioCtx=null;
@@ -246,7 +246,6 @@ $("fsBtn").addEventListener("click",()=>{
   $("fsBtn").textContent=document.body.classList.contains("fs")?"Exit fullscreen":"Fullscreen";
 });
 $("soundBtn").addEventListener("click",e=>{sound=!sound;e.target.textContent="Sound: "+(sound?"on":"off")});
-$("proBtn").addEventListener("click",e=>{pro=true;e.target.textContent="Pro unlocked ✓";});
 
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){

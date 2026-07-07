@@ -133,15 +133,25 @@ GitHub whenever you want.
 ## Monetization
 
 See `docs/monetization.md` for the full, ordered checklist (analytics →
-AdSense application → ads.txt → Pro/Stripe wiring → growing `/timers/`).
+AdSense application → ads.txt → growing `/timers/`). Pro/Stripe is
+deliberately deferred, not part of the launch checklist — see that doc's
+Step 4 for why and when to revisit it.
 
 ## SEO / backlink outreach
 
-See `docs/seo-outreach-plan.md` for the full plan — what's genuinely
-automatable (IndexNow, Search Console API) versus what deliberately stays
-a manual step (directory submissions, Show HN, Reddit) and why.
+See `docs/seo-outreach-plan.md` for the full plan — designed to run
+agent-first with minimal check-ins, not as a manual checklist. Day to day,
+one command tells you everything:
 
 ```bash
-node scripts/submit-indexnow.mjs             # after every deploy with new/changed pages
-node scripts/generate-submission-kit.mjs     # regenerate docs/submission-checklist.md
+node scripts/outreach-status.mjs             # what's done, what an agent can act on, what needs Bruno
+```
+
+After changing the pitch copy or target list in
+`scripts/generate-submission-kit.mjs`, re-sync the ledger (this never
+touches existing progress, only adds new targets):
+
+```bash
+node scripts/generate-submission-kit.mjs
+node scripts/outreach-status.mjs sync
 ```

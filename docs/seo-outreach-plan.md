@@ -1,157 +1,122 @@
 # SEO & backlink outreach plan
 
-A plan for getting this site indexed, linked to, and discovered — split
-into what is genuinely, safely automatable versus what should stay a
-deliberate human step, and why. The line between those two isn't arbitrary:
-it's ToS compliance and spam-flagging risk, not laziness. Automating the
-wrong parts of this doesn't just risk this site — several of these
-platforms penalize a domain's *other* attempts too once flagged (Reddit
-shadow-bans, Google spam actions, directory account bans).
-
-Three tiers:
-
-- **Tier 1 — fully automated.** Real, documented APIs meant to be called by
-  scripts. No ToS ambiguity, no CAPTCHA, no human review step to route
-  around.
-- **Tier 2 — semi-automated.** A generator script prepares the exact copy
-  (name, tagline, descriptions, tags) once from a single source of truth,
-  so filling in each site's form is a 2-minute paste job instead of writing
-  fresh copy 15 times inconsistently. The actual submission click stays
-  human, because these sites expect a real person behind a listing and
-  some (Product Hunt, GitHub PRs) have a human-judgment or human-approval
-  step baked in regardless.
-- **Tier 3 — manual/social only, deliberately not scripted.** Explained
-  per-item below — mostly "the platform explicitly prohibits automated
-  posting" or "the value depends entirely on the post reading like a real
-  person, at the right time, present to reply."
-
-## Tier 1 — fully automated
-
-### IndexNow (Bing, Yandex, Seznam, Naver)
-
-`scripts/submit-indexnow.mjs` — run it after every deploy that adds or
-changes pages. It:
-1. Generates an IndexNow API key on first run (writes `<key>.txt` to the
-   repo root — deploy that file as-is, it's how IndexNow verifies domain
-   ownership).
-2. Reads every URL out of `sitemap.xml`.
-3. POSTs them all to `https://api.indexnow.org/indexnow` in one request,
-   which fans out to every participating engine.
-
-This is genuinely a "push" model — search engines get told the moment a
-page changes, rather than waiting to discover it on their own crawl
-schedule. It doesn't guarantee indexing, only that the engine is aware
-something changed and can prioritize it.
-
-**Google does not participate in IndexNow** (publicly declined). Google's
-path is separate — see below.
+How this project gets indexed, linked to, and discovered — designed to be
+run by an agent with minimal check-ins from Bruno, not a manual checklist he
+works through himself. Read this once for the model; day to day, the only
+command that matters is:
 
 ```bash
-node scripts/submit-indexnow.mjs --dry-run   # see what would be sent
-node scripts/submit-indexnow.mjs             # actually send it
+node scripts/outreach-status.mjs
 ```
 
-### Google Search Console (sitemap + coverage)
+That prints exactly what's done, what an agent can go do right now, and a
+single consolidated list of anything that genuinely needs Bruno — nothing
+here should ever interrupt him one item at a time.
 
-Google requires verified site ownership through Search Console — that
-one-time verification step is unavoidably manual (add a DNS TXT record or
-HTML file, done once at launch). After that, the **Search Console API**
-supports scripted sitemap resubmission:
+## The three files that make this work, and why there are three
 
-1. One-time setup: create a Google Cloud project, enable the Search
-   Console API, create a service account, add it as a user on the Search
-   Console property.
-2. From then on, a script can call `sitemaps.submit` whenever the sitemap
-   changes (e.g. after adding new `/timers/` pages) instead of clicking
-   "resubmit" in the UI by hand.
+- **`scripts/generate-submission-kit.mjs`** — static reference data: the
+  pitch copy (name/tagline/description/tags) and the list of target sites,
+  each tagged with *how* it can be actioned. Safe to re-run anytime; it has
+  no memory of progress, so it can never accidentally undo anything.
+- **`docs/outreach-ledger.json`** — the only file that remembers progress
+  (status, when, notes). Never hand-edited and never blindly overwritten —
+  `scripts/outreach-status.mjs sync` merges new targets into it without
+  touching existing entries. This is what makes the whole thing resumable:
+  a future session (this one, a smarter one, or Bruno himself) reads the
+  ledger first and never re-attempts or duplicates something already marked
+  `done` or already known to be `blocked`.
+- **`docs/submission-checklist.md`** — a human-readable render of the other
+  two, regenerated every time `outreach-status.mjs` runs. Never hand-edit
+  this file; it will be overwritten.
 
-Not built yet — this needs real Search Console credentials that don't
-exist until the domain is live and verified. Once it is, this is a small
-follow-up script (same shape as the IndexNow one).
+## Execution model — what an agent should actually do
 
-**Do not** use Google's Indexing API for this. It is contractually
-restricted to pages with `JobPosting` or `BroadcastEvent` structured data
-only — Google has explicitly said (May 2025) that using it for ordinary
-pages "may stop... without notice," and doing so risks the whole project
-losing API access. None of this site's pages qualify.
+For every target in the ledger with status `pending`:
 
-### Bing Webmaster Tools API
+1. If `execution: "script"` — just run the script. These are real,
+   documented APIs meant to be called unattended (IndexNow today; Search
+   Console API once credentials exist).
+2. If `execution: "agent-browser"` — attempt it directly using browser
+   automation tools, using the copy from `docs/submission-kit.json`. This is
+   the core of "let the agent do it, not just prep it for a human" — a
+   single, real, honestly-labeled submission on a normal form is not
+   materially different from Bruno clicking through it himself.
+   - **Stop and mark `blocked` (do not improvise around) if:** the form
+     requires solving a CAPTCHA, requires creating an account with email
+     verification Bruno hasn't set up, or asks for payment/identity info.
+     Record *why* in the ledger notes so the next run doesn't retry the same
+     wall — it either needs a one-time human setup step or it stays blocked.
+   - **Never:** create throwaway/fake accounts to get past a signup wall,
+     attempt to defeat a CAPTCHA programmatically, or submit the same
+     listing more than once "to be safe."
+3. If `execution: "human-required"` — do not attempt to post/submit it. An
+   agent may *draft* copy for these (a Show HN title, a blog-outreach email)
+   but the actual posting stays with Bruno. This isn't a capability gap,
+   it's deliberate: these platforms' entire value (Reddit, Hacker News,
+   Product Hunt launch day) comes from a genuine, present human replying in
+   real time, and a one-time domain-ownership proof (Search Console) can
+   only legitimately come from the owner. Automating the mechanics wouldn't
+   just risk a ban — it would defeat the actual point of doing it.
 
-Similar shape to Search Console: one-time site verification in Bing
-Webmaster Tools, then the API key it issues can be used to submit the
-sitemap/URLs on a schedule. Lower priority than the above two since
-IndexNow already reaches Bing directly — this is mainly useful for pulling
-Bing's own crawl-stats/indexation reports back into a dashboard later, not
-for get-it-indexed purposes.
+After working through everything actionable, run `node
+scripts/outreach-status.mjs` once more and report **one** consolidated
+summary: what got done, what's blocked and why, and the short list of
+human-required items — not a running commentary per item.
 
-## Tier 2 — semi-automated (submission-kit generator)
+## Why the line is drawn there, not somewhere looser
 
-`scripts/generate-submission-kit.mjs` — the single source of truth for
-every piece of copy this project needs to describe itself externally
-(name, tagline, one-liner, short/long description, category tags,
-pricing). Run it, then work through `docs/submission-checklist.md`, which
-lists every target site with the method and a status checkbox.
+Automating the wrong parts of this doesn't just risk this one submission —
+several of these platforms penalize a domain's *other* attempts too once
+something is flagged (Reddit shadow-bans an account across every subreddit,
+Google spam actions can affect the whole domain, directory accounts get
+banned outright). The boundary above isn't caution for its own sake; it's
+the actual place where "an agent did this competently on my behalf" stops
+being true and "this reads as fake/spam" starts.
 
-```bash
-node scripts/generate-submission-kit.mjs
-```
-
-Current Tier 2 targets (see the checklist for live status): AlternativeTo,
-SaaSHub, Slant, StackShare, BetaList, SourceForge, Product Hunt (copy
-prep only — see Tier 3 for the actual launch), and two GitHub
-awesome-list PRs.
-
-**Why GitHub awesome-list PRs are half-automatable:** opening the pull
-request itself is a legitimate API call (`gh pr create` or the GitHub API)
-— no ToS issue, PRs are exactly how these lists expect additions. What
-isn't automatable is picking which lists it genuinely belongs on and
-writing the one-line description well enough that a volunteer maintainer
-merges it. Do this a few times, by hand, well — not as a bulk campaign
-across fifty lists, which reads as spam and gets PRs closed unmerged.
-
-**Why the rest stay a human click:** most of these directories expect (and
-some explicitly require, in their ToS) that a real person is submitting on
-behalf of the product — automated form-filling at scale is exactly the
-pattern their anti-spam heuristics are built to catch, and a flagged
-listing is worse than no listing.
-
-## Tier 3 — manual/social only, not scripted
-
-| Where | Why it isn't automated |
-|---|---|
-| Show HN | Hacker News guidelines and community norms require a genuine account and presence to answer comments; anything that reads as automated gets flagged and can taint the account for future posts. |
-| r/SideProject, r/InternetIsBeautiful, r/Teachers | Reddit's site-wide rules explicitly prohibit automated posting; its spam filters are specifically tuned to catch bot-like posting patterns, and a shadow-banned account loses the ability to post anywhere, not just here. |
-| Product Hunt launch day | The listing/copy can be prepped in advance (Tier 2), but a PH launch's actual value comes from real-time comment replies during the 24-hour window — there's no legitimate way to script "being present and responsive." |
-| Teacher/workshop-tool blog roundup outreach | These are cold emails to individual bloggers asking to be added to an existing "best free timers" post. Personalized, one at a time. Mail-merged bulk outreach reads as spam to both the recipient and to email providers' spam classifiers — and would risk the sending domain's own deliverability. |
-
-**Explicitly do not:**
+**Explicitly do not, regardless of how capable the tooling gets:**
 - Create multiple accounts on any directory/forum to simulate organic interest.
-- Use CAPTCHA-solving services to push through anti-bot measures.
+- Use CAPTCHA-solving services or scripted CAPTCHA bypass.
 - Buy backlinks, join link-exchange networks, or place links on unrelated
-  sites purely for SEO weight (Google's spam policies treat this as a
-  manual-action-eligible violation, and it can take the *whole* domain's
-  ranking down, not just fail to help).
-- Post to Reddit/Hacker News/forums programmatically, even "just to save
-  time" — one flagged post can burn the account for every future genuine
-  post too.
+  sites purely for SEO weight (a manual-action-eligible Google Search
+  Console violation that can suppress the *whole* domain, not just fail to help).
+- Post to Reddit/Hacker News/forums programmatically, even to "save time" —
+  one flagged post can burn the account for every future genuine post too.
+- Publish the Product Hunt draft or post to Reddit/HN without Bruno
+  explicitly choosing the day and being available to reply.
 
-## Maintenance cadence
+## Everything is currently gated on one thing: buying the domain
 
-- **Every deploy that adds/changes pages:** re-run
-  `node scripts/build-timer-pages.mjs` (regenerates sitemap.xml) then
-  `node scripts/submit-indexnow.mjs`.
-- **Whenever the `/timers/` page list grows meaningfully (e.g. +20 pages):**
-  worth a fresh look at `docs/submission-checklist.md` for anything still
-  unchecked, and worth re-visiting the awesome-list PRs if the tool's scope
-  has grown enough to justify a different list.
-- **Quarterly-ish:** re-check whether Search Console/Bing Webmaster show
-  any of the `/timers/` pages failing to get indexed, and prioritize
-  content fixes on those specifically rather than adding more pages.
+Check `docs/outreach-ledger.json` and nearly every target reads `blocked —
+waiting on real domain purchase + deploy`. That's not overcaution — a
+directory listing pointing at `countlink.example` is a dead link, and
+IndexNow/Search Console literally require a resolving domain to mean
+anything. The moment the domain is bought and the site is deployed:
+
+1. Run `node scripts/rename-brand.mjs "CountLink" yourdomain.tld` (updates
+   `site-config.mjs` + regenerates every generated file).
+2. Run `node scripts/outreach-status.mjs sync` — this re-evaluates every
+   `gated_on_domain` target now that `SITE_URL` no longer contains
+   `.example`, flipping them from `blocked` to `pending` automatically.
+3. From there, an agent works the `pending` list per the execution model
+   above with no further prompting needed.
+
+## Maintenance cadence (recurring, not one-time)
+
+- **Every deploy that adds/changes pages:** re-run `node
+  scripts/build-timer-pages.mjs` then `node scripts/submit-indexnow.mjs`.
+  IndexNow's ledger entry is `recurring: true` for exactly this reason —
+  "done once" isn't the right model for it.
+- **Whenever `/timers/` grows meaningfully (e.g. +20 pages):** run `node
+  scripts/outreach-status.mjs` and see if anything newly makes sense (e.g. a
+  different awesome-list now fits given a broader tool scope).
+- **Quarterly-ish:** check Search Console/Bing Webmaster for pages failing
+  to index, and prioritize fixing those specifically over adding more.
 
 ## What this plan deliberately does not include
 
 A full backlink-monitoring dashboard (checking whether submitted listings
 are still live, tracking referring-domain growth over time) needs a paid
-data source (Ahrefs/Semrush/Moz API) to do properly — free-tier options
-give inconsistent, delayed data. Worth adding once there's actual revenue
-to justify a ~$99+/mo subscription; not before.
+data source (Ahrefs/Semrush/Moz API) to do properly — free-tier options give
+inconsistent, delayed data. Worth adding to the ledger as a new target once
+there's actual revenue to justify a ~$99+/mo subscription; not before.

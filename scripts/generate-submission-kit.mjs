@@ -1,30 +1,32 @@
 #!/usr/bin/env node
 /**
- * Generates the copy + checklist used to submit the site to directories,
- * from one source of truth, so the pitch is consistent everywhere instead
- * of being retyped slightly differently 20 times.
+ * Single source of truth for (a) the pitch copy this project uses to
+ * describe itself externally, and (b) the static list of outreach targets
+ * (name/url/category/how it gets executed). Re-run this anytime the copy or
+ * target list changes — it's always safe to re-run because it never writes
+ * progress/status itself.
  *
- * This does NOT submit anything itself — see docs/seo-outreach-plan.md for
- * why most directory submissions stay a deliberate, human, one-at-a-time
- * step (form quality checks, ToS, spam-flagging risk) rather than a script
- * filling in forms unattended. What this script automates is the annoying
- * part: having the right name/tagline/description/tags ready to paste,
- * every time, without re-writing them per site.
+ * Progress/status lives in docs/outreach-ledger.json instead, merged by
+ * scripts/outreach-status.mjs — that separation is deliberate: this file is
+ * "what to say and where," the ledger is "what's actually been done." A
+ * generator that owned both would either nuke real progress on every re-run,
+ * or need hand-editing to avoid it — the split means neither has to happen.
  *
  * Usage:
  *   node scripts/generate-submission-kit.mjs
- *   -> writes docs/submission-kit.json and docs/submission-checklist.md
+ *   -> writes docs/submission-kit.json (copy + targets, no status)
+ *   -> then run: node scripts/outreach-status.mjs sync   (merges into the ledger)
  */
 import { writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { NAME, SITE_URL, TAGLINE } from "./site-config.mjs";
+import { NAME, SITE_URL, TAGLINE, CONTACT_EMAIL } from "./site-config.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// name/url/tagline come from site-config.mjs (single source of truth) — only
-// the fields specific to directory submissions live here.
-const COPY = {
+// name/url/tagline/contact come from site-config.mjs (single source of truth) —
+// only the fields specific to directory submissions live here.
+export const COPY = {
   name: NAME,
   url: SITE_URL,
   tagline: TAGLINE,
@@ -40,99 +42,109 @@ const COPY = {
     "projector screen, a webinar waiting room. Every device that opens the link counts down to the same instant, " +
     "computed from a timestamp embedded in the URL, so there's no account, no backend, and no drift between " +
     "devices. It includes a fullscreen \"projector\" mode and three display styles (a mechanical split-flap board, " +
-    "a minimal flat-digit view, and a light theme for projecting in bright rooms). Free to use; a $5/mo Pro tier " +
-    "removes ads and adds custom branding for people running it in front of clients.",
+    "a minimal flat-digit view, and a light theme for projecting in bright rooms). Completely free, no paid tier — " +
+    "the zero-backend architecture means one more viewer costs nothing, so there's no usage limit to charge for.",
   category_tags: ["Productivity", "Education", "Web App", "Time Management", "Free Tools", "Utilities"],
-  pricing: "Free — optional $5/mo Pro (removes ads, adds branding, for recurring facilitators)",
-  contact_email: "you@example.com", // update to a real inbox before submitting anywhere
+  pricing: "Free — no paid tier",
+  contact_email: CONTACT_EMAIL,
   repo_note: "Static site, no account system, no tracking beyond optional GA4/AdSense once configured (see docs/monetization.md).",
 };
 
-// ---- Directory targets. `tier` matches docs/seo-outreach-plan.md's tiers. ----
-const DIRECTORIES = [
-  // Tier 2: semi-automated — copy-paste form submission, no ToS risk, no CAPTCHA-bot needed
-  { name: "AlternativeTo", url: "https://alternativeto.net/software/new/", method: "form", tier: 2,
-    notes: "List as an alternative to vClock/online-stopwatch/Google Timer. Needs a screenshot." },
-  { name: "SaaSHub", url: "https://www.saashub.com/submit", method: "form", tier: 2,
-    notes: "Submit as a free tool; category Productivity/Education." },
-  { name: "Slant", url: "https://www.slant.co/", method: "form", tier: 2,
-    notes: "Best added as an answer/option on an existing relevant question (e.g. 'best online timers') rather than a blind submission." },
-  { name: "StackShare", url: "https://stackshare.io/tools/new", method: "form", tier: 2,
-    notes: "Developer-tool leaning audience; frame around the zero-backend/URL-state mechanic." },
-  { name: "BetaList", url: "https://betalist.com/submit", method: "form", tier: 2,
-    notes: "Aimed at pre-launch/early products — best used once, near actual launch, not after the fact." },
-  { name: "SourceForge", url: "https://sourceforge.net/software/vendors/", method: "form", tier: 2,
-    notes: "Business/web-app software directory; free vendor listing available." },
-  { name: "Product Hunt", url: "https://www.producthunt.com/posts/new", method: "form+event", tier: 2,
-    notes: "Prep copy/assets here, but the actual launch (day, timing, replying to comments) is Tier 3 — see plan doc." },
-  { name: "GitHub awesome-lists (education)", url: "https://github.com/search?q=awesome+education&type=repositories", method: "pull-request", tier: 2,
-    notes: "Opening the PR is scriptable (gh CLI); wording + the maintainer's merge decision are not. One PR per relevant list, not a mass campaign." },
-  { name: "GitHub awesome-lists (free software / self-hosted-adjacent)", url: "https://github.com/search?q=awesome+free-software&type=repositories", method: "pull-request", tier: 2,
-    notes: "Same as above — only lists where a free browser timer genuinely fits the theme." },
+/**
+ * Static target list. Each target's `execution` field tells an agent HOW it
+ * may be actioned — this is the field the outreach plan/runbook keys off:
+ *
+ *   "script"        — a real automation script already exists; just run it.
+ *   "agent-browser" — a normal web form with no CAPTCHA/mandatory-signup
+ *                     wall; an agent with browser tools can fill it out and
+ *                     submit directly, once, using the copy above. If it
+ *                     hits a CAPTCHA or a forced signup step it didn't
+ *                     expect, stop and mark blocked — do not try to defeat
+ *                     the wall, do not create throwaway accounts.
+ *   "human-required" — either a one-time credential/verification step only
+ *                     the domain owner can do, or a platform where the
+ *                     entire value depends on a genuine, present human
+ *                     (Reddit/HN/Product Hunt launch day) — automating the
+ *                     posting mechanics wouldn't just risk a ban, it would
+ *                     defeat the actual point.
+ *
+ * `gated_on_domain: true` means this target is pointless before the real
+ * domain is live and deployed (a listing linking to a placeholder/localhost
+ * URL is broken, and IndexNow/Search Console literally require a resolving
+ * domain) — see docs/seo-outreach-plan.md for why nearly everything here is
+ * gated on that one purchase.
+ */
+export const TARGETS = [
+  // ---- search engine push: script-executable, recurring ----
+  { id: "indexnow", name: "IndexNow (Bing/Yandex/Seznam/Naver)", category: "search-engine-push",
+    execution: "script", script: "scripts/submit-indexnow.mjs", recurring: true, gated_on_domain: true,
+    notes: "Run after every deploy that adds/changes pages, not just once." },
+  { id: "search-console-verify", name: "Google Search Console — ownership verification", category: "search-engine-push",
+    execution: "human-required", gated_on_domain: true,
+    notes: "One-time DNS TXT record or HTML file upload — only the domain owner can do this. Unlocks the item below." },
+  { id: "search-console-api", name: "Google Search Console — scripted sitemap resubmission", category: "search-engine-push",
+    execution: "script", script: "scripts/submit-search-console.mjs (not yet built)", recurring: true, gated_on_domain: true,
+    notes: "Needs a Cloud project + service account added to the verified property (one-time, human). After that it's a script, same shape as submit-indexnow.mjs." },
+  { id: "bing-webmaster", name: "Bing Webmaster Tools API", category: "search-engine-push",
+    execution: "human-required", gated_on_domain: true,
+    notes: "Low priority — IndexNow already reaches Bing. Mainly useful later for pulling crawl-stats back, not for getting indexed." },
 
-  // Tier 3: manual/social — deliberately not scripted, see plan doc for why
-  { name: "Show HN (Hacker News)", url: "https://news.ycombinator.com/submit", method: "manual-social", tier: 3,
-    notes: "One real post, real account, good title, be present to answer comments. Never automate HN submissions." },
-  { name: "r/SideProject", url: "https://www.reddit.com/r/SideProject/", method: "manual-social", tier: 3,
-    notes: "Reddit's own rules prohibit automated posting; do this by hand, once, with a genuine account." },
-  { name: "r/InternetIsBeautiful", url: "https://www.reddit.com/r/InternetIsBeautiful/", method: "manual-social", tier: 3,
+  // ---- directory listings: agent can attempt directly via browser tools ----
+  { id: "alternativeto", name: "AlternativeTo", category: "directory-listing", execution: "agent-browser",
+    url: "https://alternativeto.net/software/new/", gated_on_domain: true,
+    notes: "List as an alternative to vClock/online-stopwatch/Google Timer. Needs a screenshot — assets/og-image.svg or a fresh capture." },
+  { id: "saashub", name: "SaaSHub", category: "directory-listing", execution: "agent-browser",
+    url: "https://www.saashub.com/submit", gated_on_domain: true,
+    notes: "Submit as a free tool; category Productivity/Education." },
+  { id: "slant", name: "Slant", category: "directory-listing", execution: "agent-browser",
+    url: "https://www.slant.co/", gated_on_domain: true,
+    notes: "Best added as an answer/option on an existing relevant question (e.g. 'best online timers') rather than a blind submission — agent should find the right question first." },
+  { id: "stackshare", name: "StackShare", category: "directory-listing", execution: "agent-browser",
+    url: "https://stackshare.io/tools/new", gated_on_domain: true,
+    notes: "Developer-tool leaning audience; frame around the zero-backend/URL-state mechanic." },
+  { id: "betalist", name: "BetaList", category: "directory-listing", execution: "agent-browser",
+    url: "https://betalist.com/submit", gated_on_domain: true,
+    notes: "Aimed at pre-launch/early products — best used once, near actual launch, not after the fact." },
+  { id: "sourceforge", name: "SourceForge", category: "directory-listing", execution: "agent-browser",
+    url: "https://sourceforge.net/software/vendors/", gated_on_domain: true,
+    notes: "Business/web-app software directory; free vendor listing available." },
+  { id: "producthunt-prep", name: "Product Hunt — listing draft", category: "directory-listing", execution: "agent-browser",
+    url: "https://www.producthunt.com/posts/new", gated_on_domain: true,
+    notes: "Draft/save the listing here. The actual launch-day posting + comment replies is a separate human-required item below — do not publish this draft without Bruno picking the day." },
+  { id: "gh-awesome-education", name: "GitHub awesome-lists (education)", category: "directory-listing", execution: "agent-browser",
+    url: "https://github.com/search?q=awesome+education&type=repositories", gated_on_domain: true,
+    notes: "Opening the PR is a legitimate gh CLI/API call. Pick 1-2 lists where a free browser timer genuinely fits the stated theme — one well-written PR each, not a mass campaign across every result." },
+  { id: "gh-awesome-free", name: "GitHub awesome-lists (free software / self-hosted-adjacent)", category: "directory-listing", execution: "agent-browser",
+    url: "https://github.com/search?q=awesome+free-software&type=repositories", gated_on_domain: true,
+    notes: "Same approach as the education list — quality over count." },
+
+  // ---- authentic-human-only: agent may draft copy, must not post/submit ----
+  { id: "show-hn", name: "Show HN (Hacker News)", category: "authentic-human-post", execution: "human-required",
+    url: "https://news.ycombinator.com/submit", gated_on_domain: true,
+    notes: "Agent may draft the title/body for review. Bruno must post from a real account and be present to reply to comments — this is not a technical limitation, the entire value of the post depends on it." },
+  { id: "producthunt-launch", name: "Product Hunt — launch day", category: "authentic-human-post", execution: "human-required",
+    gated_on_domain: true,
+    notes: "The draft above can be prepped by an agent; the 24-hour launch window's value comes from real-time comment replies, which can't be delegated." },
+  { id: "reddit-sideproject", name: "r/SideProject", category: "authentic-human-post", execution: "human-required",
+    url: "https://www.reddit.com/r/SideProject/", gated_on_domain: true,
+    notes: "Reddit's site-wide rules prohibit automated posting; a flagged/shadow-banned account loses the ability to post anywhere, not just here." },
+  { id: "reddit-internetisbeautiful", name: "r/InternetIsBeautiful", category: "authentic-human-post", execution: "human-required",
+    url: "https://www.reddit.com/r/InternetIsBeautiful/", gated_on_domain: true,
     notes: "Strict about self-promotion — read community rules before posting; may need someone else to post it." },
-  { name: "r/Teachers / r/Professors", url: "https://www.reddit.com/r/Teachers/", method: "manual-social", tier: 3,
+  { id: "reddit-teachers", name: "r/Teachers / r/Professors", category: "authentic-human-post", execution: "human-required",
+    url: "https://www.reddit.com/r/Teachers/", gated_on_domain: true,
     notes: "Frame as a free classroom/exam tool, not a launch announcement — different norms than r/SideProject." },
-  { name: "Teacher/workshop-tool blog roundups", url: "", method: "manual-outreach", tier: 3,
-    notes: "Find existing 'best free online timers' posts and email the author asking to be added. Personalize each email — do not mail-merge at scale." },
+  { id: "blog-roundup-outreach", name: "Teacher/workshop-tool blog roundup outreach", category: "authentic-human-post", execution: "human-required",
+    gated_on_domain: true,
+    notes: "Agent can find candidate 'best free online timers' posts and draft a personalized email per author. Bruno sends each one individually — mail-merged bulk outreach reads as spam and risks the sending domain's deliverability." },
 ];
 
-const outJson = {
-  generated_at: new Date().toISOString(),
-  copy: COPY,
-  directories: DIRECTORIES,
-};
-
-function checklistMd() {
-  const byTier = (t) => DIRECTORIES.filter(d => d.tier === t);
-  const row = (d) => `| [${d.name}](${d.url || "#"}) | ${d.method} | ${d.notes} | ☐ not started |`;
-  return `# Submission checklist
-
-Generated from \`scripts/generate-submission-kit.mjs\` — edit the data there, not this file
-(it gets overwritten on the next run). Update the ☐ status manually as you go, or swap it for
-☑ done / ✗ skipped.
-
-## Copy to paste (source of truth: \`docs/submission-kit.json\`)
-
-**Name:** ${COPY.name}
-**Tagline:** ${COPY.tagline}
-**One-liner:** ${COPY.one_liner}
-**Short description:** ${COPY.short_description}
-**Tags:** ${COPY.category_tags.join(", ")}
-**Pricing:** ${COPY.pricing}
-
-<details><summary>Long description (for sites that want more)</summary>
-
-${COPY.long_description}
-
-</details>
-
-## Tier 2 — semi-automated (form/PR, no ToS risk, ~2 min each with the copy above)
-
-| Site | Method | Notes | Status |
-|---|---|---|---|
-${byTier(2).map(row).join("\n")}
-
-## Tier 3 — manual/social only (see docs/seo-outreach-plan.md for why these stay manual)
-
-| Site | Method | Notes | Status |
-|---|---|---|---|
-${byTier(3).map(row).join("\n")}
-`;
-}
-
 async function main() {
+  const outJson = { generated_at: new Date().toISOString(), copy: COPY, targets: TARGETS };
   await writeFile(join(ROOT, "docs", "submission-kit.json"), JSON.stringify(outJson, null, 2), "utf-8");
-  await writeFile(join(ROOT, "docs", "submission-checklist.md"), checklistMd(), "utf-8");
-  console.log("Wrote docs/submission-kit.json and docs/submission-checklist.md");
-  console.log(`Directories listed: ${DIRECTORIES.length} (Tier 2: ${DIRECTORIES.filter(d=>d.tier===2).length}, Tier 3: ${DIRECTORIES.filter(d=>d.tier===3).length})`);
-  console.log("\nReminder: update COPY.name/url/contact_email in this script once the domain/name are final, then re-run.");
+  console.log("Wrote docs/submission-kit.json");
+  console.log(`Targets defined: ${TARGETS.length} (script: ${TARGETS.filter(t=>t.execution==="script").length}, agent-browser: ${TARGETS.filter(t=>t.execution==="agent-browser").length}, human-required: ${TARGETS.filter(t=>t.execution==="human-required").length})`);
+  console.log("\nNext: node scripts/outreach-status.mjs sync   (merges these targets into docs/outreach-ledger.json without touching existing progress)");
 }
 
 main();
