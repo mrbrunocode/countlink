@@ -16,7 +16,7 @@
  */
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { NAME, SITE_URL } from "./site-config.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -76,11 +76,45 @@ const PAGES = [
     h1: "Standup Timer — Keep Daily Standups Short",
     meta: "A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.",
     intro: "The easiest way to keep a daily standup to ten minutes is a countdown everyone can see. Set the length, drop the link in your team channel, and project it during the call." },
+  { slug: "zoom-meeting-timer", minutes: 10, label: "Time's up", eyebrow: "Zoom Meeting Timer",
+    h1: "Zoom Meeting Timer — Keep Every Call On Time",
+    meta: "A free shared timer for Zoom calls. Start it, copy the link, and drop it in the chat or a second screen so everyone sees the same time remaining.",
+    intro: "Screen-sharing a timer inside Zoom works, but it takes over your whole screen. Open this on a second monitor or phone instead, or drop the link in the meeting chat — everyone gets their own synced countdown without you sharing anything." },
+  { slug: "google-meet-timer", minutes: 10, label: "Time's up", eyebrow: "Google Meet Timer",
+    h1: "Google Meet Timer — A Shared Countdown For Video Calls",
+    meta: "A free shared timer for Google Meet. Copy the link into the meeting chat and everyone's own screen counts down in sync — no extension, no screen share.",
+    intro: "Paste the link into the in-call chat the moment the meeting starts. Nobody needs to install an extension or watch your shared screen — everyone's own tab counts down to the exact same second." },
+  { slug: "obs-countdown-timer", minutes: 5, label: "Starting soon", eyebrow: "OBS Countdown Timer",
+    h1: "OBS Countdown Timer — Free Browser Source For Streamers",
+    meta: "A free countdown timer built to drop straight into OBS as a browser source — transparent background, no signup, no watermark.",
+    intro: "Add the overlay version of this page as an OBS Browser Source and it drops onto your scene with a transparent background — no green screen, no chroma key setup. Set your stream-start countdown, copy the link into OBS, and it's live." },
+  { slug: "twitch-stream-timer", minutes: 5, label: "Starting soon", eyebrow: "Twitch Stream Timer",
+    h1: "Twitch Stream Timer — Countdown Overlay For Stream Starts",
+    meta: "A free stream-starting countdown for Twitch. Use it as a transparent browser-source overlay, or just share the link with mods and co-streamers so everyone's in sync.",
+    intro: "Streamers use this the same way as a \"starting soon\" screen — set the countdown, add the overlay version as a transparent browser source, and it counts down on stream. Share the same link with mods or co-streamers and their screens match exactly." },
+  { slug: "workshop-timer", minutes: 15, label: "Segment over", eyebrow: "Workshop Timer",
+    h1: "Workshop Timer — One Countdown For Every Table",
+    meta: "A free shared timer for workshop facilitators. Set the segment length, share the link, and every table or breakout group sees the identical countdown.",
+    intro: "Facilitators running breakout groups or table exercises know the problem: one group finishes early, another runs long, because everyone's eyeballing their own phone clock. Share this link instead and every table counts down from the same number." },
+  { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer",
+    h1: "Group Study Timer — Study With Me, In Sync",
+    meta: "A free shared study timer for study groups and study-with-me sessions. Set a focus block, share the link, and everyone's break lands at the same moment.",
+    intro: "Studying with friends or running a study-with-me stream works best when breaks actually line up. Set a focus block here, share the link with your group, and everyone's countdown — and everyone's break — happens at the exact same moment." },
+  { slug: "game-night-timer", minutes: 3, label: "Time's up", eyebrow: "Game Night Timer",
+    h1: "Game Night Timer — For Turns, Rounds And House Rules",
+    meta: "A free shareable timer for board games, party games and game night house rules. Set the turn limit, share the link, and nobody argues about how much time is left.",
+    intro: "Every game night needs a turn timer eventually — charades rounds, drafting phases, \"you have sixty seconds to decide.\" Set it once, share the link to everyone's phone, and the countdown settles the argument before it starts." },
+  { slug: "auction-countdown", minutes: 5, label: "Bidding closed", eyebrow: "Auction Countdown",
+    h1: "Auction Countdown — Synced Bidding Deadline For Every Bidder",
+    meta: "A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.",
+    intro: "A live auction or limited drop lives or dies on everyone seeing the same deadline. Share this link before bidding opens and every bidder's screen counts down to the identical closing second — no one can claim their clock ran differently." },
 ];
 
 const BRAND = NAME; // imported from ./site-config.mjs — the one place these values live
 
 const timerLinks = PAGES.map(p => `<a href="${p.slug}.html">${p.eyebrow}</a>`).join("\n          ");
+// Same links, but rooted for index.html (one directory up from /timers/).
+const rootTimerLinks = PAGES.map(p => `<a href="timers/${p.slug}.html">${p.eyebrow}</a>`).join("\n      ");
 
 const page = (p) => `<!DOCTYPE html>
 <html lang="en">
@@ -96,8 +130,18 @@ const page = (p) => `<!DOCTYPE html>
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bebas+Neue&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: BRAND,
+  url: `${SITE_URL}/timers/${p.slug}.html`,
+  description: p.meta,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any (web browser)",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+})}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
@@ -148,31 +192,44 @@ const page = (p) => `<!DOCTYPE html>
     <div class="panel">
       <h2>Change the countdown</h2>
       <div class="hint">Already running at ${p.minutes} minutes above — adjust it here if you need something else.</div>
-      <label>Quick timer</label>
-      <div class="quick">
-        <button class="q" data-min="1">1 min</button>
-        <button class="q" data-min="5">5 min</button>
-        <button class="q" data-min="10">10 min</button>
-        <button class="q" data-min="15">15 min</button>
-        <button class="q" data-min="30">30 min</button>
-        <button class="q" data-min="60">1 hour</button>
+      <label>Direction</label>
+      <div class="quick dir-toggle">
+        <button class="q active" data-dir="down">Count down</button>
+        <button class="q" data-dir="up">Count up (stopwatch)</button>
       </div>
-      <div class="stack2">
-        <div>
-          <label for="customMin">Custom minutes</label>
-          <input id="customMin" type="number" min="1" value="${p.minutes}">
+      <div id="durationFields">
+        <label>Quick timer</label>
+        <div class="quick">
+          <button class="q" data-min="1">1 min</button>
+          <button class="q" data-min="5">5 min</button>
+          <button class="q" data-min="10">10 min</button>
+          <button class="q" data-min="15">15 min</button>
+          <button class="q" data-min="30">30 min</button>
+          <button class="q" data-min="60">1 hour</button>
         </div>
-        <div>
-          <label for="untilTime">…or until a date &amp; time</label>
-          <input id="untilTime" type="datetime-local">
+        <div class="stack2">
+          <div>
+            <label for="customMin">Custom minutes</label>
+            <input id="customMin" type="number" min="1" value="${p.minutes}">
+          </div>
+          <div>
+            <label for="untilTime">…or until a date &amp; time</label>
+            <input id="untilTime" type="datetime-local">
+          </div>
         </div>
       </div>
+      <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
       <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="${p.label}">
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
       <div class="share-box" id="shareUrl"></div>
+      <button class="pro-link" id="qrBtn" style="margin-top:10px">Show QR code →</button>
+      <div id="qrWrap" style="display:none;margin-top:10px">
+        <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
+        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="../privacy.html" style="text-decoration:underline">Privacy</a>.</div>
+      </div>
     </div>
     <div class="pro-banner">
       <span>Running this for clients? <b>Pro</b> removes ads and adds your branding.</span>
@@ -187,7 +244,7 @@ const page = (p) => `<!DOCTYPE html>
       ${timerLinks}
     </div>
     <div class="foot-in">
-      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a></div>
+      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
@@ -199,15 +256,39 @@ const page = (p) => `<!DOCTYPE html>
 </html>
 `;
 
+const STATIC_PAGES = ["privacy.html", "compare.html"];
+
 const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}.html</loc></url>`).join("\n");
+  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f}</loc></url>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE_URL}/</loc></url>
+${staticUrls}
 ${urls}
 </urlset>
 `;
 };
+
+async function syncIndexFootLinks() {
+  const indexPath = join(ROOT, "index.html");
+  const html = await readFile(indexPath, "utf-8");
+  const start = "<!-- FOOT_LINKS_START — auto-synced from PAGES by scripts/build-timer-pages.mjs, do not hand-edit -->";
+  const end = "<!-- FOOT_LINKS_END -->";
+  const startIdx = html.indexOf(start);
+  const endIdx = html.indexOf(end);
+  if (startIdx === -1 || endIdx === -1) {
+    console.warn("Could not find FOOT_LINKS_START/END markers in index.html — skipped syncing footer links.");
+    return;
+  }
+  const before = html.slice(0, startIdx + start.length);
+  const after = html.slice(endIdx);
+  const updated = `${before}\n      ${rootTimerLinks}\n      ${after}`;
+  if (updated !== html) {
+    await writeFile(indexPath, updated, "utf-8");
+    console.log("Synced index.html footer links to match PAGES.");
+  }
+}
 
 async function main() {
   await mkdir(OUT_DIR, { recursive: true });
@@ -222,7 +303,9 @@ async function main() {
 
   const sitemapPath = join(ROOT, "sitemap.xml");
   await writeFile(sitemapPath, sitemap(), "utf-8");
-  console.log(`Wrote ${relative(ROOT, sitemapPath)} (${PAGES.length + 1} URLs)`);
+  console.log(`Wrote ${relative(ROOT, sitemapPath)} (${PAGES.length + STATIC_PAGES.length + 1} URLs)`);
+
+  await syncIndexFootLinks();
   console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");
 }
 

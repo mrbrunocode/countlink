@@ -3,17 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CountLink — one countdown, every screen, exactly in sync</title>
-<meta name="description" content="Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync — no account, no server, no app. Built for classrooms, exams, webinars, workshops and standups.">
+<title>CountLink — Shared Timer, Synced by Link (Free, No Signup)</title>
+<meta name="description" content="CountLink is a free shared timer: set a countdown, copy the link, and everyone who opens it sees the exact same countdown, synced automatically. No signup, no server, no app. Built for classrooms, exams, webinars, workshops and standups.">
 <link rel="canonical" href="https://countlink.example/">
-<meta property="og:title" content="CountLink — one countdown, every screen, exactly in sync">
-<meta property="og:description" content="Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync.">
+<meta property="og:title" content="CountLink — Shared Timer, Synced by Link">
+<meta property="og:description" content="Set a countdown, share the link. Everyone who opens it sees the identical timer, synced automatically — no account, no server.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bebas+Neue&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CountLink",
+  "url": "https://countlink.example/",
+  "description": "A free shared timer. Set a countdown and share the link — everyone who opens it sees the exact same countdown, synced automatically, with no signup and no server.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any (web browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is CountLink free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, the shared timer is free with no viewer limit and no device limit — because syncing happens entirely in the link itself, not on a server, showing one more viewer costs nothing." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to sign up or make an account?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Nobody — neither the person who starts the timer nor anyone who opens the shared link — ever needs an account." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the timer stay in sync across devices?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The countdown's end time is encoded directly in the shared link as a timestamp. Every device that opens the link counts down to that same instant using its own clock, so there's no server round-trip and nothing to go out of sync." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can the timer go down or lose sync if a server has an outage?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No — there is no server in the sync path at all, so there's nothing to go down. Each device is doing its own local math against the shared timestamp." }
+    }
+  ]
+}
+</script>
 
 <!--
   ANALYTICS (disabled until you have a GA4 property — see docs/monetization.md step 1):
@@ -36,8 +77,8 @@
 <div class="wrap">
   <section class="hero">
     <div class="hero-inner">
-      <span class="eyebrow">Shared countdown timer</span>
-      <h1>One countdown. Every screen. Exactly in sync.</h1>
+      <span class="eyebrow">Shared timer, synced by link</span>
+      <h1>One shared timer. Every screen. Exactly in sync.</h1>
       <p class="lede">Set a timer, copy the link, send it to the room. Every phone, laptop and projector that opens it counts down to <b>the same instant</b> — because the deadline is written into the link itself, not a server.</p>
     </div>
     <div class="hero-fact">
@@ -80,36 +121,71 @@
     <div class="panel">
       <h2>Set your countdown</h2>
       <div class="hint">Quick timer, or count down to a moment on the clock — both produce a shareable link.</div>
-      <label>Quick timer</label>
-      <div class="quick">
-        <button class="q" data-min="1">1 min</button>
-        <button class="q" data-min="5">5 min</button>
-        <button class="q" data-min="10">10 min</button>
-        <button class="q" data-min="15">15 min</button>
-        <button class="q" data-min="30">30 min</button>
-        <button class="q" data-min="60">1 hour</button>
+      <label>Direction</label>
+      <div class="quick dir-toggle">
+        <button class="q active" data-dir="down">Count down</button>
+        <button class="q" data-dir="up">Count up (stopwatch)</button>
       </div>
-      <div class="stack2">
-        <div>
-          <label for="customMin">Custom minutes</label>
-          <input id="customMin" type="number" min="1" value="25">
+      <div id="durationFields">
+        <label>Quick timer</label>
+        <div class="quick">
+          <button class="q" data-min="1">1 min</button>
+          <button class="q" data-min="5">5 min</button>
+          <button class="q" data-min="10">10 min</button>
+          <button class="q" data-min="15">15 min</button>
+          <button class="q" data-min="30">30 min</button>
+          <button class="q" data-min="60">1 hour</button>
         </div>
-        <div>
-          <label for="untilTime">…or until a date &amp; time</label>
-          <input id="untilTime" type="datetime-local">
+        <div class="stack2">
+          <div>
+            <label for="customMin">Custom minutes</label>
+            <input id="customMin" type="number" min="1" value="25">
+          </div>
+          <div>
+            <label for="untilTime">…or until a date &amp; time</label>
+            <input id="untilTime" type="datetime-local">
+          </div>
         </div>
       </div>
+      <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
       <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Workshop resumes">
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
       <div class="share-box" id="shareUrl"></div>
+      <button class="pro-link" id="qrBtn" style="margin-top:10px">Show QR code →</button>
+      <div id="qrWrap" style="display:none;margin-top:10px">
+        <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
+        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="privacy.html" style="text-decoration:underline">Privacy</a>.</div>
+      </div>
     </div>
     <div class="pro-banner">
       <span>Running this for clients? <b>Pro</b> removes ads and adds your branding.</span>
       <button class="pro-link" id="proBtn">$5/mo — Unlock Pro →</button>
     </div>
+  </section>
+
+  <section class="faq">
+    <h2>Common questions</h2>
+    <dl class="faq-grid">
+      <div class="faq-item">
+        <dt>Is CountLink free?</dt>
+        <dd>Yes, the shared timer is free with no viewer limit and no device limit — because syncing happens entirely in the link itself, not on a server, showing one more viewer costs nothing.</dd>
+      </div>
+      <div class="faq-item">
+        <dt>Do I need to sign up or make an account?</dt>
+        <dd>No. Nobody — neither the person who starts the timer nor anyone who opens the shared link — ever needs an account.</dd>
+      </div>
+      <div class="faq-item">
+        <dt>How does the timer stay in sync across devices?</dt>
+        <dd>The countdown's end time is encoded directly in the shared link as a timestamp. Every device that opens the link counts down to that same instant using its own clock, so there's no server round-trip and nothing to go out of sync.</dd>
+      </div>
+      <div class="faq-item">
+        <dt>Can the timer go down or lose sync if a server has an outage?</dt>
+        <dd>No — there is no server in the sync path at all, so there's nothing to go down. Each device is doing its own local math against the shared timestamp.</dd>
+      </div>
+    </dl>
   </section>
 </div>
 
@@ -118,11 +194,12 @@
 <footer>
   <div class="wrap">
     <div class="foot-links">
+      <!-- FOOT_LINKS_START — auto-synced from PAGES by scripts/build-timer-pages.mjs, do not hand-edit -->
       <a href="timers/5-minute-timer.html">5 Minute Timer</a>
       <a href="timers/10-minute-timer.html">10 Minute Timer</a>
       <a href="timers/15-minute-timer.html">15 Minute Timer</a>
       <a href="timers/20-minute-timer.html">20 Minute Timer</a>
-      <a href="timers/25-minute-timer.html">25 Minute Timer (Pomodoro)</a>
+      <a href="timers/25-minute-timer.html">25 Minute Timer</a>
       <a href="timers/30-minute-timer.html">30 Minute Timer</a>
       <a href="timers/45-minute-timer.html">45 Minute Timer</a>
       <a href="timers/60-minute-timer.html">1 Hour Timer</a>
@@ -130,9 +207,18 @@
       <a href="timers/classroom-timer.html">Classroom Timer</a>
       <a href="timers/webinar-countdown.html">Webinar Countdown</a>
       <a href="timers/standup-timer.html">Standup Timer</a>
+      <a href="timers/zoom-meeting-timer.html">Zoom Meeting Timer</a>
+      <a href="timers/google-meet-timer.html">Google Meet Timer</a>
+      <a href="timers/obs-countdown-timer.html">OBS Countdown Timer</a>
+      <a href="timers/twitch-stream-timer.html">Twitch Stream Timer</a>
+      <a href="timers/workshop-timer.html">Workshop Timer</a>
+      <a href="timers/group-study-timer.html">Group Study Timer</a>
+      <a href="timers/game-night-timer.html">Game Night Timer</a>
+      <a href="timers/auction-countdown.html">Auction Countdown</a>
+      <!-- FOOT_LINKS_END -->
     </div>
     <div class="foot-in">
-      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="privacy.html">Privacy</a></div>
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="privacy.html">Privacy</a> · <a href="compare.html">Vs. ShareMyTimer &amp; Stagetimer</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>

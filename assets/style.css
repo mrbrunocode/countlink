@@ -271,6 +271,8 @@ input,select{
 }
 input:focus,select:focus{outline:none;border-color:var(--amber)}
 .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.dir-toggle{grid-template-columns:repeat(2,1fr)}
+.dir-toggle .q.active{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:600}
 .q{
   font-family:var(--mono);font-size:.72rem;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-dim);
   padding:11px 6px;transition:all .15s;border-radius:5px;min-height:44px;
@@ -296,6 +298,14 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   background:none;border:none;padding:8px 0;display:inline-block;min-height:44px;white-space:nowrap;
 }
 .pro-link:hover{color:var(--paper-text)}
+
+/* ============ FAQ (visible copy matching the FAQPage JSON-LD in <head>) ============ */
+.faq{padding:36px 0 8px;border-top:1px solid var(--panel-line);margin-top:34px}
+.faq h2{font-family:var(--display);font-weight:400;font-size:1.3rem;letter-spacing:.02em;text-transform:uppercase;margin-bottom:16px;color:var(--paper-text)}
+.faq-grid{display:flex;flex-direction:column;gap:18px}
+@media(min-width:760px){.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px}}
+.faq-item dt{font-family:var(--sans);font-weight:600;font-size:.9rem;color:var(--paper-text);margin-bottom:6px}
+.faq-item dd{font-size:.84rem;color:var(--paper-dim);line-height:1.6}
 
 /* ============ FOOTER (also carries the internal SEO links — see docs/monetization.md) ============ */
 footer{border-top:1px solid var(--panel-line);padding:24px 0 28px;margin-top:34px}
@@ -330,3 +340,24 @@ body.fs .tile{--tw:42px;--th:60px;--fs:2.1rem}
 body.fs .tiles{gap:4px}
 @media(min-width:420px){body.fs .tiles{gap:8px}}
 @media(min-width:640px){body.fs .tiles{gap:12px}}
+
+/* overlay mode — for OBS/streaming Browser Sources: ?overlay=1 in the URL.
+   Transparent page background (no dark chassis) so only the tile digits sit
+   on top of the video capture underneath. See docs/battle-plan-sharemytimer.md
+   §2 — this closes the OBS-integration gap without needing a native app. */
+body.overlay-mode{background:transparent;background-image:none}
+body.overlay-mode .wrap>*:not(.stage-section),
+body.overlay-mode header,body.overlay-mode footer,body.overlay-mode .ad-slot{display:none}
+body.overlay-mode .stage-section{padding:0}
+body.overlay-mode .wrap{max-width:none;padding:0}
+body.overlay-mode{display:grid;place-items:center;min-height:100vh}
+body.overlay-mode .board{
+  border:none;background:transparent;box-shadow:none;padding:16px;width:auto;min-height:0;
+}
+body.overlay-mode .board .bolt-br,body.overlay-mode .board .bolt-bl,
+body.overlay-mode .board::before,body.overlay-mode .board::after,
+body.overlay-mode .style-toggle,body.overlay-mode .sync-note,
+body.overlay-mode .bar,body.overlay-mode .stage-btns{display:none}
+body.overlay-mode .tile{--tw:56px;--th:80px;--fs:2.9rem}
+@media(min-width:640px){body.overlay-mode .tile{--tw:78px;--th:110px;--fs:4rem}}
+body.overlay-mode .tiles{gap:8px}

@@ -4,6 +4,9 @@ let end=null,label="",sound=true,pro=false,fired=false,tick=null,total=0;
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
 let prevValues=null;  // last rendered digit string per tile, so we only flip tiles that changed
 let audioCtx=null;
+let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up).
+                      // In "up" mode, `end` holds the START instant instead of the deadline —
+                      // same single timestamp-in-the-link mechanic, just read the other way.
 
 function fmt2(n){return String(n).padStart(2,"0")}
 
@@ -13,15 +16,21 @@ function setDefaultUntil(){
   $("untilTime").value=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function makeLink(){
-  const u=new URL(location.href);u.hash=`t=${end}&l=${encodeURIComponent(label)}`;
+  const u=new URL(location.href);
+  u.hash=`t=${end}&l=${encodeURIComponent(label)}${direction==="up"?"&d=up":""}`;
   return u.toString();
 }
 function readHash(){
   const m=new URLSearchParams(location.hash.slice(1));
-  if(m.get("t")){end=+m.get("t");label=decodeURIComponent(m.get("l")||"");return true}
+  if(m.get("t")){
+    end=+m.get("t");label=decodeURIComponent(m.get("l")||"");
+    direction=m.get("d")==="up"?"up":"down";
+    return true;
+  }
   return false;
 }
 function start(ms,lab){
+  direction="down";
   end=Date.now()+ms;label=lab;fired=false;total=ms;prevValues=null;
   /* Tile layout (how many digit tiles are on screen) is fixed once, from the
      STARTING duration — not recomputed each tick. Otherwise an hour+ countdown
@@ -29,6 +38,13 @@ function start(ms,lab){
      minutes remaining, breaking the board mid-countdown. */
   mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}`;
+  render();
+}
+function startUp(lab){
+  direction="up";
+  end=Date.now();label=lab;fired=false;total=0;prevValues=null;
+  mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
+  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
   render();
 }
 
@@ -133,8 +149,24 @@ function render(){clearInterval(tick);tick=setInterval(draw,250);draw();}
 let lastSecond=null;
 function draw(){
   if(!end)return;
-  const left=end-Date.now();
   $("evtLabel").textContent=label||"";
+
+  if(direction==="up"){
+    document.querySelector(".bar").style.display="none"; // no fixed total for an open-ended stopwatch, so no progress line
+    const elapsed=Date.now()-end;
+    const c=charsFor(elapsed);
+    const curSecond=Math.floor(elapsed/1000);
+    if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
+    else updateTiles(c.tiles);
+    if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
+    lastSecond=curSecond;
+    $("subLine").innerHTML=`started at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
+    $("shareUrl").textContent=makeLink();
+    return;
+  }
+  document.querySelector(".bar").style.display="";
+
+  const left=end-Date.now();
   if(left<=0){
     if(mode==="days"||!document.querySelector(".tile")){
       $("tiles").innerHTML=`<div class="tile-day">00:00:00</div>`;
@@ -162,8 +194,22 @@ function draw(){
   $("shareUrl").textContent=makeLink();
 }
 
-document.querySelectorAll(".q").forEach(b=>b.addEventListener("click",()=>start(+b.dataset.min*60e3,$("evtName").value)));
+document.querySelectorAll(".q[data-min]").forEach(b=>b.addEventListener("click",()=>start(+b.dataset.min*60e3,$("evtName").value)));
+
+/* countdown vs count-up: a form choice, not a URL-shareable setting in itself —
+   once started, the direction travels with the link via makeLink()/readHash(). */
+let formDirection="down";
+document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click",()=>{
+  formDirection=b.dataset.dir;
+  document.querySelectorAll(".dir-toggle .q").forEach(x=>x.classList.toggle("active",x===b));
+  const isUp=formDirection==="up";
+  if($("durationFields"))$("durationFields").style.display=isUp?"none":"block";
+  if($("countUpHint"))$("countUpHint").style.display=isUp?"block":"none";
+  $("startBtn").textContent=isUp?"Start counting up":"Start countdown";
+}));
+
 $("startBtn").addEventListener("click",()=>{
+  if(formDirection==="up"){startUp($("evtName").value);return;}
   const dirty=$("untilTime").dataset.dirty;
   if(dirty)start(new Date($("untilTime").value)-Date.now(),$("evtName").value);
   else start((+$("customMin").value||25)*60e3,$("evtName").value);
@@ -173,6 +219,16 @@ $("shareBtn").addEventListener("click",async e=>{
   await navigator.clipboard.writeText(makeLink());
   e.target.classList.add("copied");e.target.textContent="Link copied — send it";
   setTimeout(()=>{e.target.classList.remove("copied");e.target.textContent="Copy sync link";},1800);
+});
+/* QR code: the one on-demand, opt-in feature that calls a third-party API
+   (goqr.me) — only fires when the viewer explicitly asks for it, and only
+   ever sends the already-public share link, never anything else. */
+if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
+  const showing=$("qrWrap").style.display!=="none";
+  if(showing){$("qrWrap").style.display="none";$("qrBtn").textContent="Show QR code →";return;}
+  const data=encodeURIComponent(makeLink());
+  $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
+  $("qrWrap").style.display="block";$("qrBtn").textContent="Hide QR code";
 });
 $("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
@@ -192,6 +248,12 @@ document.querySelectorAll(".style-toggle button").forEach(b=>b.addEventListener(
 let savedStyle="board";
 try{savedStyle=localStorage.getItem("samesecond_style")||"board"}catch(e){}
 applyStyle(savedStyle);
+
+/* OBS/streaming Browser Source support — see docs/battle-plan-sharemytimer.md §2.
+   ?overlay=1 strips the page to a transparent-background board so only the
+   digits sit over the video capture. Applied before first render so there's
+   no flash of the normal chrome. */
+if(new URLSearchParams(location.search).get("overlay"))document.body.classList.add("overlay-mode");
 
 setDefaultUntil();
 if(readHash()){

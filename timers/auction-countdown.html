@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>45 Minute Timer — Free, Shareable, In Sync | CountLink</title>
-<meta name="description" content="A free 45 minute timer that stays in sync across every device. Copy the link and everyone watching sees the same countdown, to the second.">
-<link rel="canonical" href="https://countlink.example/timers/45-minute-timer.html">
-<meta property="og:title" content="45 Minute Timer — Free, Shareable, In Sync">
-<meta property="og:description" content="A free 45 minute timer that stays in sync across every device. Copy the link and everyone watching sees the same countdown, to the second.">
+<title>Auction Countdown — Synced Bidding Deadline For Every Bidder | CountLink</title>
+<meta name="description" content="A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.">
+<link rel="canonical" href="https://countlink.example/timers/auction-countdown.html">
+<meta property="og:title" content="Auction Countdown — Synced Bidding Deadline For Every Bidder">
+<meta property="og:description" content="A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.example/timers/45-minute-timer.html","description":"A free 45 minute timer that stays in sync across every device. Copy the link and everyone watching sees the same countdown, to the second.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.example/timers/auction-countdown.html","description":"A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
@@ -27,9 +27,9 @@
 <div class="wrap">
   <section class="hero">
     <div class="hero-inner">
-      <span class="eyebrow">45 Minute Timer</span>
-      <h1>45 Minute Timer — Free, Shareable, In Sync</h1>
-      <p class="lede">Forty-five minutes is a common class period and workshop-session length. Start it here and put it on the projector — every phone in the room can pull up the same link.</p>
+      <span class="eyebrow">Auction Countdown</span>
+      <h1>Auction Countdown — Synced Bidding Deadline For Every Bidder</h1>
+      <p class="lede">A live auction or limited drop lives or dies on everyone seeing the same deadline. Share this link before bidding opens and every bidder's screen counts down to the identical closing second — no one can claim their clock ran differently.</p>
     </div>
     <div class="hero-fact">
       <span class="n">00</span>servers to run this
@@ -64,7 +64,7 @@
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">Already running at 45 minutes above — adjust it here if you need something else.</div>
+      <div class="hint">Already running at 5 minutes above — adjust it here if you need something else.</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
         <button class="q active" data-dir="down">Count down</button>
@@ -83,7 +83,7 @@
         <div class="stack2">
           <div>
             <label for="customMin">Custom minutes</label>
-            <input id="customMin" type="number" min="1" value="45">
+            <input id="customMin" type="number" min="1" value="5">
           </div>
           <div>
             <label for="untilTime">…or until a date &amp; time</label>
@@ -93,7 +93,7 @@
       </div>
       <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
-      <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Time's up">
+      <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Bidding closed">
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
@@ -142,7 +142,7 @@
   </div>
 </footer>
 
-<script>window.COUNTLINK_DEFAULT={minutes:45,label:"Time's up"};</script>
+<script>window.COUNTLINK_DEFAULT={minutes:5,label:"Bidding closed"};</script>
 <script src="../assets/app.js"></script>
 </body>
 </html>

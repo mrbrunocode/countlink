@@ -12,8 +12,9 @@
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bebas+Neue&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.example/timers/exam-timer.html","description":"A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
@@ -64,31 +65,44 @@
     <div class="panel">
       <h2>Change the countdown</h2>
       <div class="hint">Already running at 60 minutes above — adjust it here if you need something else.</div>
-      <label>Quick timer</label>
-      <div class="quick">
-        <button class="q" data-min="1">1 min</button>
-        <button class="q" data-min="5">5 min</button>
-        <button class="q" data-min="10">10 min</button>
-        <button class="q" data-min="15">15 min</button>
-        <button class="q" data-min="30">30 min</button>
-        <button class="q" data-min="60">1 hour</button>
+      <label>Direction</label>
+      <div class="quick dir-toggle">
+        <button class="q active" data-dir="down">Count down</button>
+        <button class="q" data-dir="up">Count up (stopwatch)</button>
       </div>
-      <div class="stack2">
-        <div>
-          <label for="customMin">Custom minutes</label>
-          <input id="customMin" type="number" min="1" value="60">
+      <div id="durationFields">
+        <label>Quick timer</label>
+        <div class="quick">
+          <button class="q" data-min="1">1 min</button>
+          <button class="q" data-min="5">5 min</button>
+          <button class="q" data-min="10">10 min</button>
+          <button class="q" data-min="15">15 min</button>
+          <button class="q" data-min="30">30 min</button>
+          <button class="q" data-min="60">1 hour</button>
         </div>
-        <div>
-          <label for="untilTime">…or until a date &amp; time</label>
-          <input id="untilTime" type="datetime-local">
+        <div class="stack2">
+          <div>
+            <label for="customMin">Custom minutes</label>
+            <input id="customMin" type="number" min="1" value="60">
+          </div>
+          <div>
+            <label for="untilTime">…or until a date &amp; time</label>
+            <input id="untilTime" type="datetime-local">
+          </div>
         </div>
       </div>
+      <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
       <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Time is up — pens down">
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
       <div class="share-box" id="shareUrl"></div>
+      <button class="pro-link" id="qrBtn" style="margin-top:10px">Show QR code →</button>
+      <div id="qrWrap" style="display:none;margin-top:10px">
+        <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
+        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="../privacy.html" style="text-decoration:underline">Privacy</a>.</div>
+      </div>
     </div>
     <div class="pro-banner">
       <span>Running this for clients? <b>Pro</b> removes ads and adds your branding.</span>
@@ -112,9 +126,17 @@
           <a href="classroom-timer.html">Classroom Timer</a>
           <a href="webinar-countdown.html">Webinar Countdown</a>
           <a href="standup-timer.html">Standup Timer</a>
+          <a href="zoom-meeting-timer.html">Zoom Meeting Timer</a>
+          <a href="google-meet-timer.html">Google Meet Timer</a>
+          <a href="obs-countdown-timer.html">OBS Countdown Timer</a>
+          <a href="twitch-stream-timer.html">Twitch Stream Timer</a>
+          <a href="workshop-timer.html">Workshop Timer</a>
+          <a href="group-study-timer.html">Group Study Timer</a>
+          <a href="game-night-timer.html">Game Night Timer</a>
+          <a href="auction-countdown.html">Auction Countdown</a>
     </div>
     <div class="foot-in">
-      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a></div>
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="../privacy.html">Privacy</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://countlink.example/</loc></url>
+  <url><loc>https://countlink.example/privacy.html</loc></url>
+  <url><loc>https://countlink.example/compare.html</loc></url>
   <url><loc>https://countlink.example/timers/5-minute-timer.html</loc></url>
   <url><loc>https://countlink.example/timers/10-minute-timer.html</loc></url>
   <url><loc>https://countlink.example/timers/15-minute-timer.html</loc></url>
@@ -13,4 +15,12 @@
   <url><loc>https://countlink.example/timers/classroom-timer.html</loc></url>
   <url><loc>https://countlink.example/timers/webinar-countdown.html</loc></url>
   <url><loc>https://countlink.example/timers/standup-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/zoom-meeting-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/google-meet-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/obs-countdown-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/twitch-stream-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/workshop-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/group-study-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/game-night-timer.html</loc></url>
+  <url><loc>https://countlink.example/timers/auction-countdown.html</loc></url>
 </urlset>
