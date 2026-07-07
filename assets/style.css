@@ -250,9 +250,8 @@ h1{
 .sync-note{
   display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);
 }
-.sync-note .dot{width:6px;height:6px;background:var(--ok);border-radius:50%;flex:none;box-shadow:0 0 6px 1px rgba(92,143,109,.7)}
+.sync-note .dot{width:6px;height:6px;background:var(--ok);border-radius:50%;flex:none;box-shadow:0 0 4px 0 rgba(92,143,109,.4);animation:blink 1.8s infinite}
 @keyframes blink{50%{opacity:.25}}
-.sync-note .dot{animation:blink 1.8s infinite}
 
 /* ============ AD SLOT — placed exactly where vClock places theirs: ============ */
 /* directly below the timer stage/controls, above supporting content.        */

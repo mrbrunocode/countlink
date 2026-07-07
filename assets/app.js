@@ -194,7 +194,13 @@ function draw(){
   $("shareUrl").textContent=makeLink();
 }
 
-document.querySelectorAll(".q[data-min]").forEach(b=>b.addEventListener("click",()=>start(+b.dataset.min*60e3,$("evtName").value)));
+/* Quick timer buttons: set the custom minutes value, don't start yet.
+   User clicks a quick button → fills customMin → user clicks "Start countdown" → timer starts.
+   This lets users confirm the duration before committing. */
+document.querySelectorAll(".q[data-min]").forEach(b=>b.addEventListener("click",()=>{
+  $("customMin").value=b.dataset.min;
+  $("untilTime").dataset.dirty=""; // clear the "until time" mode so start button uses customMin
+}));
 
 /* countdown vs count-up: a form choice, not a URL-shareable setting in itself —
    once started, the direction travels with the link via makeLink()/readHash(). */
