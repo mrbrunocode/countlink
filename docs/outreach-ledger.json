@@ -3,155 +3,155 @@
     "indexnow": {
       "name": "IndexNow (Bing/Yandex/Seznam/Naver)",
       "execution": "script",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": "2026-07-07T19:15:12.863Z",
       "notes": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md."
     },
     "search-console-verify": {
       "name": "Google Search Console — ownership verification",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "search-console-api": {
       "name": "Google Search Console — scripted sitemap resubmission",
       "execution": "script",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "bing-webmaster": {
       "name": "Bing Webmaster Tools API",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "alternativeto": {
       "name": "AlternativeTo",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "saashub": {
       "name": "SaaSHub",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "slant": {
       "name": "Slant",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "stackshare": {
       "name": "StackShare",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "betalist": {
       "name": "BetaList",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "sourceforge": {
       "name": "SourceForge",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "producthunt-prep": {
       "name": "Product Hunt — listing draft",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "gh-awesome-education": {
       "name": "GitHub awesome-lists (education)",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "gh-awesome-free": {
       "name": "GitHub awesome-lists (free software / self-hosted-adjacent)",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "show-hn": {
       "name": "Show HN (Hacker News)",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "producthunt-launch": {
       "name": "Product Hunt — launch day",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "reddit-sideproject": {
       "name": "r/SideProject",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "reddit-internetisbeautiful": {
       "name": "r/InternetIsBeautiful",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "reddit-teachers": {
       "name": "r/Teachers / r/Professors",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     },
     "blog-roundup-outreach": {
       "name": "Teacher/workshop-tool blog roundup outreach",
       "execution": "human-required",
-      "status": "blocked",
-      "blocked_reason": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.",
+      "status": "pending",
+      "blocked_reason": null,
       "last_run": null,
       "notes": ""
     }
   },
-  "last_synced": "2026-07-07T19:14:46.172Z"
+  "last_synced": "2026-07-07T19:35:21.657Z"
 }

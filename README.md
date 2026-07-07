@@ -94,7 +94,7 @@ Steps (Cloudflare Pages):
 3. Build command: none. Output directory: `/` (repo root).
 4. Add your domain under Custom Domains once purchased.
 5. Update `SITE_URL` in `scripts/build-timer-pages.mjs` and the `canonical`/`og:url`
-   values in `index.html` from `countlink.example` to the real domain, then
+   values in `index.html` from `countlink.app` to the real domain, then
    re-run the build script and redeploy.
 
 ## Domain name research

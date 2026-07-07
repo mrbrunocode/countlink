@@ -47,6 +47,11 @@ const CHECKLIST_PATH = join(ROOT, "docs", "submission-checklist.md");
 
 const DOMAIN_IS_PLACEHOLDER = SITE_URL.includes(".example");
 const VALID_STATUSES = ["pending", "in_progress", "done", "blocked", "skipped"];
+// Exact-match sentinel: only entries blocked for THIS specific reason get
+// auto-unblocked by sync. Anything blocked for a different reason (a CAPTCHA
+// wall, a missing account) keeps that reason and stays blocked — sync only
+// ever clears the one condition it itself set.
+const DOMAIN_BLOCKED_REASON = "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md.";
 
 async function readJsonSafe(path, fallback) {
   try { return JSON.parse(await readFile(path, "utf-8")); }
@@ -73,15 +78,29 @@ async function cmdSync() {
     }
   }
 
-  let added = 0;
+  let added = 0, unblocked = 0;
   for (const t of kit.targets) {
-    if (ledger.targets[t.id]) continue; // never touch existing progress
+    if (ledger.targets[t.id]) {
+      // Existing entry: re-evaluate ONLY if it's still sitting in the exact
+      // auto-generated "waiting on domain" state sync itself set — this is
+      // what actually delivers the "flips to pending automatically" promise
+      // in docs/seo-outreach-plan.md, which otherwise only applied to
+      // brand-new targets, not the ones already in the ledger from before
+      // the domain was real.
+      const entry = ledger.targets[t.id];
+      if (entry.status === "blocked" && entry.blocked_reason === DOMAIN_BLOCKED_REASON && !DOMAIN_IS_PLACEHOLDER) {
+        entry.status = "pending";
+        entry.blocked_reason = null;
+        unblocked++;
+      }
+      continue;
+    }
     const blocked = t.gated_on_domain && DOMAIN_IS_PLACEHOLDER;
     ledger.targets[t.id] = {
       name: t.name,
       execution: t.execution,
       status: blocked ? "blocked" : "pending",
-      blocked_reason: blocked ? "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md." : null,
+      blocked_reason: blocked ? DOMAIN_BLOCKED_REASON : null,
       last_run: null,
       notes: "",
     };
@@ -90,7 +109,7 @@ async function cmdSync() {
 
   ledger.last_synced = new Date().toISOString();
   await writeFile(LEDGER_PATH, JSON.stringify(ledger, null, 2), "utf-8");
-  console.log(`Synced. ${added} new target(s) added, ${Object.keys(ledger.targets).length} total tracked.`);
+  console.log(`Synced. ${added} new target(s) added, ${unblocked} unblocked now that the domain is real, ${Object.keys(ledger.targets).length} total tracked.`);
   if (DOMAIN_IS_PLACEHOLDER) {
     console.log("Note: SITE_URL is still a .example placeholder — every domain-gated target was added as \"blocked\".");
   }

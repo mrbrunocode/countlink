@@ -40,8 +40,12 @@ const NEW_HOST = newDomainArg || `${NEW_NAME_LOWER}.example`;
 const NEW_SITE_URL = `https://${NEW_HOST}`;
 
 // Hand-written files only — never the generated ones (see header comment).
+// If you add another hand-written page with its own canonical/OG/JSON-LD
+// (like compare.html was, before it got missed on the first real rename),
+// add it here too — this list is the only thing standing between a rename
+// and stale URLs surviving in whichever file isn't on it.
 const FILES = [
-  "index.html", "privacy.html", "robots.txt", "README.md",
+  "index.html", "privacy.html", "compare.html", "robots.txt", "README.md",
   "docs/monetization.md", "docs/seo-outreach-plan.md",
   "scripts/submit-indexnow.mjs", // only appears in a comment there, harmless to include
 ];
@@ -77,6 +81,11 @@ async function main() {
 
   const configPath = join(ROOT, "scripts", "site-config.mjs");
   let config = await readFile(configPath, "utf-8");
+  // Blanket host swap first — catches CONTACT_EMAIL ("hello@old.example") and
+  // anything else in the file that embeds the domain, not just SITE_URL's own
+  // line. The targeted regex replacements below then handle NAME/NAME_LOWER
+  // (which the blanket swap can't, since those aren't host strings).
+  config = config.split(OLD_HOST).join(NEW_HOST);
   config = config
     .replace(/export const NAME = ".*?";/, `export const NAME = "${NEW_NAME}";`)
     .replace(/export const NAME_LOWER = ".*?";/, `export const NAME_LOWER = "${NEW_NAME_LOWER}";`)

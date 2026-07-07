@@ -39,4 +39,4 @@ Allow: /
 # User-agent: cohere-ai
 # Disallow: /
 
-Sitemap: https://countlink.example/sitemap.xml
+Sitemap: https://countlink.app/sitemap.xml

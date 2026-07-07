@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-07T19:14:19.658Z",
+  "generated_at": "2026-07-07T19:31:26.530Z",
   "copy": {
     "name": "CountLink",
-    "url": "https://countlink.example",
+    "url": "https://countlink.app",
     "tagline": "One countdown. Every screen. Exactly in sync.",
     "one_liner": "A free shared countdown timer — set it once, share the link, everyone sees the same countdown in sync.",
     "short_description": "CountLink is a free, zero-signup countdown timer for classrooms, exams, webinars, workshops and standups. Set a duration, copy the link, and everyone who opens it sees the identical countdown — because the deadline is a timestamp inside the link itself, not stored on a server.",
@@ -16,7 +16,7 @@
       "Utilities"
     ],
     "pricing": "Free — no paid tier",
-    "contact_email": "hello@countlink.example",
+    "contact_email": "hello@countlink.app",
     "repo_note": "Static site, no account system, no tracking beyond optional GA4/AdSense once configured (see docs/monetization.md)."
   },
   "targets": [

@@ -89,7 +89,7 @@ being true and "this reads as fake/spam" starts.
 
 Check `docs/outreach-ledger.json` and nearly every target reads `blocked —
 waiting on real domain purchase + deploy`. That's not overcaution — a
-directory listing pointing at `countlink.example` is a dead link, and
+directory listing pointing at `countlink.app` is a dead link, and
 IndexNow/Search Console literally require a resolving domain to mean
 anything. The moment the domain is bought and the site is deployed:
 

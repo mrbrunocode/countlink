@@ -71,7 +71,7 @@ Once you have it:
 1. Point DNS at your host (see README "Deployment").
 2. Update `SITE_URL` in `scripts/build-timer-pages.mjs`.
 3. Update the `canonical` and `og:*` URLs in `index.html` and `privacy.html`
-   from `countlink.example` to the real domain.
+   from `countlink.app` to the real domain.
 4. Re-run `node scripts/build-timer-pages.mjs` and redeploy.
 
 ## Step 1 — Google Analytics (GA4)
