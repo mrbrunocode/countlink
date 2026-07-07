@@ -3,10 +3,10 @@
     "indexnow": {
       "name": "IndexNow (Bing/Yandex/Seznam/Naver)",
       "execution": "script",
-      "status": "pending",
+      "status": "done",
       "blocked_reason": null,
-      "last_run": "2026-07-07T19:15:12.863Z",
-      "notes": "Waiting on real domain purchase + deploy — see docs/seo-outreach-plan.md."
+      "last_run": "2026-07-07T20:19:00.766Z",
+      "notes": "Submitted 23 URLs, IndexNow responded 202 Accepted. Recurring — re-run after every deploy that adds/changes pages."
     },
     "search-console-verify": {
       "name": "Google Search Console — ownership verification",
