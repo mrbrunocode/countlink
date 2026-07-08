@@ -1,0 +1,35 @@
+<!-- @dsCard group="Components" viewport="700x480" name="Product" subtitle="TimerDisplay, SyncBadge, ShareLink" -->
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body{margin:0;background:var(--bg);}
+  .wrap{padding:28px;display:flex;flex-direction:column;gap:24px;align-items:flex-start;}
+  .lbl{font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;}
+</style>
+</head>
+<body data-theme="dark">
+<div id="root" class="wrap"></div>
+<script type="text/babel">
+const { TimerDisplay, SyncBadge, ShareLink } = window.Countlink;
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(React.Fragment, null,
+    React.createElement("div", null,
+      React.createElement("div",{className:"lbl", style:{marginBottom:10}}, "Timer Display"),
+      React.createElement(TimerDisplay, {totalSeconds: 3725, size:"md", label:"Until launch"})
+    ),
+    React.createElement("div", {style:{display:"flex", gap:24, alignItems:"center"}},
+      React.createElement(TimerDisplay, {totalSeconds: -184, direction:"up", size:"sm", label:"Elapsed"}),
+      React.createElement(SyncBadge, {count:24, avatars:["A","S","J","M"], live:true})
+    ),
+    React.createElement("div", {style:{width:320}},
+      React.createElement("div",{className:"lbl", style:{marginBottom:10}}, "Share Link"),
+      React.createElement(ShareLink, {url:"countlink.app/t/xk29-launch"})
+    )
+  )
+);
+</script>
+</body>
+</html>

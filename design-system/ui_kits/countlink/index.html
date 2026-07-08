@@ -1,0 +1,153 @@
+<!-- @dsCard group="Countlink App" viewport="960x640" name="Countlink" subtitle="Dashboard → create → synced timer, click-through" -->
+<!-- @startingPoint section="Screens" subtitle="Full Countlink app flow: dashboard, create, synced timer view" viewport="960x640" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Countlink</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../react.production.min.js"></script>
+<script src="../../react-dom.production.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); }
+  #root { height: 100%; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="root"></div>
+<script>
+const { Button, IconButton, Input, Select, Checkbox, Switch, Badge, Tag, Tooltip, Dialog, Toast, Card, TimerDisplay, SyncBadge, ShareLink } = window.Countlink;
+
+function Logo() {
+  return React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "10px" } },
+    React.createElement("svg", { width: 26, height: 16, viewBox: "0 0 34 20" },
+      React.createElement("circle", { cx: 6, cy: 10, r: 5, fill: "var(--accent)" }),
+      React.createElement("circle", { cx: 28, cy: 10, r: 5, fill: "var(--n-8)" }),
+      React.createElement("line", { x1: 11, y1: 10, x2: 23, y2: 10, stroke: "var(--accent)", strokeWidth: 2 })
+    ),
+    React.createElement("span", { style: { fontSize: "18px", fontWeight: 700, letterSpacing: "var(--tracking-tight)", color: "var(--text-primary)" } }, "countlink")
+  );
+}
+
+function ThemeToggle({ theme, setTheme }) {
+  return React.createElement(Switch, {
+    label: theme === "dark" ? "Dark" : "Light",
+    checked: theme === "light",
+    onChange: (e) => setTheme(e.target.checked ? "light" : "dark"),
+  });
+}
+
+const SEED_TIMERS = [
+  { id: 1, name: "Product launch", seconds: 3 * 86400 + 4 * 3600, watchers: 24, tone: "accent" },
+  { id: 2, name: "Team offsite", seconds: 12 * 3600 + 900, watchers: 6, tone: "accent" },
+  { id: 3, name: "Kickstarter ends", seconds: -1200, watchers: 3, tone: "success" },
+];
+
+function Header({ theme, setTheme, onNew, showNew }) {
+  return React.createElement("div", {
+    style: {
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "18px 32px", borderBottom: "1px solid var(--border-subtle)",
+    }
+  },
+    React.createElement(Logo),
+    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "16px" } },
+      React.createElement(ThemeToggle, { theme, setTheme }),
+      showNew && React.createElement(Button, { size: "sm", onClick: onNew }, "New countdown")
+    )
+  );
+}
+
+function Dashboard({ timers, onOpen, onNew }) {
+  return React.createElement("div", { style: { maxWidth: "720px", margin: "0 auto", padding: "40px 24px", display: "flex", flexDirection: "column", gap: "20px" } },
+    React.createElement("div", null,
+      React.createElement("h1", { style: { margin: 0, fontSize: "var(--text-2xl)", fontWeight: 700, letterSpacing: "var(--tracking-tight)", color: "var(--text-primary)", fontFamily: "var(--font-ui)" } }, "Your countdowns"),
+      React.createElement("p", { style: { margin: "6px 0 0", fontSize: "var(--text-base)", color: "var(--text-secondary)", fontFamily: "var(--font-ui)" } }, "Anyone with the link sees the exact same number, ticking together.")
+    ),
+    timers.map((t) =>
+      React.createElement(Card, { key: t.id, elevated: true, style: { cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }, onClick: () => onOpen(t) },
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+          React.createElement("span", { style: { fontFamily: "var(--font-ui)", fontSize: "var(--text-md)", fontWeight: 600, color: "var(--text-primary)" } }, t.name),
+          React.createElement(SyncBadge, { count: t.watchers, avatars: ["A", "S", "J"], live: t.seconds > -999999 })
+        ),
+        React.createElement(TimerDisplay, { totalSeconds: t.seconds, size: "sm", direction: t.seconds < 0 ? "up" : "down" })
+      )
+    ),
+    React.createElement(Button, { variant: "secondary", onClick: onNew, style: { alignSelf: "flex-start" } }, "+ New countdown")
+  );
+}
+
+function CreateTimer({ onCreate, onCancel }) {
+  const [name, setName] = React.useState("");
+  const [mode, setMode] = React.useState("stop");
+  const [pub, setPub] = React.useState(true);
+  return React.createElement("div", { style: { maxWidth: "480px", margin: "0 auto", padding: "56px 24px", display: "flex", flexDirection: "column", gap: "22px" } },
+    React.createElement("h1", { style: { margin: 0, fontSize: "var(--text-2xl)", fontWeight: 700, color: "var(--text-primary)", fontFamily: "var(--font-ui)" } }, "New countdown"),
+    React.createElement(Input, { label: "What are you counting down to?", placeholder: "Product launch", value: name, onChange: (e) => setName(e.target.value) }),
+    React.createElement(Input, { label: "Date & time", type: "datetime-local" }),
+    React.createElement(Select, {
+      label: "When it hits zero", value: mode, onChange: setMode,
+      options: [{ value: "stop", label: "Stop at zero" }, { value: "countup", label: "Count up past zero" }]
+    }),
+    React.createElement(Switch, { label: "Anyone with the link can view", checked: pub, onChange: (e) => setPub(e.target.checked) }),
+    React.createElement("div", { style: { display: "flex", gap: "10px", marginTop: "8px" } },
+      React.createElement(Button, { variant: "ghost", onClick: onCancel }, "Cancel"),
+      React.createElement(Button, { onClick: () => onCreate(name || "Untitled countdown", mode) }, "Create & get link")
+    )
+  );
+}
+
+function TimerView({ timer, onBack }) {
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [toast, setToast] = React.useState(false);
+  return React.createElement("div", { style: { maxWidth: "720px", margin: "0 auto", padding: "48px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "28px" } },
+    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "12px" } },
+      React.createElement(Badge, { tone: "success", dot: true }, "Live"),
+      React.createElement(SyncBadge, { count: timer.watchers, avatars: ["A", "S", "J", "M"], live: true })
+    ),
+    React.createElement(TimerDisplay, { totalSeconds: timer.seconds, size: "lg", direction: timer.seconds < 0 ? "up" : "down", label: timer.name }),
+    React.createElement("div", { style: { width: "100%", maxWidth: "420px" } },
+      React.createElement(ShareLink, { url: `countlink.app/t/${timer.id}-${timer.name.toLowerCase().replace(/\s+/g, "-")}` })
+    ),
+    React.createElement("div", { style: { display: "flex", gap: "10px" } },
+      React.createElement(Button, { variant: "ghost", onClick: onBack }, "← Back to dashboard"),
+      React.createElement(Button, { variant: "danger", onClick: () => setConfirmOpen(true) }, "End for everyone")
+    ),
+    React.createElement(Dialog, {
+      open: confirmOpen, onClose: () => setConfirmOpen(false), title: "End this countdown?",
+      footer: React.createElement(React.Fragment, null,
+        React.createElement(Button, { variant: "ghost", onClick: () => setConfirmOpen(false) }, "Cancel"),
+        React.createElement(Button, { variant: "danger", onClick: () => { setConfirmOpen(false); setToast(true); } }, "End for everyone")
+      )
+    }, "Everyone watching will see it stop immediately. This can't be undone."),
+    React.createElement(Toast, { open: toast, tone: "danger", onDismiss: () => setToast(false) }, "Countdown ended for everyone")
+  );
+}
+
+function App() {
+  const [theme, setTheme] = React.useState("dark");
+  const [screen, setScreen] = React.useState("dashboard");
+  const [active, setActive] = React.useState(SEED_TIMERS[0]);
+  const [timers, setTimers] = React.useState(SEED_TIMERS);
+
+  function handleCreate(name, mode) {
+    const t = { id: Date.now(), name, seconds: 86400, watchers: 1, tone: "accent" };
+    setTimers([t, ...timers]);
+    setActive(t);
+    setScreen("view");
+  }
+
+  return React.createElement("div", { "data-theme": theme, style: { minHeight: "100vh", background: "var(--bg)" } },
+    React.createElement(Header, { theme, setTheme, onNew: () => setScreen("create"), showNew: screen === "dashboard" }),
+    screen === "dashboard" && React.createElement(Dashboard, { timers, onOpen: (t) => { setActive(t); setScreen("view"); }, onNew: () => setScreen("create") }),
+    screen === "create" && React.createElement(CreateTimer, { onCreate: handleCreate, onCancel: () => setScreen("dashboard") }),
+    screen === "view" && React.createElement(TimerView, { timer: active, onBack: () => setScreen("dashboard") })
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>

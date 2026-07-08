@@ -1,0 +1,76 @@
+<!-- @dsCard group="Components" viewport="700x520" name="Forms" subtitle="Button, IconButton, Input, Select, Checkbox, Switch" -->
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; background:var(--bg); font-family:var(--font-ui); }
+  .wrap { padding:24px; display:flex; flex-direction:column; gap:20px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .lbl { font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.08em; width:100px; flex-shrink:0; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="root" class="wrap"></div>
+<script type="text/babel">
+const { Button, IconButton, Input, Select, Checkbox, Switch } = window.Countlink;
+
+function Demo() {
+  const [checked, setChecked] = React.useState(true);
+  const [on, setOn] = React.useState(true);
+  const [val, setVal] = React.useState("");
+  const [sel, setSel] = React.useState("stop");
+  const ShareIcon = () => React.createElement("svg", {width:16,height:16,viewBox:"0 0 16 16",fill:"none"},
+    React.createElement("circle",{cx:12,cy:4,r:2,stroke:"currentColor",strokeWidth:1.4}),
+    React.createElement("circle",{cx:4,cy:8,r:2,stroke:"currentColor",strokeWidth:1.4}),
+    React.createElement("circle",{cx:12,cy:12,r:2,stroke:"currentColor",strokeWidth:1.4}),
+    React.createElement("path",{d:"M6 7L10 5M6 9L10 11",stroke:"currentColor",strokeWidth:1.4})
+  );
+
+  return React.createElement(React.Fragment, null,
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Button"),
+      React.createElement(Button,{variant:"primary"},"Create link"),
+      React.createElement(Button,{variant:"secondary"},"Secondary"),
+      React.createElement(Button,{variant:"ghost"},"Ghost"),
+      React.createElement(Button,{variant:"danger"},"End for everyone"),
+      React.createElement(Button,{variant:"primary",disabled:true},"Disabled")
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Sizes"),
+      React.createElement(Button,{size:"sm"},"Small"),
+      React.createElement(Button,{size:"md"},"Medium"),
+      React.createElement(Button,{size:"lg"},"Large")
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"IconButton"),
+      React.createElement(IconButton,{icon:React.createElement(ShareIcon),label:"Share",variant:"solid"}),
+      React.createElement(IconButton,{icon:React.createElement(ShareIcon),label:"Share",variant:"outline"}),
+      React.createElement(IconButton,{icon:React.createElement(ShareIcon),label:"Share",variant:"ghost"}),
+      React.createElement(IconButton,{icon:React.createElement(ShareIcon),label:"Share",variant:"ghost",active:true})
+    ),
+    React.createElement("div", {className:"row", style:{alignItems:"flex-start"}},
+      React.createElement("span",{className:"lbl"},"Input"),
+      React.createElement("div",{style:{width:220}}, React.createElement(Input,{label:"Timer name",placeholder:"Launch countdown",value:val,onChange:e=>setVal(e.target.value)})),
+      React.createElement("div",{style:{width:220}}, React.createElement(Input,{label:"Join code",error:true,helperText:"That code doesn't exist",value:"XJ2-991"}))
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Select"),
+      React.createElement("div",{style:{width:220}}, React.createElement(Select,{label:"When it hits zero",value:sel,onChange:setSel,options:[{value:"stop",label:"Stop at zero"},{value:"countup",label:"Count up past zero"}]}))
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Checkbox"),
+      React.createElement(Checkbox,{label:"Play sound at zero",checked:checked,onChange:e=>setChecked(e.target.checked)}),
+      React.createElement(Checkbox,{label:"Disabled",checked:false,disabled:true})
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Switch"),
+      React.createElement(Switch,{label:"Public link",checked:on,onChange:e=>setOn(e.target.checked)})
+    )
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Demo));
+</script>
+</body>
+</html>

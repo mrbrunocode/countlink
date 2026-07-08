@@ -1,0 +1,16 @@
+<!-- @dsCard group="Colors" viewport="700x160" subtitle="Success, warning, danger — same lightness/chroma as accent, hue shifted" name="Semantic" -->
+<!DOCTYPE html>
+<html>
+<head><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;background:var(--bg);font-family:var(--font-ui);}
+.row{display:flex;gap:12px;}
+.sw{flex:1;height:90px;border-radius:10px;display:flex;flex-direction:column;justify-content:flex-end;padding:10px;font-size:12px;font-weight:600;}
+</style></head>
+<body data-theme="dark">
+<div class="row">
+  <div class="sw" style="background:var(--success-soft);color:var(--success)">Success<br><span style="font-weight:400;font-size:10px">counting up / confirmed</span></div>
+  <div class="sw" style="background:var(--warning-soft);color:var(--warning)">Warning<br><span style="font-weight:400;font-size:10px">ending soon</span></div>
+  <div class="sw" style="background:var(--danger-soft);color:var(--danger)">Danger<br><span style="font-weight:400;font-size:10px">at zero / destructive</span></div>
+</div>
+</body>
+</html>
