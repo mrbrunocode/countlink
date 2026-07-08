@@ -52,6 +52,18 @@ const EXAM_EXTRA = `
           <p>Exam halls are often brightly lit, and a dark screen can wash out on a projector under fluorescent lights. Use the <b>Light</b> style toggle above (next to Board and Minimal) for a high-contrast, dark-on-white display built specifically for that. It's the same countdown, just easier to read from the back row.</p>
         </div>`;
 
+const CLASSROOM_EXTRA = `
+        <div class="obs-extra">
+          <h3>What to time, by grade band</h3>
+          <p>The right countdown length changes a lot between a first-grader and a senior — a timer that's motivating at one age reads as either patronizing or impossibly long at another.</p>
+          <ol>
+            <li><b>Elementary (K–5):</b> short bursts — 2–5 minutes for a transition between activities, 60 seconds for "clean up your table." Long countdowns lose younger students; several short ones hold attention better than one 20-minute block.</li>
+            <li><b>Middle school (6–8):</b> 10–15 minutes for group work or a worksheet, with the board visible the whole time so students self-pace instead of asking "how much longer" every few minutes.</li>
+            <li><b>High school (9–12):</b> 20–50 minutes for sustained work or a full quiz — the Light board style (below) reads clearly from the back of a large room, and a projected countdown removes the need to interrupt the class with a verbal time check.</li>
+          </ol>
+          <p>Whatever the length, the mechanism is the same: project the board at the front, and if students have devices, share the same link — everyone counts down to the identical second, so "how much time is left" stops being a question anyone needs to ask you.</p>
+        </div>`;
+
 const PAGES = [
   { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
     h1: "5 Minute Timer — Free, Shareable, In Sync",
@@ -136,16 +148,17 @@ const PAGES = [
       { q: "Is this accurate enough for a formal, timed exam?", a: "It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy." },
     ] },
   { slug: "classroom-timer", minutes: 10, label: "Back to it", eyebrow: "Classroom Timer",
-    h1: "Classroom Timer — For Group Work, Quizzes And Transitions",
+    h1: "Classroom Timer — For Group Work & Transitions",
     meta: "A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.",
     intro: "Group work, quiz rounds, silent reading, transition time between activities — a visible shared countdown ends the “how much longer” questions on its own. Project it fullscreen or share the link to student devices.",
+    extra: CLASSROOM_EXTRA,
     faq: [
       { q: "Is this better than just projecting a phone timer app?", a: "The advantage is sharing: instead of only the front-screen clock, students can pull up the identical countdown on their own device too, so a quick glance answers \"how much longer\" without asking." },
       { q: "Can I reuse the same setup for different activities during one lesson?", a: "Yes — set a new quick-timer duration for each activity and share the fresh link; each activity gets its own clean countdown." },
       { q: "Does this need a school Wi-Fi login or account?", a: "No signup for you or your students. The page itself needs to load once (standard classroom Wi-Fi/projector network is enough), and after that each device counts down locally." },
     ] },
   { slug: "webinar-countdown", minutes: 5, label: "We're starting", eyebrow: "Webinar Countdown",
-    h1: "Webinar Countdown — Show Attendees Exactly When You Start",
+    h1: "Webinar Countdown — For Attendee Start Times",
     meta: "A shareable pre-webinar countdown. Put the link in your registration email or waiting room so every attendee's screen counts down to the same start time.",
     intro: "Drop this link in your registration confirmation or waiting-room slide. Every attendee who opens it — on any device, in any timezone — sees a countdown to the exact same start moment, because the deadline travels inside the link itself.",
     faq: [
@@ -173,7 +186,7 @@ const PAGES = [
       { q: "Does it still work if I'm also sharing my screen?", a: "Yes — since attendees open the link on their own device or a second monitor, it works whether or not you're sharing your screen for something else." },
     ] },
   { slug: "google-meet-timer", minutes: 10, label: "Time's up", eyebrow: "Google Meet Timer",
-    h1: "Google Meet Timer — A Shared Countdown For Video Calls",
+    h1: "Google Meet Timer — Shared Countdown For Calls",
     meta: "A free shared timer for Google Meet. Copy the link into the meeting chat and everyone's own screen counts down in sync — no extension, no screen share.",
     intro: "Paste the link into the in-call chat the moment the meeting starts. Nobody needs to install an extension or watch your shared screen — everyone's own tab counts down to the exact same second.",
     faq: [
@@ -182,7 +195,7 @@ const PAGES = [
       { q: "Will it work the same in Google Meet as it does elsewhere?", a: "Yes — the timer isn't specific to any video platform; it's just a link that happens to work well pasted into Meet's chat." },
     ] },
   { slug: "obs-countdown-timer", minutes: 5, label: "Starting soon", eyebrow: "OBS Countdown Timer",
-    h1: "OBS Countdown Timer — Free Browser Source For Streamers",
+    h1: "OBS Countdown Timer — Free Browser Source",
     meta: "A free countdown timer built to drop straight into OBS as a browser source — transparent background, no signup, no watermark.",
     intro: "Add the overlay version of this page as an OBS Browser Source and it drops onto your scene with a transparent background — no green screen, no chroma key setup. Set your stream-start countdown, copy the link into OBS, and it's live.",
     extra: OBS_OVERLAY_EXTRA,
@@ -192,8 +205,8 @@ const PAGES = [
       { q: "Can I resize the overlay without it looking blurry?", a: "Yes — the digits are rendered as live text (not an image), so resizing the Browser Source in OBS stays sharp at any size." },
     ] },
   { slug: "twitch-stream-timer", minutes: 5, label: "Starting soon", eyebrow: "Twitch Stream Timer",
-    h1: "Twitch Stream Timer — Countdown Overlay For Stream Starts",
-    meta: "A free stream-starting countdown for Twitch. Use it as a transparent browser-source overlay, or just share the link with mods and co-streamers so everyone's in sync.",
+    h1: "Twitch Stream Timer — Countdown Overlay",
+    meta: "A free stream-starting countdown for Twitch — a transparent browser-source overlay, or a link to share with mods and co-streamers so everyone's in sync.",
     intro: "Streamers use this the same way as a \"starting soon\" screen — set the countdown, add the overlay version as a transparent browser source, and it counts down on stream. Share the same link with mods or co-streamers and their screens match exactly.",
     extra: OBS_OVERLAY_EXTRA,
     faq: [
@@ -220,8 +233,8 @@ const PAGES = [
       { q: "Does it support a work/break cycle automatically?", a: "Not automatically yet — start a new countdown for each focus block and each break. Chained agenda sequences are on the roadmap." },
     ] },
   { slug: "game-night-timer", minutes: 3, label: "Time's up", eyebrow: "Game Night Timer",
-    h1: "Game Night Timer — For Turns, Rounds And House Rules",
-    meta: "A free shareable timer for board games, party games and game night house rules. Set the turn limit, share the link, and nobody argues about how much time is left.",
+    h1: "Game Night Timer — For Turns And Rounds",
+    meta: "A free shareable timer for board games and game night house rules. Set the turn limit, share the link, and nobody argues about how much time is left.",
     intro: "Every game night needs a turn timer eventually — charades rounds, drafting phases, \"you have sixty seconds to decide.\" Set it once, share the link to everyone's phone, and the countdown settles the argument before it starts.",
     faq: [
       { q: "Can everyone at the table see the countdown on their own phone?", a: "Yes — share the link once and each phone at the table shows the identical time remaining, so there's no dispute about who saw what." },
@@ -229,7 +242,7 @@ const PAGES = [
       { q: "Can I quickly restart it for the next player's turn?", a: "Yes — hit the same quick-timer button again for a fresh countdown each turn; it takes one tap." },
     ] },
   { slug: "auction-countdown", minutes: 5, label: "Bidding closed", eyebrow: "Auction Countdown",
-    h1: "Auction Countdown — Synced Bidding Deadline For Every Bidder",
+    h1: "Auction Countdown — Synced Bidding Deadline",
     meta: "A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.",
     intro: "A live auction or limited drop lives or dies on everyone seeing the same deadline. Share this link before bidding opens and every bidder's screen counts down to the identical closing second — no one can claim their clock ran differently.",
     faq: [
