@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/christmas-countdown","description":"A live Christmas countdown you can share: days, hours, minutes and seconds until December 25th, the same on every screen that opens the link.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"datePublished":"2026-07-08","dateModified":"2026-07-08"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Christmas Countdown","item":"https://countlink.app/timers/christmas-countdown"}]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does this show days as well as hours and minutes?","acceptedAnswer":{"@type":"Answer","text":"Yes — countdowns longer than a day display as days plus hours:minutes:seconds, and the format stays fixed for the whole countdown."}},{"@type":"Question","name":"Will it still be right if I open it next year?","acceptedAnswer":{"@type":"Answer","text":"Yes — the page always computes the NEXT December 25th when it loads, so it never counts to a Christmas that already happened. (A link you've already started and shared is pinned to its specific year, as every shared link is.)"}},{"@type":"Question","name":"Can I count down to Christmas Eve instead?","acceptedAnswer":{"@type":"Answer","text":"Yes — use the date & time field below to pick December 24th (or any moment), then start and share that link."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does this show days as well as hours and minutes?","acceptedAnswer":{"@type":"Answer","text":"Yes — countdowns longer than a day display as days plus hours:minutes:seconds, and the format stays fixed for the whole countdown."}},{"@type":"Question","name":"Will it still be right if I open it next year?","acceptedAnswer":{"@type":"Answer","text":"Yes — the page always computes the NEXT December 25th when it loads, so it never counts to a Christmas that already happened. (A link you've already started and shared is pinned to its specific year, as every shared link is.)"}},{"@type":"Question","name":"If I send this link to relatives in another time zone, does it count to their own midnight?","acceptedAnswer":{"@type":"Answer","text":"No — the link locks in one exact instant (midnight where YOU started it), so relatives elsewhere count down to that same moment on their own clock, not a separate midnight for their zone. If they want their own local countdown, they can start their own timer and share that link."}},{"@type":"Question","name":"Can I count down to Christmas Eve instead?","acceptedAnswer":{"@type":"Answer","text":"Yes — use the date & time field below to pick December 24th (or any moment), then start and share that link."}}]}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body class="theme-christmas">
@@ -44,7 +44,7 @@
     <div class="hero-inner">
       <span class="eyebrow">Christmas Countdown</span>
       <h1>Christmas Countdown — Days Until December 25</h1>
-      <p class="lede">The board above is counting down to December 25th — days, hours, minutes, seconds. Start it, share the link, and the kids can check the identical countdown on any device without asking you again.</p>
+      <p class="lede">The board above is counting down to midnight, December 25th in your own time zone — days, hours, minutes, seconds. Start it, share the link, and the kids can check the identical countdown on any device without asking you again.</p>
     </div>
     <div class="hero-fact">
       <span class="n">00</span>servers to run this
@@ -85,7 +85,7 @@
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">Already set to the next December 25th at midnight — change the date here to count to Christmas Eve or any other moment instead.</div>
+      <div class="hint">Already set to the next December 25th at midnight, local time — change the date here to count to Christmas Eve or any other moment instead.</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
         <button class="q active" data-dir="down" aria-pressed="true">Count down</button>
@@ -144,6 +144,7 @@
     <dl class="faq-grid">
       <div class="faq-item"><h3>Does this show days as well as hours and minutes?</h3><dd>Yes — countdowns longer than a day display as days plus hours:minutes:seconds, and the format stays fixed for the whole countdown.</dd></div>
       <div class="faq-item"><h3>Will it still be right if I open it next year?</h3><dd>Yes — the page always computes the NEXT December 25th when it loads, so it never counts to a Christmas that already happened. (A link you've already started and shared is pinned to its specific year, as every shared link is.)</dd></div>
+      <div class="faq-item"><h3>If I send this link to relatives in another time zone, does it count to their own midnight?</h3><dd>No — the link locks in one exact instant (midnight where YOU started it), so relatives elsewhere count down to that same moment on their own clock, not a separate midnight for their zone. If they want their own local countdown, they can start their own timer and share that link.</dd></div>
       <div class="faq-item"><h3>Can I count down to Christmas Eve instead?</h3><dd>Yes — use the date & time field below to pick December 24th (or any moment), then start and share that link.</dd></div>
     </dl>
   </section>
