@@ -268,7 +268,7 @@ const PAGES = [
       { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
       { q: "Does it auto-start the break when the 25 minutes end?", a: "No — at zero every screen chimes together, then whoever runs the session starts the 5-minute break and shares that link. The one-click Restart button makes the next focus round instant." },
     ] },
-  { slug: "new-year-countdown", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
+  { slug: "new-year-countdown", theme: "newyear", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
     h1: "New Year Countdown — Live, Shareable",
     meta: "A live countdown to New Year you can share: days, hours, minutes and seconds to midnight January 1st, identical on every screen that opens the link.",
     intro: "The board above is already counting down to midnight, January 1st — days, hours, minutes and seconds. Share the link and every screen at the party (or across time zones, for your own local midnight) shows the identical countdown.",
@@ -278,7 +278,7 @@ const PAGES = [
       { q: "What about friends in other time zones?", a: "The countdown targets midnight in the time zone of whoever sets it. If you start it and share the link, everyone counts down to YOUR midnight together — that's the point of a shared countdown. Friends elsewhere can make their own link for their own midnight too." },
       { q: "Can I put this on a screen at a party?", a: "Yes — press start, open the link on the TV or projector, and use Fullscreen. The Light board style keeps it readable if the room is bright." },
     ] },
-  { slug: "christmas-countdown", minutes: 10, untilMonthDay: [12, 25], label: "Merry Christmas!", eyebrow: "Christmas Countdown",
+  { slug: "christmas-countdown", theme: "christmas", minutes: 10, untilMonthDay: [12, 25], label: "Merry Christmas!", eyebrow: "Christmas Countdown",
     h1: "Christmas Countdown — Days Until December 25",
     meta: "A live Christmas countdown you can share: days, hours, minutes and seconds until December 25th, the same on every screen that opens the link.",
     intro: "The board above is counting down to December 25th — days, hours, minutes, seconds. Start it, share the link, and the kids can check the identical countdown on any device without asking you again.",
@@ -319,6 +319,11 @@ const faqHtml = (faq) => faq ? `
     </dl>
   </section>` : "";
 
+// Seasonal page themes — body class drives a CSS-variable palette swap in
+// assets/style.css (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
+// browser-chrome theme-color meta in step with each palette's chassis tone.
+const THEME_COLORS = { christmas: "#182219", newyear: "#141826" };
+
 const page = (p) => `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -334,7 +339,7 @@ const page = (p) => `<!DOCTYPE html>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-<meta name="theme-color" content="#1c1c1a">
+<meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -362,7 +367,7 @@ const page = (p) => `<!DOCTYPE html>
 ${faqSchema(p.faq)}
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
-<body>
+<body${p.theme ? ` class="theme-${p.theme}"` : ""}>
 <a class="skip-link" href="#boardEl">Skip to timer</a>
 
 <header>

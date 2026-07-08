@@ -411,6 +411,23 @@ footer{border-top:1px solid var(--panel-line);padding:24px 0 28px;margin-top:34p
 .seo-intro{padding:12px 0 0;font-size:.92rem;color:var(--paper-dim);line-height:1.7;max-width:60ch}
 .seo-intro b{color:var(--paper-text)}
 
+/* ============ SEASONAL PAGE THEMES (occasion pages only) ============ */
+/* Set via <body class="theme-..."> by scripts/build-timer-pages.mjs (a
+   `theme:` field on the PAGES row). The discipline: this is the SAME
+   physical board photographed under different shop lighting — tinted steel
+   chassis and a different signal-lamp color, never clip-art, snow, or
+   emoji. Flap tiles stay cream so the digits read identically everywhere,
+   and the Light/Minimal board styles keep working unchanged (they override
+   variables at .board scope, below these body-scope values). */
+body.theme-christmas{
+  --board:#182219; --board-deep:#0f150e; --panel:#1e2b1e; --panel-line:#35472f;
+  --paper-dim:#a3a894; --amber:#e3b04b; --amber-deep:#b9872b; --ok:#6a9a72;
+}
+body.theme-newyear{
+  --board:#141826; --board-deep:#0d101b; --panel:#1a2033; --panel-line:#39415c;
+  --paper-dim:#9ba1b5; --amber:#e8c766; --amber-deep:#bd9a3f;
+}
+
 /* fullscreen projector mode */
 body.fs .wrap>*:not(.stage-section),body.fs header,body.fs footer,body.fs .ad-slot{display:none}
 body.fs .stage-section{padding:0}
