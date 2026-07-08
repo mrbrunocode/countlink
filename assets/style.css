@@ -310,12 +310,17 @@ body.viewing .stage-section{padding-top:18px}
   display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.7rem;color:var(--paper-dim);
 }
 /* A hard on/off toggle, not a soft pulse — reads as an indicator lamp bolted
-   to the panel (matches the corner bolts / amber signal language) instead of
-   a glowing "live" dot, which felt like generic web-app chrome against a
-   mechanical board. steps(2,jump-none) snaps between two states instead of
-   fading. Squared off (small border-radius, not a circle) for the same reason. */
+   to the panel (matches the corner bolts) instead of a glowing "live" dot,
+   which felt like generic web-app chrome against a mechanical board.
+   steps(2,jump-none) snaps between two states instead of fading. Squared
+   off (small border-radius, not a circle) for the same reason.
+   Deliberately --ok (green "live/good" signal), not --amber: --amber is
+   now the link-blue brand accent used for buttons/links everywhere else,
+   so a blue blinking dot next to text reads as a generic "unread/live"
+   notification badge rather than a status lamp. Green keeps the lamp
+   metaphor and stays visually distinct from every clickable/brand element. */
 .sync-note .dot{
-  width:7px;height:7px;background:var(--amber);border-radius:2px;flex:none;
+  width:7px;height:7px;background:var(--ok);border-radius:2px;flex:none;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);
   animation:hardblink 1.6s steps(2,jump-none) infinite;
 }

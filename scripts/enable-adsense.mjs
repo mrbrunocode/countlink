@@ -51,10 +51,16 @@ const LOADER = `<script async src="https://pagead2.googlesyndication.com/pagead/
 // shifts under the visitor (CLS). .ad-slot is already display:none in
 // fullscreen and OBS-overlay modes via style.css, so ads can never appear
 // on a projector screen or in a stream overlay.
+//
+// data-ad-format="auto" (not "horizontal") deliberately matches whatever
+// AdSense's own dashboard generates for the ad unit — "horizontal"/
+// "vertical"/"rectangle" combined with full-width-responsive is a legacy
+// combo Google discourages and was observed reserving a much taller block
+// than intended (large blank gap on mobile) instead of sizing normally.
 const AD_UNIT = `<div class="ad-slot">
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="${pubId}" data-ad-slot="${slotId}"
-         data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
 

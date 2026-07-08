@@ -44,6 +44,7 @@ function setState(s){
   show("boardStartBtn",s!=="running");
   show("shareBtn",s==="running");
   show("stopBtn",s!=="ready");
+  show("syncDot",s==="running");
   const bs=$("boardStartBtn");
   if(bs)bs.textContent = s==="finished" ? "Restart — same duration"
     : (formDirection==="up" ? "Start counting up" : "Start countdown");
