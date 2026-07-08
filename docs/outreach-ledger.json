@@ -5,8 +5,8 @@
       "execution": "script",
       "status": "done",
       "blocked_reason": null,
-      "last_run": "2026-07-08T16:48:52.479Z",
-      "notes": "Re-run after the design-system reskin deploy (31 URLs, 200 accepted). Recurring — remember to re-run after future deploys that add/change pages."
+      "last_run": "2026-07-08T20:56:40.970Z",
+      "notes": "Re-submitted 31 URLs after SEO title/meta fixes + classroom-timer content expansion (2026-07-08). Recurring."
     },
     "search-console-verify": {
       "name": "Google Search Console — ownership verification",

@@ -64,3 +64,30 @@ age. This entry exists to be compared against, not to show a problem.
 - Whether Search Console (now verified) shows impressions for any query —
   that's a more sensitive signal than manual search and will likely show
   movement before manual search does.
+
+## 2026-07-08 — On-page fixes applied against this baseline
+
+Same day as the baseline above, informed by the competitor snapshot (see
+"Competitive landscape notes"). Two concrete, applied changes — not
+speculative recommendations:
+
+1. **Truncated title/meta tags fixed.** 7 timer-page titles and 6 meta
+   descriptions (including the homepage's, at 237 chars — nearly 80 over
+   budget) exceeded Google's practical SERP truncation limits and were
+   being cut off with "…". Every page site-wide now fits within ~60 chars
+   (title) / ~158 chars (description). Pure CTR fix — doesn't change
+   ranking directly, but a truncated snippet loses clicks on impressions
+   already earned.
+2. **classroom-timer thin-content gap closed.** countdownshare.com's
+   classroom-timer page is one of their most developed, and one of the
+   pages they rank for education-intent queries; CountLink's equivalent
+   page was one of the thinnest on the site (no `extra` content block,
+   unlike exam-timer/zoom/OBS pages). Added an original "what to time, by
+   grade band" section (K-5 / middle / high school guidance) — closes the
+   structural gap without copying competitor content.
+
+Both changes are live on `countlink.app` as of this commit
+(`975f561`). IndexNow re-submitted all 31 URLs same-day. Next baseline
+re-check should specifically watch whether classroom-timer starts
+appearing for education-intent queries where it previously didn't
+compete at all on content depth.
