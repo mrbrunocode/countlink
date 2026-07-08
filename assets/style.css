@@ -43,9 +43,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 
 /* ============ HEADER ============ */
 header{
-  padding:13px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
 }
 @media(min-width:640px){header{padding:18px 32px}}
+/* the tagline is desktop garnish — on a phone it costs a header row that
+   pushes the actual timer further from the fold */
+.head-meta{display:none}
+@media(min-width:640px){.head-meta{display:block}}
 .logo{
   font-family:var(--display);font-size:1.5rem;letter-spacing:.03em;text-decoration:none;color:var(--paper-text);
   display:flex;align-items:center;gap:10px;line-height:1;
@@ -63,8 +67,10 @@ header{
    (small, muted, no border until hover) so it reads as utility chrome, not
    a competing content block above the fold. */
 .main-nav{
-  display:flex;flex-wrap:wrap;gap:4px 5px;padding:0 20px 10px;border-bottom:1px solid var(--panel-line);
+  display:flex;flex-wrap:nowrap;gap:4px 5px;padding:0 20px 10px;border-bottom:1px solid var(--panel-line);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none; /* one swipeable row on mobile, never two */
 }
+.main-nav::-webkit-scrollbar{display:none}
 @media(min-width:640px){.main-nav{padding:0 32px 10px}}
 .main-nav a{
   font-family:var(--mono);font-size:.64rem;letter-spacing:.02em;color:var(--paper-dim);text-decoration:none;
@@ -74,23 +80,34 @@ header{
 .main-nav a.active{color:var(--paper-text);border-color:var(--panel-line);background:var(--panel)}
 
 /* ============ HERO ============ */
-.hero{padding:26px 0 24px}
-@media(min-width:640px){.hero{padding:56px 0 40px}}
+/* Mobile: deliberately shallow — a title strip, not a landing-page hero.
+   The tool itself must sit inside the first viewport at 375×667 (the pro-tool
+   pattern: vClock/online-stopwatch put the clock first, prose after). */
+.hero{padding:14px 0 6px}
+@media(min-width:640px){.hero{padding:44px 0 32px}}
 .eyebrow{
   font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);
-  margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;
+  margin-bottom:8px;display:inline-flex;align-items:center;gap:8px;
 }
+@media(min-width:640px){.eyebrow{margin-bottom:14px}}
 .eyebrow::before{content:"";width:14px;height:1px;background:var(--amber-deep)}
 h1{
-  font-family:var(--display);font-weight:400;font-size:clamp(2.1rem,8vw,3.6rem);
-  line-height:1.02;letter-spacing:.005em;color:var(--paper-text);max-width:16ch;text-transform:uppercase;
+  font-family:var(--display);font-weight:400;font-size:clamp(1.55rem,5.5vw,3.6rem);
+  line-height:1.05;letter-spacing:.005em;color:var(--paper-text);max-width:24ch;text-transform:uppercase;
 }
-.lede{margin-top:14px;font-size:.98rem;line-height:1.6;color:var(--paper-dim);max-width:44ch}
+@media(min-width:640px){h1{line-height:1.02;max-width:16ch}}
+.lede{margin-top:8px;font-size:.86rem;line-height:1.55;color:var(--paper-dim);max-width:52ch}
+@media(min-width:640px){.lede{margin-top:14px;font-size:.98rem;line-height:1.6;max-width:44ch}}
+/* a recipient opening a shared link came for the timer, not the pitch —
+   app.js adds body.viewing when the URL hash carries one */
+body.viewing .hero{display:none}
+body.viewing .stage-section{padding-top:18px}
 .lede b{color:var(--paper-text);font-weight:600}
 /* A quiet caption, not a row of chip buttons — states the use cases without
    competing visually with the actual product (the timer, one scroll below).
    The same list is a real, clickable nav in the footer; this is context only. */
-.use-line{margin-top:10px;font-size:.78rem;color:var(--paper-dim);opacity:.8;max-width:42ch;line-height:1.5}
+.use-line{display:none;margin-top:10px;font-size:.78rem;color:var(--paper-dim);opacity:.8;max-width:42ch;line-height:1.5}
+@media(min-width:640px){.use-line{display:block}}
 .hero-fact{display:none}
 @media(min-width:760px){
   .hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
@@ -103,7 +120,7 @@ h1{
 }
 
 /* ============ BOARD / STAGE ============ */
-.stage-section{padding:26px 0 0}
+.stage-section{padding:12px 0 0}
 @media(min-width:640px){.stage-section{padding:36px 0 0}}
 .board{
   /* Tile size lives here, not on .tile, so .tiles can reserve its own height
@@ -231,8 +248,19 @@ h1{
 .bar{height:2px;background:var(--panel-line);margin:20px auto 0;max-width:420px;position:relative;border-radius:2px;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber);width:0%}
 
-.stage-btns{display:flex;flex-direction:column;gap:9px;margin-top:26px}
-@media(min-width:480px){.stage-btns{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+/* Mobile: primary action full-width, secondaries share one compact row —
+   a stack of 4+ full-width buttons was most of a screen by itself.
+   auto-fit means hidden (display:none) buttons don't leave an empty track
+   as the board moves through its ready/running/finished states. */
+.stage-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.stage-btns .btn{flex:1 1 88px;width:auto}
+.stage-btns .primary{flex-basis:100%}
+.stage-btns .btn{padding:12px 6px;font-size:.66rem}
+.stage-btns .btn.primary{padding:14px 12px;font-size:.72rem}
+@media(min-width:480px){
+  .stage-btns{justify-content:center;gap:9px;margin-top:26px}
+  .stage-btns .btn,.stage-btns .btn.primary{padding:14px 20px;font-size:.72rem;flex:0 1 auto}
+}
 .btn{
   font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;
   padding:14px 20px;min-height:46px;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-text);
@@ -305,6 +333,20 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   background:none;border:none;padding:8px 0;display:inline-block;min-height:44px;white-space:nowrap;
 }
 .pro-link:hover{color:var(--paper-text)}
+
+/* ============ RECENT TIMERS (localStorage only — see app.js saveRecent) ============ */
+.recent-section{padding:20px 0 0}
+.recent-item{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:11px 12px;margin-top:8px;background:var(--board-deep);border:1px solid var(--panel-line);
+  border-radius:5px;text-decoration:none;transition:border-color .15s;
+}
+.recent-item:hover{border-color:var(--amber)}
+.recent-item .rl{
+  font-size:.84rem;color:var(--paper-text);font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
+}
+.recent-item .rs{font-family:var(--mono);font-size:.6rem;color:var(--paper-dim);white-space:nowrap;flex:none}
 
 /* ============ FAQ (visible copy matching the FAQPage JSON-LD in <head>) ============ */
 .faq{padding:36px 0 8px;border-top:1px solid var(--panel-line);margin-top:34px}

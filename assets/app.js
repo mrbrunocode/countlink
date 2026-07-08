@@ -7,6 +7,14 @@ let audioCtx=null;
 let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up).
                       // In "up" mode, `end` holds the START instant instead of the deadline —
                       // same single timestamp-in-the-link mechanic, just read the other way.
+/* The board has three lifecycle states, driving which buttons show:
+   "ready"    — nothing running; preset duration displayed; Start lives ON the board
+   "running"  — counting; Share/Stop replace Start
+   "finished" — hit zero; Restart (same duration) + New timer offered.
+   Pages no longer auto-start on load — someone landing from a search result
+   decides when their five minutes begin, instead of finding 30 seconds
+   already gone by the time they've read the page. */
+let state="ready";
 
 function fmt2(n){return String(n).padStart(2,"0")}
 
@@ -29,6 +37,24 @@ function readHash(){
   }
   return false;
 }
+
+function setState(s){
+  state=s;
+  const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?"":"none"};
+  show("boardStartBtn",s!=="running");
+  show("shareBtn",s==="running");
+  show("stopBtn",s!=="ready");
+  const bs=$("boardStartBtn");
+  if(bs)bs.textContent = s==="finished" ? "Restart — same duration"
+    : (formDirection==="up" ? "Start counting up" : "Start countdown");
+  const st=$("stopBtn");
+  if(st)st.textContent = s==="finished" ? "New timer" : "Stop";
+  const note=$("syncMsg");
+  if(note)note.textContent = s==="running"
+    ? "Anyone opening your link right now sees exactly this."
+    : "Press start, then share the link — every screen counts down together.";
+}
+
 function start(ms,lab){
   direction="down";
   end=Date.now()+ms;label=lab;fired=false;total=ms;prevValues=null;
@@ -38,6 +64,8 @@ function start(ms,lab){
      minutes remaining, breaking the board mid-countdown. */
   mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}`;
+  saveRecent();
+  setState("running");
   render();
 }
 function startUp(lab){
@@ -45,7 +73,44 @@ function startUp(lab){
   end=Date.now();label=lab;fired=false;total=0;prevValues=null;
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
+  saveRecent();
+  setState("running");
   render();
+}
+/* Stop is honest about what it can do: with no server, there is no way to
+   halt a countdown on screens that already have the link — the link IS the
+   timer. Stopping resets THIS screen back to ready. */
+function stopTimer(){
+  clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;
+  history.replaceState(null,"",location.pathname+location.search);
+  document.body.classList.remove("viewing");
+  renderReady(+($("customMin")&&$("customMin").value)||10,$("evtName")?$("evtName").value:"");
+  const heads=$("subLine");
+  if(heads)heads.innerHTML="Stopped on this screen. A link you already shared keeps counting on other screens — the link itself is the timer.";
+}
+/* Ready state: show the preset duration as static tiles so the board is never
+   an empty box, without pretending anything is running. */
+function renderReady(min,lab){
+  clearInterval(tick);tick=null;
+  label=lab;direction=formDirection;
+  const ms=Math.max(1,min)*60e3;
+  mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
+  /* Deliberately no label on a ready board: page defaults are zero-moment
+     phrases ("Time's up", "Bidding closed") that read as ALREADY finished
+     when shown over a full, unstarted duration. Typing in the name field
+     still live-previews it; the label always shows once running. */
+  $("evtLabel").textContent="";
+  const c=charsFor(formDirection==="up"?0:ms);
+  if(c.plain)$("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
+  else buildTiles(c.tiles);
+  prevValues=null;
+  $("subLine").innerHTML=formDirection==="up"
+    ? "A shared stopwatch — starts from zero when you press start."
+    : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`;
+  $("barFill").style.width="0%";
+  const bar=document.querySelector(".bar");if(bar)bar.style.display="";
+  if($("shareUrl"))$("shareUrl").textContent="";
+  setState("ready");
 }
 
 /* ---------- sound: a soft mechanical tick each second, plus a triple chime at zero ---------- */
@@ -176,7 +241,7 @@ function draw(){
     }
     $("subLine").innerHTML="<b>Time.</b> This screen — and every screen with your link — just hit zero together.";
     $("barFill").style.width="100%";
-    if(!fired){fired=true;beep();}
+    if(!fired){fired=true;beep();setState("finished");}
     return;
   }
   const c=charsFor(left);
@@ -194,12 +259,46 @@ function draw(){
   $("shareUrl").textContent=makeLink();
 }
 
-/* Quick timer buttons: set the custom minutes value, don't start yet.
-   User clicks a quick button → fills customMin → user clicks "Start countdown" → timer starts.
-   This lets users confirm the duration before committing. */
+/* ---------- recent timers: a per-browser localStorage list, never synced ----------
+   Solves "I have several timers on the go" / "I lost the link I shared
+   yesterday" without cluttering the board with a multi-timer UI — each link
+   IS a timer, so a list of links is a list of timers. */
+const RECENT_KEY="countlink_recent";
+function saveRecent(){
+  try{
+    const u=makeLink();
+    let list=JSON.parse(localStorage.getItem(RECENT_KEY)||"[]");
+    list=list.filter(r=>r.u!==u);
+    list.unshift({u,l:label,e:end,d:direction});
+    localStorage.setItem(RECENT_KEY,JSON.stringify(list.slice(0,6)));
+  }catch(e){}
+  renderRecent();
+}
+function renderRecent(){
+  const wrap=$("recentWrap"),listEl=$("recentList");
+  if(!wrap||!listEl)return;
+  let list=[];
+  try{list=JSON.parse(localStorage.getItem(RECENT_KEY)||"[]")}catch(e){}
+  if(!list.length){wrap.style.display="none";return;}
+  wrap.style.display="";
+  listEl.innerHTML=list.map(r=>{
+    const t=new Date(r.e).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    const status=r.d==="up"?`stopwatch · started ${t}`
+      :(r.e<=Date.now()?`finished at ${t}`:`running · ends ${t}`);
+    return `<a class="recent-item" href="${r.u}"><span class="rl">${(r.l||"Untitled timer").replace(/[<>&]/g,ch=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[ch]))}</span><span class="rs">${status}</span></a>`;
+  }).join("");
+}
+if($("recentClear"))$("recentClear").addEventListener("click",()=>{
+  try{localStorage.removeItem(RECENT_KEY)}catch(e){}
+  renderRecent();
+});
+
+/* Quick timer buttons: set the custom minutes value and preview it on the
+   ready board — the countdown only starts when the user says so. */
 document.querySelectorAll(".q[data-min]").forEach(b=>b.addEventListener("click",()=>{
   $("customMin").value=b.dataset.min;
   $("untilTime").dataset.dirty=""; // clear the "until time" mode so start button uses customMin
+  if(state!=="running")renderReady(+b.dataset.min,$("evtName").value);
 }));
 
 /* countdown vs count-up: a form choice, not a URL-shareable setting in itself —
@@ -212,17 +311,46 @@ document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click
   if($("durationFields"))$("durationFields").style.display=isUp?"none":"block";
   if($("countUpHint"))$("countUpHint").style.display=isUp?"block":"none";
   $("startBtn").textContent=isUp?"Start counting up":"Start countdown";
+  if(state!=="running")renderReady(+$("customMin").value||10,$("evtName").value);
 }));
 
-$("startBtn").addEventListener("click",()=>{
+function startFromForm(){
   if(formDirection==="up"){startUp($("evtName").value);return;}
   const dirty=$("untilTime").dataset.dirty;
   if(dirty)start(new Date($("untilTime").value)-Date.now(),$("evtName").value);
   else start((+$("customMin").value||25)*60e3,$("evtName").value);
+}
+$("startBtn").addEventListener("click",()=>{
+  startFromForm();
+  // the form sits below the board — bring the now-running board back on screen
+  $("boardEl").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
-$("untilTime").addEventListener("input",e=>e.target.dataset.dirty=1);
+if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
+  if(state==="finished"){
+    // Restart: same duration/label as the countdown that just ended (fresh link)
+    if(direction==="up")startUp(label);
+    else if(total>0)start(total,label);
+    else startFromForm();
+    return;
+  }
+  startFromForm();
+});
+if($("stopBtn"))$("stopBtn").addEventListener("click",stopTimer);
+
+/* live-preview the label on the ready board as it's typed */
+if($("evtName"))$("evtName").addEventListener("input",e=>{
+  if(state!=="running")$("evtLabel").textContent=e.target.value;
+});
+
 $("shareBtn").addEventListener("click",async e=>{
-  await navigator.clipboard.writeText(makeLink());
+  const link=makeLink();
+  // On touch devices, the native share sheet (WhatsApp/Messages/etc.) beats a
+  // silent clipboard copy; everywhere else, copy is the pro move.
+  if(navigator.share&&matchMedia("(pointer:coarse)").matches){
+    try{await navigator.share({title:label||"CountLink shared timer",url:link});return}
+    catch(err){if(err&&err.name==="AbortError")return}
+  }
+  await navigator.clipboard.writeText(link);
   e.target.classList.add("copied");e.target.textContent="Link copied — send it";
   setTimeout(()=>{e.target.classList.remove("copied");e.target.textContent="Copy sync link";},1800);
 });
@@ -271,19 +399,34 @@ applyStyle(savedStyle);
    no flash of the normal chrome. */
 if(new URLSearchParams(location.search).get("overlay"))document.body.classList.add("overlay-mode");
 
-setDefaultUntil();
-if(readHash()){
+function bootFromHash(){
   // A device opening someone else's shared link never calls start(), so the
   // tile-count mode has to be derived here too — from the remaining time at
   // the moment THIS device loaded the link, then fixed from that point on.
   total=end-Date.now();
   mode = total>=86400000?"days":total>=3600000?"hms":"ms";
+  fired=false;prevValues=null;lastSecond=null;
+  // A recipient came for the timer, not the pitch — hide the marketing hero
+  // so the board is the first thing on their screen.
+  document.body.classList.add("viewing");
+  saveRecent();
+  setState("running");
   render();
+}
+
+setDefaultUntil();
+if(readHash()){
+  bootFromHash();
 }else{
   /* Landing pages (see /timers/) set window.COUNTLINK_DEFAULT before this script runs,
-     so the tool boots straight into that page's advertised duration. */
-  const d=window.COUNTLINK_DEFAULT||{minutes:10,label:"Workshop resumes"};
+     so the tool boots ready at that page's advertised duration — started by the
+     visitor, not for them. */
+  const d=window.COUNTLINK_DEFAULT||{minutes:10,label:""};
   if($("evtName")&&!$("evtName").value)$("evtName").value=d.label;
   if($("customMin"))$("customMin").value=d.minutes;
-  start(d.minutes*60e3,d.label);
+  renderReady(d.minutes,$("evtName")?$("evtName").value:d.label);
 }
+renderRecent();
+/* Recent-timer links point at this same page with a different hash — no page
+   load happens, so re-boot the board on hashchange. */
+window.addEventListener("hashchange",()=>{if(readHash())bootFromHash();});

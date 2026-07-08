@@ -351,7 +351,9 @@ ${faqSchema(p.faq)}
       <div class="sub" id="subLine"></div>
       <div class="bar"><i id="barFill"></i></div>
       <div class="stage-btns">
-        <button class="btn primary" id="shareBtn">Copy sync link</button>
+        <button class="btn primary" id="boardStartBtn">Start countdown</button>
+        <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
+        <button class="btn" id="stopBtn" style="display:none">Stop</button>
         <button class="btn" id="fsBtn">Fullscreen</button>
         <button class="btn" id="soundBtn">Sound: on</button>
       </div>
@@ -369,7 +371,7 @@ ${faqSchema(p.faq)}
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">Already running at ${p.minutes} minutes above — adjust it here if you need something else.</div>
+      <div class="hint">The board above is set to ${p.minutes} minutes, ready when you are — adjust it here if you need something else.</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
         <button class="q active" data-dir="down">Count down</button>
@@ -408,6 +410,17 @@ ${faqSchema(p.faq)}
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="../privacy.html" style="text-decoration:underline">Privacy</a>.</div>
       </div>
+    </div>
+  </section>
+
+  <!-- Rendered from localStorage by app.js; hidden until at least one timer
+       has been started or opened in this browser. -->
+  <section class="recent-section" id="recentWrap" style="display:none">
+    <div class="panel">
+      <h2>Your recent timers</h2>
+      <div class="hint">Saved only in this browser — reopen a timer you started or a link someone sent you. Each one keeps counting to its own end time.</div>
+      <div id="recentList"></div>
+      <button class="pro-link" id="recentClear">Clear list</button>
     </div>
   </section>
   ${p.extra || ""}
