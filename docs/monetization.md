@@ -15,7 +15,7 @@ all of it at once) and I'll paste them into the right files:
 
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
-| 1 | **The real domain** (e.g. `countlink.io`) | Buy it — see domain shortlist in `README.md` | Run `node scripts/rename-brand.mjs "CountLink" yourdomain.tld` — updates `scripts/site-config.mjs` and every hand-written file, then regenerates everything built from it |
+| 1 | ~~The real domain~~ **DONE** — `countlink.app` bought, deployed, live with HTTPS (2026-07-08) | — | — |
 | 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
 | 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
 | 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
@@ -56,23 +56,18 @@ Estimated result: ~5.4M monthly visits, ~$500K/yr in AdSense revenue
 (BoringCashCow's estimate; not vClock's own disclosed figure).
 
 CountLink's `index.html` + `/timers/*.html` already replicate this structure
-exactly — one ad slot in the same position, plus 12 starter landing pages.
+exactly — one ad slot in the same position, plus 24 landing pages (durations,
+use-cases, a shareable stopwatch, a pomodoro timer, and evergreen
+New Year / Christmas date countdowns).
 The rest of this document is about switching the pieces on for real and
 growing the landing-page count.
 
-## Step 0 — buy a domain
+## Step 0 — buy a domain — DONE (2026-07-08)
 
-See the shortlist in `README.md`. Recommendation: **countlink.io** or
-**countlink.link**. Do this first — AdSense review and Search Console both
-key off a live domain, so the sooner it's registered the sooner the clock on
-approval starts.
-
-Once you have it:
-1. Point DNS at your host (see README "Deployment").
-2. Update `SITE_URL` in `scripts/build-timer-pages.mjs`.
-3. Update the `canonical` and `og:*` URLs in `index.html` and `privacy.html`
-   from `countlink.app` to the real domain.
-4. Re-run `node scripts/build-timer-pages.mjs` and redeploy.
+`countlink.app` is bought (Porkbun), on Cloudflare Pages, live with HTTPS.
+Deploys happen automatically on push to `main` via
+`.github/workflows/deploy.yml`. Search Console + Bing Webmaster submissions
+made; verification was pending as of 2026-07-08.
 
 ## Step 1 — Google Analytics (GA4)
 
@@ -101,8 +96,13 @@ plan for **1–4 weeks** of review, sometimes longer.
 2. AdSense wants to see: a live domain, original content, a visible privacy
    policy (`privacy.html` is already built for this — make sure it's linked
    from every page's footer, which it is), and no broken navigation. Having
-   the 12 `/timers/` pages live and indexable before you apply gives Google
+   the 24 `/timers/` pages live and indexable before you apply gives Google
    more than just a single-page site to review.
+   **Readiness as of 2026-07-08:** 24 `/timers/` pages + 7 hand-written
+   pages are live, every page has nav + privacy/terms/contact links, the
+   site passed a mobile-first redesign and a WCAG contrast/keyboard/
+   screen-reader pass, and there are no placeholder ad boxes rendered.
+   There is nothing left blocking the application — apply now.
 3. Once approved, AdSense gives you:
    - A publisher ID like `ca-pub-XXXXXXXXXXXXXXXX`.
    - An ad unit — create a **Display ad**, format **Horizontal**, responsive.
@@ -135,11 +135,18 @@ ranking for one query. Follow `README.md`'s "Adding a new programmatic
 landing page" section. Ideas for the next batch, roughly in order of
 likely search volume:
 
+Already built (2026-07-08 batch): stopwatch ("online stopwatch"),
+pomodoro-timer, new-year-countdown and christmas-countdown (both compute the
+NEXT occurrence client-side, so they never go stale).
+
 - Duration pages: 1 minute, 2 minute, 3 minute, 90 seconds, 40 minutes,
   50 minutes, 90 minutes, 2 hour.
 - Use-case pages: "quiz timer", "presentation timer", "meeting timer",
   "cooking timer" (careful — high competition, big incumbents already rank),
-  "study timer", "break timer", "sports timer", "auction countdown".
+  "study timer", "break timer", "sports timer".
+- More date countdowns via `untilMonthDay` in `PAGES`: Halloween, birthday
+  ("birthday countdown" is generic-huge; needs the date field UX), exam
+  results day, school holidays.
 - Always write the intro paragraph and meta description from scratch per
   page — copy-pasted boilerplate with only the number changed is the single
   most common reason these get excluded from Google's index rather than
@@ -187,10 +194,43 @@ complexity. If/when that happens:
 - Hosting: **$0/month** (static site on Cloudflare Pages/Netlify free tier).
 - Domain: **~$10–15/year**.
 - AdSense, at vClock's realistic per-page-view rate and a much smaller
-  traffic base while `/timers/` is only 12 pages deep: expect low, possibly
+  traffic base while `/timers/` is only ~24 pages deep: expect low, possibly
   $0, revenue for the first few months while pages get indexed. Growth is
   driven almost entirely by adding more `/timers/` pages and by any organic
   sharing of the sync-link feature itself (which vClock doesn't have).
 - This is a slow-build, low-maintenance asset, not a launch-week payoff —
   consistent with every "boring cash cow" case study researched for this
   project.
+
+## Automatable steps (an agent can run these end-to-end)
+
+Everything here needs no credentials beyond what's already on the machine /
+repo secrets, and is safe to re-run:
+
+- **Add landing pages:** append a row to `PAGES` in
+  `scripts/build-timer-pages.mjs` (unique h1/meta/intro/FAQ per page — never
+  boilerplate), then `node scripts/build-timer-pages.mjs`. Regenerates all
+  pages + sitemap.xml + llms.txt + index footer links together, so nothing
+  drifts. Special page shapes: `direction: "up"` (stopwatch) and
+  `untilMonthDay: [m, d]` (evergreen date countdown).
+- **Deploy:** `git push` to `main` — GitHub Action stages `dist/` and runs
+  `wrangler pages deploy`. Verify with
+  `curl -sL https://countlink.app/timers/<new-slug> | grep -c boardStartBtn`
+  (note: Pages 308-redirects `.html` to clean URLs; always `curl -L`).
+- **Tell search engines about new pages:** `node scripts/submit-indexnow.mjs`
+  after any deploy that adds/changes pages (Bing/IndexNow accepts instantly;
+  Google reads the sitemap on its own schedule).
+- **Outreach status / directory submissions:** `node scripts/outreach-status.mjs`
+  prints what an agent can act on now (`agent-browser` targets) and what
+  needs Bruno; `sync` merges new targets without touching done ones.
+- **Re-rasterize the social image** after editing `assets/og-image.svg`:
+  `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless
+  --disable-gpu --screenshot=assets/og-image.png --window-size=1200,630
+  --hide-scrollbars "file://$PWD/assets/og-image.svg"`
+- **Local verification:** `node scripts/dev-server.mjs` (no-cache, resolves
+  clean URLs like production).
+
+Still human-only: GA4 property creation, the AdSense application itself, and
+Search Console verification (Google account required for all three) — but
+once Bruno supplies the IDs, pasting them into the marked placeholders and
+redeploying is agent work (see the table at the top).

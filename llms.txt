@@ -6,33 +6,37 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 
 ## Primary pages
 - [Home / timer tool](https://countlink.app/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
-- [How It Works](https://countlink.app/how-it-works.html): the link-timestamp sync mechanic explained in depth
-- [Comparison: CountLink vs ShareMyTimer vs Stagetimer](https://countlink.app/compare.html): pricing, limits, and architecture differences, verified against each competitor's own pricing page
-- [About](https://countlink.app/about.html): who builds this and why
-- [Privacy policy](https://countlink.app/privacy.html): what data is (and isn't) collected
-- [Terms of Service](https://countlink.app/terms.html)
-- [Contact](https://countlink.app/contact.html)
+- [How It Works](https://countlink.app/how-it-works): the link-timestamp sync mechanic explained in depth
+- [Comparison: CountLink vs ShareMyTimer vs Stagetimer](https://countlink.app/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [About](https://countlink.app/about): who builds this and why
+- [Privacy policy](https://countlink.app/privacy): what data is (and isn't) collected
+- [Terms of Service](https://countlink.app/terms)
+- [Contact](https://countlink.app/contact)
 
 ## Duration timers
-- [5 Minute Timer](https://countlink.app/timers/5-minute-timer.html)
-- [10 Minute Timer](https://countlink.app/timers/10-minute-timer.html)
-- [15 Minute Timer](https://countlink.app/timers/15-minute-timer.html)
-- [20 Minute Timer](https://countlink.app/timers/20-minute-timer.html)
-- [25 Minute Timer](https://countlink.app/timers/25-minute-timer.html)
-- [30 Minute Timer](https://countlink.app/timers/30-minute-timer.html)
-- [45 Minute Timer](https://countlink.app/timers/45-minute-timer.html)
-- [1 Hour Timer](https://countlink.app/timers/60-minute-timer.html)
+- [5 Minute Timer](https://countlink.app/timers/5-minute-timer)
+- [10 Minute Timer](https://countlink.app/timers/10-minute-timer)
+- [15 Minute Timer](https://countlink.app/timers/15-minute-timer)
+- [20 Minute Timer](https://countlink.app/timers/20-minute-timer)
+- [25 Minute Timer](https://countlink.app/timers/25-minute-timer)
+- [30 Minute Timer](https://countlink.app/timers/30-minute-timer)
+- [45 Minute Timer](https://countlink.app/timers/45-minute-timer)
+- [1 Hour Timer](https://countlink.app/timers/60-minute-timer)
 
 ## Use-case timers
-- [Exam Timer](https://countlink.app/timers/exam-timer.html)
-- [Classroom Timer](https://countlink.app/timers/classroom-timer.html)
-- [Webinar Countdown](https://countlink.app/timers/webinar-countdown.html)
-- [Standup Timer](https://countlink.app/timers/standup-timer.html)
-- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer.html)
-- [Google Meet Timer](https://countlink.app/timers/google-meet-timer.html)
-- [OBS Countdown Timer](https://countlink.app/timers/obs-countdown-timer.html)
-- [Twitch Stream Timer](https://countlink.app/timers/twitch-stream-timer.html)
-- [Workshop Timer](https://countlink.app/timers/workshop-timer.html)
-- [Group Study Timer](https://countlink.app/timers/group-study-timer.html)
-- [Game Night Timer](https://countlink.app/timers/game-night-timer.html)
-- [Auction Countdown](https://countlink.app/timers/auction-countdown.html)
+- [Exam Timer](https://countlink.app/timers/exam-timer)
+- [Classroom Timer](https://countlink.app/timers/classroom-timer)
+- [Webinar Countdown](https://countlink.app/timers/webinar-countdown)
+- [Standup Timer](https://countlink.app/timers/standup-timer)
+- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer)
+- [Google Meet Timer](https://countlink.app/timers/google-meet-timer)
+- [OBS Countdown Timer](https://countlink.app/timers/obs-countdown-timer)
+- [Twitch Stream Timer](https://countlink.app/timers/twitch-stream-timer)
+- [Workshop Timer](https://countlink.app/timers/workshop-timer)
+- [Group Study Timer](https://countlink.app/timers/group-study-timer)
+- [Game Night Timer](https://countlink.app/timers/game-night-timer)
+- [Auction Countdown](https://countlink.app/timers/auction-countdown)
+- [Online Stopwatch](https://countlink.app/timers/stopwatch)
+- [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer)
+- [New Year Countdown](https://countlink.app/timers/new-year-countdown)
+- [Christmas Countdown](https://countlink.app/timers/christmas-countdown)

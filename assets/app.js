@@ -64,6 +64,8 @@ function start(ms,lab){
      minutes remaining, breaking the board mid-countdown. */
   mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}`;
+  lastAnnouncedMin=null;announcedFinal=false;
+  announce(`Countdown started: ${Math.round(ms/60e3)} minutes${label?", "+label:""}`);
   saveRecent();
   setState("running");
   render();
@@ -73,6 +75,8 @@ function startUp(lab){
   end=Date.now();label=lab;fired=false;total=0;prevValues=null;
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
+  lastAnnouncedMin=null;announcedFinal=false;
+  announce("Stopwatch started"+(label?": "+label:""));
   saveRecent();
   setState("running");
   render();
@@ -89,12 +93,14 @@ function stopTimer(){
   if(heads)heads.innerHTML="Stopped on this screen. A link you already shared keeps counting on other screens — the link itself is the timer.";
 }
 /* Ready state: show the preset duration as static tiles so the board is never
-   an empty box, without pretending anything is running. */
-function renderReady(min,lab){
+   an empty box, without pretending anything is running. msOverride is for
+   date-target pages (countdown-to-a-date, where "minutes" isn't the input). */
+function renderReady(min,lab,msOverride){
   clearInterval(tick);tick=null;
   label=lab;direction=formDirection;
-  const ms=Math.max(1,min)*60e3;
-  mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
+  const ms=msOverride!=null?Math.max(1000,msOverride):Math.max(1,min)*60e3;
+  // count-up always runs 6 tiles (see startUp), so preview it that way too
+  mode = formDirection==="up"?"hms":ms>=86400000?"days":ms>=3600000?"hms":"ms";
   /* Deliberately no label on a ready board: page defaults are zero-moment
      phrases ("Time's up", "Bidding closed") that read as ALREADY finished
      when shown over a full, unstarted duration. Typing in the name field
@@ -106,7 +112,9 @@ function renderReady(min,lab){
   prevValues=null;
   $("subLine").innerHTML=formDirection==="up"
     ? "A shared stopwatch — starts from zero when you press start."
-    : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`;
+    : (msOverride!=null
+      ? `counting to <b>${new Date(Date.now()+ms).toLocaleDateString([],{month:"short",day:"numeric"})}</b> — you'll get a share link the moment you start`
+      : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`);
   $("barFill").style.width="0%";
   const bar=document.querySelector(".bar");if(bar)bar.style.display="";
   if($("shareUrl"))$("shareUrl").textContent="";
@@ -209,6 +217,20 @@ function charsFor(left){
   ]};
 }
 
+/* ---------- screen-reader announcements ----------
+   The flip tiles are aria-hidden (per-digit divs read as noise); instead a
+   polite live region announces at sensible moments only — start, each whole
+   minute, the final 10 seconds once, and zero. Announcing every second would
+   make the page unusable with a screen reader. */
+let lastAnnouncedMin=null,announcedFinal=false;
+function announce(msg){const el=$("a11yStatus");if(el)el.textContent=msg;}
+function announceLeft(left){
+  const s=Math.max(0,Math.ceil(left/1000)),m=Math.floor(s/60);
+  if(s===0){if(lastAnnouncedMin!==-1){announce((label?label+" — ":"")+"time is up");lastAnnouncedMin=-1;}return;}
+  if(s<=10&&!announcedFinal){announce("10 seconds remaining");announcedFinal=true;return;}
+  if(s%60===0&&m!==lastAnnouncedMin&&m>0){announce(`${m} minute${m===1?"":"s"} remaining`);lastAnnouncedMin=m;}
+}
+
 function render(){clearInterval(tick);tick=setInterval(draw,250);draw();}
 
 let lastSecond=null;
@@ -241,7 +263,7 @@ function draw(){
     }
     $("subLine").innerHTML="<b>Time.</b> This screen — and every screen with your link — just hit zero together.";
     $("barFill").style.width="100%";
-    if(!fired){fired=true;beep();setState("finished");}
+    if(!fired){fired=true;beep();setState("finished");announceLeft(0);}
     return;
   }
   const c=charsFor(left);
@@ -254,6 +276,7 @@ function draw(){
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
   }
   lastSecond=curSecond;
+  announceLeft(left);
   $("subLine").innerHTML=`ends at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";
   $("shareUrl").textContent=makeLink();
@@ -306,7 +329,7 @@ document.querySelectorAll(".q[data-min]").forEach(b=>b.addEventListener("click",
 let formDirection="down";
 document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click",()=>{
   formDirection=b.dataset.dir;
-  document.querySelectorAll(".dir-toggle .q").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll(".dir-toggle .q").forEach(x=>{x.classList.toggle("active",x===b);x.setAttribute("aria-pressed",x===b);});
   const isUp=formDirection==="up";
   if($("durationFields"))$("durationFields").style.display=isUp?"none":"block";
   if($("countUpHint"))$("countUpHint").style.display=isUp?"block":"none";
@@ -377,15 +400,24 @@ if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
 });
 $("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
-  $("fsBtn").textContent=document.body.classList.contains("fs")?"Exit fullscreen":"Fullscreen";
+  const on=document.body.classList.contains("fs");
+  $("fsBtn").textContent=on?"Exit fullscreen":"Fullscreen";
+  $("fsBtn").setAttribute("aria-pressed",on);
 });
-$("soundBtn").addEventListener("click",e=>{sound=!sound;e.target.textContent="Sound: "+(sound?"on":"off")});
+$("soundBtn").addEventListener("click",e=>{
+  sound=!sound;
+  e.target.textContent="Sound: "+(sound?"on":"off");
+  e.target.setAttribute("aria-pressed",sound);
+});
 
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){
   $("boardEl").classList.toggle("style-minimal",name==="minimal");
   $("boardEl").classList.toggle("style-light",name==="light");
-  document.querySelectorAll(".style-toggle button").forEach(b=>b.classList.toggle("active",b.dataset.style===name));
+  document.querySelectorAll(".style-toggle button").forEach(b=>{
+    b.classList.toggle("active",b.dataset.style===name);
+    b.setAttribute("aria-pressed",b.dataset.style===name);
+  });
   try{localStorage.setItem("samesecond_style",name)}catch(e){}
 }
 document.querySelectorAll(".style-toggle button").forEach(b=>b.addEventListener("click",()=>applyStyle(b.dataset.style)));
@@ -420,11 +452,28 @@ if(readHash()){
 }else{
   /* Landing pages (see /timers/) set window.COUNTLINK_DEFAULT before this script runs,
      so the tool boots ready at that page's advertised duration — started by the
-     visitor, not for them. */
+     visitor, not for them. Two special shapes beyond {minutes,label}:
+     - {direction:"up"}          → stopwatch page: boot ready in count-up mode
+     - {untilMonthDay:[m,d]}     → date-countdown page (New Year, Christmas):
+       the NEXT occurrence is computed client-side at load, so the page never
+       goes stale when the date passes — no yearly rebuild needed. */
   const d=window.COUNTLINK_DEFAULT||{minutes:10,label:""};
   if($("evtName")&&!$("evtName").value)$("evtName").value=d.label;
-  if($("customMin"))$("customMin").value=d.minutes;
-  renderReady(d.minutes,$("evtName")?$("evtName").value:d.label);
+  if($("customMin")&&d.minutes)$("customMin").value=d.minutes;
+  if(d.direction==="up"){
+    const up=document.querySelector('.dir-toggle .q[data-dir="up"]');
+    if(up)up.click(); // runs the toggle handler, which ends in renderReady()
+  }else if(d.untilMonthDay){
+    const now=new Date();
+    let t=new Date(now.getFullYear(),d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
+    if(t<=now)t=new Date(now.getFullYear()+1,d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
+    const p=n=>String(n).padStart(2,"0");
+    $("untilTime").value=`${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}T00:00`;
+    $("untilTime").dataset.dirty=1; // Start uses the date field, not custom minutes
+    renderReady(0,$("evtName")?$("evtName").value:d.label,t-now);
+  }else{
+    renderReady(d.minutes,$("evtName")?$("evtName").value:d.label);
+  }
 }
 renderRecent();
 /* Recent-timer links point at this same page with a different hash — no page

@@ -44,9 +44,20 @@ const server = createServer(async (req, res) => {
       st = await stat(filePath);
       if (st.isDirectory()) { filePath = join(filePath, "index.html"); st = await stat(filePath); }
     } catch {
-      res.writeHead(404, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
-      res.end("404 Not Found: " + path);
-      return;
+      // Clean-URL resolution, matching Cloudflare Pages: /about serves
+      // about.html (Pages actually 308s .html → extensionless; locally we
+      // just serve the file so extensionless internal links work in dev).
+      if (!extname(filePath)) {
+        try {
+          st = await stat(filePath + ".html");
+          filePath += ".html";
+        } catch { /* fall through to 404 */ }
+      }
+      if (!st) {
+        res.writeHead(404, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
+        res.end("404 Not Found: " + path);
+        return;
+      }
     }
 
     const body = await readFile(filePath);

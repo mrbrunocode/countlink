@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About CountLink</title>
 <meta name="description" content="Why CountLink exists, how the link-based sync mechanic works, and who builds it — a free shared countdown timer with no account, no server, and no viewer limit.">
-<link rel="canonical" href="https://countlink.app/about.html">
+<link rel="canonical" href="https://countlink.app/about">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
   "@context": "https://schema.org",
   "@type": "AboutPage",
   "name": "About CountLink",
-  "url": "https://countlink.app/about.html",
+  "url": "https://countlink.app/about",
   "isPartOf": { "@type": "WebSite", "name": "CountLink", "url": "https://countlink.app/" },
   "datePublished": "2026-07-08",
   "dateModified": "2026-07-08"
@@ -26,18 +26,18 @@
 </head>
 <body>
 <header>
-  <a class="logo" href="index.html">CountLink</a>
+  <a class="logo" href="/">CountLink</a>
   <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
-<nav class="main-nav">
-  <a href="how-it-works.html">How It Works</a>
-  <a href="compare.html">Compare</a>
-  <a href="about.html" class="active">About</a>
-  <a href="privacy.html">Privacy</a>
-  <a href="terms.html">Terms</a>
-  <a href="contact.html">Contact</a>
+<nav class="main-nav" aria-label="Site">
+  <a href="/how-it-works">How It Works</a>
+  <a href="/compare">Compare</a>
+  <a href="/about" class="active">About</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a>
 </nav>
-<div class="wrap">
+<main class="wrap">
   <section class="hero" style="border-bottom:none;display:block">
     <div class="hero-inner">
       <span class="eyebrow">About</span>
@@ -48,19 +48,19 @@
   <section class="seo-intro" style="max-width:70ch;padding-bottom:50px">
     <p style="margin-bottom:16px"><b>The problem.</b> Running a class, exam, or webinar usually means someone starts a timer on their own device and everyone else has to trust it — or starts a separate one, and the two drift apart within a minute. Video-call apps solve this for meetings; classroom timer sites solve it for a single projector. Nothing solved it for handing a whole room, or a call, one exact number that's the same on every screen, without installing anything. That's the gap CountLink closes.</p>
 
-    <p style="margin-bottom:16px"><b>The mechanism.</b> CountLink writes the countdown's end time directly into the shared link, as a timestamp, instead of running a server that keeps every viewer in sync — which is how most shared-timer products work, and why they cap free-tier viewers. Every device that opens the link just checks its own clock against that timestamp. No server is involved after the link is generated, so there's nothing to keep running and no reason to charge more as more people open it. See <a href="how-it-works.html" style="text-decoration:underline">How It Works</a> for the technical walkthrough.</p>
+    <p style="margin-bottom:16px"><b>The mechanism.</b> CountLink writes the countdown's end time directly into the shared link, as a timestamp, instead of running a server that keeps every viewer in sync — which is how most shared-timer products work, and why they cap free-tier viewers. Every device that opens the link just checks its own clock against that timestamp. No server is involved after the link is generated, so there's nothing to keep running and no reason to charge more as more people open it. See <a href="/how-it-works" style="text-decoration:underline">How It Works</a> for the technical walkthrough.</p>
 
-    <p style="margin-bottom:16px"><b>The trade-off.</b> Because there's no ongoing connection, nobody can push a live pause or an extra two minutes to everyone who already has the link open — the fix is starting a fresh countdown and re-sharing it. That rarely matters for a fixed-duration exam or class, since the length was already known. It matters more for live, mid-session control, which a real-time tool handles better — see the <a href="compare.html" style="text-decoration:underline">comparison page</a> for where CountLink is and isn't the right fit.</p>
+    <p style="margin-bottom:16px"><b>The trade-off.</b> Because there's no ongoing connection, nobody can push a live pause or an extra two minutes to everyone who already has the link open — the fix is starting a fresh countdown and re-sharing it. That rarely matters for a fixed-duration exam or class, since the length was already known. It matters more for live, mid-session control, which a real-time tool handles better — see the <a href="/compare" style="text-decoration:underline">comparison page</a> for where CountLink is and isn't the right fit.</p>
 
     <p style="margin-bottom:16px"><b>Why it's free.</b> Showing the countdown to one extra viewer costs nothing, so there's no viewer cap, device cap, or paid tier gating basic features. That's a structural consequence of how the tool works, not a promotional discount.</p>
 
-    <p style="margin-bottom:16px"><b>Who's behind it.</b> CountLink is built and maintained independently, not as a funded startup with a growth roadmap. Questions, bug reports, or feature requests go straight to the person who maintains it, via the <a href="contact.html" style="text-decoration:underline">contact page</a>.</p>
+    <p style="margin-bottom:16px"><b>Who's behind it.</b> CountLink is built and maintained independently, not as a funded startup with a growth roadmap. Questions, bug reports, or feature requests go straight to the person who maintains it, via the <a href="/contact" style="text-decoration:underline">contact page</a>.</p>
   </section>
-</div>
+</main>
 <footer>
   <div class="wrap foot-in">
-    <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="how-it-works.html" style="text-decoration:underline">How It Works</a> · <a href="terms.html" style="text-decoration:underline">Terms</a> · <a href="contact.html" style="text-decoration:underline">Contact</a> · <a href="mailto:hello@countlink.app" style="text-decoration:underline">hello@countlink.app</a></div>
-    <div><a href="index.html" style="text-decoration:underline">Back to the timer</a></div>
+    <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/how-it-works" style="text-decoration:underline">How It Works</a> · <a href="/terms" style="text-decoration:underline">Terms</a> · <a href="/contact" style="text-decoration:underline">Contact</a> · <a href="mailto:hello@countlink.app" style="text-decoration:underline">hello@countlink.app</a></div>
+    <div><a href="/" style="text-decoration:underline">Back to the timer</a></div>
   </div>
 </footer>
 </body>

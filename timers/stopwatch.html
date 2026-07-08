@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5 Minute Timer — Free, Shareable, In Sync | CountLink</title>
-<meta name="description" content="A free 5 minute timer for quick breaks, lightning talks and board-game turns — share the link and everyone's countdown ends together.">
-<link rel="canonical" href="https://countlink.app/timers/5-minute-timer">
-<meta property="og:title" content="5 Minute Timer — Free, Shareable, In Sync">
-<meta property="og:description" content="A free 5 minute timer for quick breaks, lightning talks and board-game turns — share the link and everyone's countdown ends together.">
+<title>Online Stopwatch — Shared, Synced by Link | CountLink</title>
+<meta name="description" content="A free online stopwatch you can share: press start, send the link, and every screen shows the identical elapsed time. No app, no signup.">
+<link rel="canonical" href="https://countlink.app/timers/stopwatch">
+<meta property="og:title" content="Online Stopwatch — Shared, Synced by Link">
+<meta property="og:description" content="A free online stopwatch you can share: press start, send the link, and every screen shows the identical elapsed time. No app, no signup.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://countlink.app/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -18,9 +18,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Bebas+Neue&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/5-minute-timer","description":"A free 5 minute timer for quick breaks, lightning talks and board-game turns — share the link and everyone's countdown ends together.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"datePublished":"2026-07-08","dateModified":"2026-07-08"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"5 Minute Timer","item":"https://countlink.app/timers/5-minute-timer"}]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How accurate is a 5 minute shared timer?","acceptedAnswer":{"@type":"Answer","text":"Accurate to about a second. Each device counts down independently against the same shared deadline using its own clock, so there's no server lag to introduce drift between screens."}},{"@type":"Question","name":"Can more than one person use the link at once?","acceptedAnswer":{"@type":"Answer","text":"Yes — any number of people can open the same link at the same time. There's no viewer limit, because nothing is streamed to them; each device just does its own math against the timestamp in the URL."}},{"@type":"Question","name":"Does it still work if I close the tab and reopen it?","acceptedAnswer":{"@type":"Answer","text":"Yes. Reopening the link re-reads the same deadline from the URL and picks up exactly where the countdown should be — nothing resets."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/stopwatch","description":"A free online stopwatch you can share: press start, send the link, and every screen shows the identical elapsed time. No app, no signup.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"datePublished":"2026-07-08","dateModified":"2026-07-08"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Online Stopwatch","item":"https://countlink.app/timers/stopwatch"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How is a shared stopwatch different from the one on my phone?","acceptedAnswer":{"@type":"Answer","text":"Your phone's stopwatch exists only on your phone. This one encodes its start instant in a link, so any device that opens the link shows the identical elapsed time — useful for timing anything a group is watching together."}},{"@type":"Question","name":"Does the stopwatch keep running if I close the tab?","acceptedAnswer":{"@type":"Answer","text":"Effectively yes — nothing is actually \"running\" anywhere. The link records when the stopwatch started, so reopening it later shows the correct elapsed time, as if it had been running the whole time."}},{"@type":"Question","name":"Is there a lap or split function?","acceptedAnswer":{"@type":"Answer","text":"No — this is deliberately a simple shared stopwatch. For lap timing you'd want a single-device sports stopwatch; this tool's job is showing one agreed elapsed time on many screens."}}]}</script>
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
@@ -42,9 +42,9 @@
 <main class="wrap">
   <section class="hero">
     <div class="hero-inner">
-      <span class="eyebrow">5 Minute Timer</span>
-      <h1>5 Minute Timer — Free, Shareable, In Sync</h1>
-      <p class="lede">Five minutes is long enough for a quick break, a lightning talk, or the last leg of a board game turn — and short enough that everyone actually watches it end. Press start, then send the link to anyone else who needs to see the same five minutes tick down.</p>
+      <span class="eyebrow">Online Stopwatch</span>
+      <h1>Online Stopwatch — Shared, Synced by Link</h1>
+      <p class="lede">Most online stopwatches live and die on one screen. This one is shareable: press start, send the link, and everyone who opens it sees the same elapsed time ticking up — the start instant travels inside the link itself.</p>
     </div>
     <div class="hero-fact">
       <span class="n">00</span>servers to run this
@@ -85,7 +85,7 @@
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">The board above is set to 5 minutes, ready when you are — adjust it here if you need something else.</div>
+      <div class="hint">The board above is in stopwatch (count-up) mode — switch direction here if you wanted a countdown instead.</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
         <button class="q active" data-dir="down" aria-pressed="true">Count down</button>
@@ -104,7 +104,7 @@
         <div class="stack2">
           <div>
             <label for="customMin">Custom minutes</label>
-            <input id="customMin" type="number" min="1" value="5">
+            <input id="customMin" type="number" min="1" value="10">
           </div>
           <div>
             <label for="untilTime">…or until a date &amp; time</label>
@@ -114,7 +114,7 @@
       </div>
       <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
-      <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="Time's up">
+      <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open" value="">
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
@@ -142,9 +142,9 @@
   <section class="faq">
     <h2>Common questions</h2>
     <dl class="faq-grid">
-      <div class="faq-item"><h3>How accurate is a 5 minute shared timer?</h3><dd>Accurate to about a second. Each device counts down independently against the same shared deadline using its own clock, so there's no server lag to introduce drift between screens.</dd></div>
-      <div class="faq-item"><h3>Can more than one person use the link at once?</h3><dd>Yes — any number of people can open the same link at the same time. There's no viewer limit, because nothing is streamed to them; each device just does its own math against the timestamp in the URL.</dd></div>
-      <div class="faq-item"><h3>Does it still work if I close the tab and reopen it?</h3><dd>Yes. Reopening the link re-reads the same deadline from the URL and picks up exactly where the countdown should be — nothing resets.</dd></div>
+      <div class="faq-item"><h3>How is a shared stopwatch different from the one on my phone?</h3><dd>Your phone's stopwatch exists only on your phone. This one encodes its start instant in a link, so any device that opens the link shows the identical elapsed time — useful for timing anything a group is watching together.</dd></div>
+      <div class="faq-item"><h3>Does the stopwatch keep running if I close the tab?</h3><dd>Effectively yes — nothing is actually "running" anywhere. The link records when the stopwatch started, so reopening it later shows the correct elapsed time, as if it had been running the whole time.</dd></div>
+      <div class="faq-item"><h3>Is there a lap or split function?</h3><dd>No — this is deliberately a simple shared stopwatch. For lap timing you'd want a single-device sports stopwatch; this tool's job is showing one agreed elapsed time on many screens.</dd></div>
     </dl>
   </section>
 </main>
@@ -184,7 +184,7 @@
   </div>
 </footer>
 
-<script>window.COUNTLINK_DEFAULT={"minutes":5,"label":"Time's up"};</script>
+<script>window.COUNTLINK_DEFAULT={"minutes":10,"label":"","direction":"up"};</script>
 <script src="../assets/app.js" defer></script>
 </body>
 </html>

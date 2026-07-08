@@ -38,6 +38,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 
+/* visually hidden, still read by screen readers (live announcements etc.) */
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+/* keyboard users jump straight to the tool; invisible until focused */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:100;
+  font-family:var(--mono);font-size:.75rem;color:var(--flap-ink);background:var(--amber);
+  padding:10px 16px;border-radius:0 0 6px 0;text-decoration:none;
+}
+.skip-link:focus{left:0}
+
 .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
 @media(min-width:640px){.wrap{padding:0 32px}}
 
@@ -58,7 +71,7 @@ header{
   content:"";width:9px;height:9px;background:var(--amber);border-radius:50%;flex:none;
   box-shadow:0 0 8px 1px rgba(232,165,61,.7);
 }
-.head-meta{font-family:var(--mono);font-size:.62rem;color:var(--paper-dim);letter-spacing:.02em;line-height:1.6}
+.head-meta{font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);letter-spacing:.02em;line-height:1.6}
 .head-meta b{color:var(--amber);font-weight:500}
 
 /* Site-wide nav — a second, thin row below the header so every page (not
@@ -73,7 +86,7 @@ header{
 .main-nav::-webkit-scrollbar{display:none}
 @media(min-width:640px){.main-nav{padding:0 32px 10px}}
 .main-nav a{
-  font-family:var(--mono);font-size:.64rem;letter-spacing:.02em;color:var(--paper-dim);text-decoration:none;
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.02em;color:var(--paper-dim);text-decoration:none;
   padding:3px 8px;border-radius:99px;border:1px solid transparent;white-space:nowrap;
 }
 .main-nav a:hover{color:var(--amber);border-color:var(--panel-line)}
@@ -161,7 +174,7 @@ body.viewing .stage-section{padding-top:18px}
   width:max-content;margin-left:auto;margin-right:auto;
 }
 .style-toggle button{
-  font-family:var(--mono);font-size:.58rem;letter-spacing:.03em;color:var(--paper-dim);
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.03em;color:var(--paper-dim);
   border:none;background:none;padding:5px 9px;border-radius:99px;min-height:0;width:auto;
 }
 .style-toggle button.active{background:var(--panel-line);color:var(--paper-text)}
@@ -224,12 +237,18 @@ body.viewing .stage-section{padding-top:18px}
    Everything inside .board already reads these variables, so this is the
    entire theme — no per-element overrides needed. */
 .board.style-light{
+  /* --amber darkened from the original #c07f2a: as TEXT on the off-white
+     board that was ~3:1, under the WCAG AA 4.5:1 bar for normal-size text.
+     #8f5c13 measures ~5:1 while still reading as the same signal color. */
   --board:#f7f4ec; --board-deep:#ffffff; --panel:#f7f4ec; --panel-line:#ddd6c4;
-  --flap:#ffffff; --flap-ink:#1c1a16; --paper-text:#1c1a16; --paper-dim:#6e6858;
-  --amber:#c07f2a; --amber-deep:#9c631c; --ok:#2f6b45;
+  --flap:#ffffff; --flap-ink:#1c1a16; --paper-text:#1c1a16; --paper-dim:#5f594a;
+  --amber:#8f5c13; --amber-deep:#7a4c0e; --ok:#2f6b45;
   background:var(--board);border-color:var(--panel-line);
   box-shadow:0 1px 0 rgba(0,0,0,.03) inset, 0 24px 50px -26px rgba(0,0,0,.16);
 }
+/* on the darkened light-theme amber, dark ink no longer clears 4.5:1 — white does */
+.board.style-light .btn.primary{color:#fff}
+.board.style-light .btn.primary:hover{color:#fff}
 
 .tile-sep{
   font-family:var(--display);font-size:1.3rem;color:var(--amber);align-self:center;
@@ -239,8 +258,12 @@ body.viewing .stage-section{padding-top:18px}
 @media(min-width:640px){.tile-sep{font-size:2.4rem;width:10px}}
 @media(min-width:900px){.tile-sep{font-size:2.9rem;width:12px}}
 @media(min-width:1200px){.tile-sep{font-size:3.4rem;width:14px}}
+/* days-mode display ("172d 04:31:22") — a single text line instead of flip
+   tiles, but it IS the timer on date-countdown pages, so it renders at
+   display size, not caption size. */
 .tile-day{
-  font-family:var(--mono);font-size:.8rem;color:var(--paper-dim);align-self:center;margin-right:4px;
+  font-family:var(--display);font-size:calc(var(--fs) * .72);color:var(--paper-text);
+  align-self:center;letter-spacing:.04em;line-height:var(--th);
 }
 
 .sub{font-family:var(--mono);font-size:.72rem;color:var(--paper-dim);margin-top:16px}
@@ -276,7 +299,7 @@ body.viewing .stage-section{padding-top:18px}
 .btn.primary:hover{background:var(--amber-deep);color:var(--flap-ink);border-color:var(--amber-deep)}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
 .sync-note{
-  display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);
+  display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.7rem;color:var(--paper-dim);
 }
 .sync-note .dot{width:6px;height:6px;background:var(--ok);border-radius:50%;flex:none;box-shadow:0 0 4px 0 rgba(92,143,109,.4);animation:blink 1.8s infinite}
 @keyframes blink{50%{opacity:.25}}
@@ -306,7 +329,7 @@ body.viewing .stage-section{padding-top:18px}
 @media(min-width:640px){.panel{padding:28px 30px}}
 .panel h2{font-family:var(--display);font-weight:400;font-size:1.3rem;letter-spacing:.02em;margin-bottom:4px;text-transform:uppercase;color:var(--paper-text)}
 .panel .hint{font-size:.8rem;color:var(--paper-dim);margin-bottom:16px;line-height:1.55}
-label{display:block;font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);margin:14px 0 6px}
+label{display:block;font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);margin:14px 0 6px}
 input,select{
   width:100%;padding:12px 12px;font-family:var(--sans);font-size:1rem;color:var(--paper-text);
   background:var(--board-deep);border:1px solid var(--panel-line);border-radius:5px;min-height:46px;
@@ -346,7 +369,7 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   font-size:.84rem;color:var(--paper-text);font-weight:600;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
 }
-.recent-item .rs{font-family:var(--mono);font-size:.6rem;color:var(--paper-dim);white-space:nowrap;flex:none}
+.recent-item .rs{font-family:var(--mono);font-size:.64rem;color:var(--paper-dim);white-space:nowrap;flex:none}
 
 /* ============ FAQ (visible copy matching the FAQPage JSON-LD in <head>) ============ */
 .faq{padding:36px 0 8px;border-top:1px solid var(--panel-line);margin-top:34px}

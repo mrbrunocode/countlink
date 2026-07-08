@@ -237,13 +237,64 @@ const PAGES = [
       { q: "Is there a limit on how many bidders can watch the countdown?", a: "No — any number of people can open the same link at once, since each device just does its own math rather than connecting to a server." },
       { q: "What happens the instant bidding closes?", a: "Every open screen reaches zero at the same instant and shows the countdown has ended — treat that as your hard cutoff for accepting further bids." },
     ] },
+  { slug: "stopwatch", minutes: 10, direction: "up", label: "", eyebrow: "Online Stopwatch",
+    h1: "Online Stopwatch — Shared, Synced by Link",
+    meta: "A free online stopwatch you can share: press start, send the link, and every screen shows the identical elapsed time. No app, no signup.",
+    intro: "Most online stopwatches live and die on one screen. This one is shareable: press start, send the link, and everyone who opens it sees the same elapsed time ticking up — the start instant travels inside the link itself.",
+    setupHint: "The board above is in stopwatch (count-up) mode — switch direction here if you wanted a countdown instead.",
+    faq: [
+      { q: "How is a shared stopwatch different from the one on my phone?", a: "Your phone's stopwatch exists only on your phone. This one encodes its start instant in a link, so any device that opens the link shows the identical elapsed time — useful for timing anything a group is watching together." },
+      { q: "Does the stopwatch keep running if I close the tab?", a: "Effectively yes — nothing is actually \"running\" anywhere. The link records when the stopwatch started, so reopening it later shows the correct elapsed time, as if it had been running the whole time." },
+      { q: "Is there a lap or split function?", a: "No — this is deliberately a simple shared stopwatch. For lap timing you'd want a single-device sports stopwatch; this tool's job is showing one agreed elapsed time on many screens." },
+    ] },
+  { slug: "pomodoro-timer", minutes: 25, label: "Pomodoro — focus", eyebrow: "Pomodoro Timer",
+    h1: "Pomodoro Timer — 25 Minutes, Shareable",
+    meta: "A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.",
+    intro: "The pomodoro technique is 25 minutes of focus, then a 5-minute break, repeated. Solo, any kitchen timer works — but a pomodoro is better with company. Start the 25 minutes here, share the link, and your study group or team focuses to the same clock and breaks at the same moment.",
+    setupHint: "The board above is set to the classic 25-minute pomodoro — set 5 minutes here for the break, then Restart for the next round.",
+    extra: `
+        <div class="obs-extra">
+          <h3>Running full pomodoro cycles</h3>
+          <ol>
+            <li>Start the <b>25-minute</b> countdown and share the link with everyone working with you.</li>
+            <li>At zero, hit the <b>5 min</b> quick button and start the break — share the fresh link (each timer is its own link).</li>
+            <li>After the break, press <b>Restart — same duration</b> to begin the next 25 minutes in one click.</li>
+            <li>Every fourth break, set <b>15–30 minutes</b> instead — that's the classic long-break rhythm.</li>
+          </ol>
+          <p>Why doesn't it auto-advance from focus to break? Because the link is the timer: each countdown is one fixed end time that every screen agrees on. An auto-advancing cycle would need every viewer's browser to agree on state changes over time — that's a server, and no server is the reason this tool has no viewer limits.</p>
+        </div>`,
+    faq: [
+      { q: "Why 25 minutes?", a: "That's the classic pomodoro length from Francesco Cirillo's original technique — long enough to get real work done, short enough that starting doesn't feel heavy. The custom-minutes field takes any length if your group prefers 50/10." },
+      { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
+      { q: "Does it auto-start the break when the 25 minutes end?", a: "No — at zero every screen chimes together, then whoever runs the session starts the 5-minute break and shares that link. The one-click Restart button makes the next focus round instant." },
+    ] },
+  { slug: "new-year-countdown", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
+    h1: "New Year Countdown — Live, Shareable",
+    meta: "A live countdown to New Year you can share: days, hours, minutes and seconds to midnight January 1st, identical on every screen that opens the link.",
+    intro: "The board above is already counting down to midnight, January 1st — days, hours, minutes and seconds. Share the link and every screen at the party (or across time zones, for your own local midnight) shows the identical countdown.",
+    setupHint: "Already set to the next January 1st at midnight, local time — change the date here for a different moment.",
+    faq: [
+      { q: "Which New Year does this count down to?", a: "Always the next one: the page computes the coming January 1st at midnight in your device's own time zone when you open it, so it never shows a stale or past date." },
+      { q: "What about friends in other time zones?", a: "The countdown targets midnight in the time zone of whoever sets it. If you start it and share the link, everyone counts down to YOUR midnight together — that's the point of a shared countdown. Friends elsewhere can make their own link for their own midnight too." },
+      { q: "Can I put this on a screen at a party?", a: "Yes — press start, open the link on the TV or projector, and use Fullscreen. The Light board style keeps it readable if the room is bright." },
+    ] },
+  { slug: "christmas-countdown", minutes: 10, untilMonthDay: [12, 25], label: "Merry Christmas!", eyebrow: "Christmas Countdown",
+    h1: "Christmas Countdown — Days Until December 25",
+    meta: "A live Christmas countdown you can share: days, hours, minutes and seconds until December 25th, the same on every screen that opens the link.",
+    intro: "The board above is counting down to December 25th — days, hours, minutes, seconds. Start it, share the link, and the kids can check the identical countdown on any device without asking you again.",
+    setupHint: "Already set to the next December 25th at midnight — change the date here to count to Christmas Eve or any other moment instead.",
+    faq: [
+      { q: "Does this show days as well as hours and minutes?", a: "Yes — countdowns longer than a day display as days plus hours:minutes:seconds, and the format stays fixed for the whole countdown." },
+      { q: "Will it still be right if I open it next year?", a: "Yes — the page always computes the NEXT December 25th when it loads, so it never counts to a Christmas that already happened. (A link you've already started and shared is pinned to its specific year, as every shared link is.)" },
+      { q: "Can I count down to Christmas Eve instead?", a: "Yes — use the date & time field below to pick December 24th (or any moment), then start and share that link." },
+    ] },
 ];
 
 const BRAND = NAME; // imported from ./site-config.mjs — the one place these values live
 
-const timerLinks = PAGES.map(p => `<a href="${p.slug}.html">${p.eyebrow}</a>`).join("\n          ");
+const timerLinks = PAGES.map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`).join("\n          ");
 // Same links, but rooted for index.html (one directory up from /timers/).
-const rootTimerLinks = PAGES.map(p => `<a href="timers/${p.slug}.html">${p.eyebrow}</a>`).join("\n      ");
+const rootTimerLinks = PAGES.map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`).join("\n      ");
 
 // FAQPage JSON-LD generated from each page's own `faq` array — never shared
 // verbatim between pages, per docs findings that repeated FAQ text across
@@ -275,13 +326,13 @@ const page = (p) => `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${p.h1} | ${BRAND}</title>
 <meta name="description" content="${p.meta}">
-<link rel="canonical" href="${SITE_URL}/timers/${p.slug}.html">
+<link rel="canonical" href="${SITE_URL}/timers/${p.slug}">
 <meta property="og:title" content="${p.h1}">
 <meta property="og:description" content="${p.meta}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="${SITE_URL}/assets/og-image.svg">
+<meta property="og:image" content="${SITE_URL}/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${SITE_URL}/assets/og-image.svg">
+<meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -292,7 +343,7 @@ const page = (p) => `<!DOCTYPE html>
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: BRAND,
-  url: `${SITE_URL}/timers/${p.slug}.html`,
+  url: `${SITE_URL}/timers/${p.slug}`,
   description: p.meta,
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any (web browser)",
@@ -305,28 +356,29 @@ const page = (p) => `<!DOCTYPE html>
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: BRAND, item: `${SITE_URL}/` },
-    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}/timers/${p.slug}.html` },
+    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}/timers/${p.slug}` },
   ],
 })}</script>
 ${faqSchema(p.faq)}
 <!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
 </head>
 <body>
+<a class="skip-link" href="#boardEl">Skip to timer</a>
 
 <header>
-  <a class="logo" href="../index.html">${BRAND}</a>
+  <a class="logo" href="/">${BRAND}</a>
   <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
-<nav class="main-nav">
-  <a href="../how-it-works.html">How It Works</a>
-  <a href="../compare.html">Compare</a>
-  <a href="../about.html">About</a>
-  <a href="../privacy.html">Privacy</a>
-  <a href="../terms.html">Terms</a>
-  <a href="../contact.html">Contact</a>
+<nav class="main-nav" aria-label="Site">
+  <a href="/how-it-works">How It Works</a>
+  <a href="/compare">Compare</a>
+  <a href="/about">About</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a>
 </nav>
 
-<div class="wrap">
+<main class="wrap">
   <section class="hero">
     <div class="hero-inner">
       <span class="eyebrow">${p.eyebrow}</span>
@@ -341,21 +393,22 @@ ${faqSchema(p.faq)}
   <section class="stage-section">
     <div class="board" id="boardEl">
       <span class="bolt-br"></span><span class="bolt-bl"></span>
-      <div class="style-toggle">
-        <button type="button" data-style="board">Board</button>
-        <button type="button" data-style="minimal">Minimal</button>
-        <button type="button" data-style="light">Light</button>
+      <div class="style-toggle" role="group" aria-label="Board style">
+        <button type="button" data-style="board" aria-pressed="true">Board</button>
+        <button type="button" data-style="minimal" aria-pressed="false">Minimal</button>
+        <button type="button" data-style="light" aria-pressed="false">Light</button>
       </div>
       <div class="evt" id="evtLabel"></div>
-      <div class="tiles" id="tiles"></div>
+      <div class="tiles" id="tiles" aria-hidden="true"></div>
+      <div id="a11yStatus" class="sr-only" role="status" aria-live="polite"></div>
       <div class="sub" id="subLine"></div>
       <div class="bar"><i id="barFill"></i></div>
       <div class="stage-btns">
         <button class="btn primary" id="boardStartBtn">Start countdown</button>
         <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
-        <button class="btn" id="fsBtn">Fullscreen</button>
-        <button class="btn" id="soundBtn">Sound: on</button>
+        <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
+        <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
       </div>
       <div class="sync-note"><span class="dot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
@@ -371,11 +424,11 @@ ${faqSchema(p.faq)}
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">The board above is set to ${p.minutes} minutes, ready when you are — adjust it here if you need something else.</div>
+      <div class="hint">${p.setupHint || `The board above is set to ${p.minutes} minutes, ready when you are — adjust it here if you need something else.`}</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
-        <button class="q active" data-dir="down">Count down</button>
-        <button class="q" data-dir="up">Count up (stopwatch)</button>
+        <button class="q active" data-dir="down" aria-pressed="true">Count down</button>
+        <button class="q" data-dir="up" aria-pressed="false">Count up (stopwatch)</button>
       </div>
       <div id="durationFields">
         <label>Quick timer</label>
@@ -408,7 +461,7 @@ ${faqSchema(p.faq)}
       <button class="pro-link" id="qrBtn" style="margin-top:10px">Show QR code →</button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
-        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="../privacy.html" style="text-decoration:underline">Privacy</a>.</div>
+        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
       </div>
     </div>
   </section>
@@ -425,7 +478,7 @@ ${faqSchema(p.faq)}
   </section>
   ${p.extra || ""}
   ${faqHtml(p.faq)}
-</div>
+</main>
 
 <footer>
   <div class="wrap">
@@ -433,13 +486,13 @@ ${faqSchema(p.faq)}
       ${timerLinks}
     </div>
     <div class="foot-in">
-      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="../how-it-works.html">How It Works</a> · <a href="../about.html">About</a> · <a href="../compare.html">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a> · <a href="../contact.html">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
+      <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
 </footer>
 
-<script>window.COUNTLINK_DEFAULT={minutes:${p.minutes},label:${JSON.stringify(p.label)}};</script>
+<script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
 <script src="../assets/app.js" defer></script>
 </body>
 </html>
@@ -448,8 +501,8 @@ ${faqSchema(p.faq)}
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
 const sitemap = () => {
-  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}.html</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
-  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f}</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
+  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
+  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE_URL}/</loc><lastmod>${CONTENT_DATE}</lastmod></url>
@@ -465,8 +518,8 @@ ${urls}
 // that incident) — add a PAGES row, both files update together.
 const llmsTxt = () => {
   const durationSlugs = new Set(["5-minute-timer","10-minute-timer","15-minute-timer","20-minute-timer","25-minute-timer","30-minute-timer","45-minute-timer","60-minute-timer"]);
-  const durationLines = PAGES.filter(p => durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug}.html)`).join("\n");
-  const useCaseLines = PAGES.filter(p => !durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug}.html)`).join("\n");
+  const durationLines = PAGES.filter(p => durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug})`).join("\n");
+  const useCaseLines = PAGES.filter(p => !durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug})`).join("\n");
   return `# ${BRAND}
 
 > Free shared countdown timer. Set a duration, copy the link, and everyone who opens it sees the identical countdown — synced by encoding the end timestamp in the URL itself, with no account and no server round-trip.
@@ -475,12 +528,12 @@ ${BRAND} is a static web app: no signup, no backend, no per-viewer cost. The syn
 
 ## Primary pages
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
-- [How It Works](${SITE_URL}/how-it-works.html): the link-timestamp sync mechanic explained in depth
-- [Comparison: ${BRAND} vs ShareMyTimer vs Stagetimer](${SITE_URL}/compare.html): pricing, limits, and architecture differences, verified against each competitor's own pricing page
-- [About](${SITE_URL}/about.html): who builds this and why
-- [Privacy policy](${SITE_URL}/privacy.html): what data is (and isn't) collected
-- [Terms of Service](${SITE_URL}/terms.html)
-- [Contact](${SITE_URL}/contact.html)
+- [How It Works](${SITE_URL}/how-it-works): the link-timestamp sync mechanic explained in depth
+- [Comparison: ${BRAND} vs ShareMyTimer vs Stagetimer](${SITE_URL}/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [About](${SITE_URL}/about): who builds this and why
+- [Privacy policy](${SITE_URL}/privacy): what data is (and isn't) collected
+- [Terms of Service](${SITE_URL}/terms)
+- [Contact](${SITE_URL}/contact)
 
 ## Duration timers
 ${durationLines}
