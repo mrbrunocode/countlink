@@ -5,8 +5,8 @@
       "execution": "script",
       "status": "done",
       "blocked_reason": null,
-      "last_run": "2026-07-07T20:19:00.766Z",
-      "notes": "Submitted 23 URLs, IndexNow responded 202 Accepted. Recurring — re-run after every deploy that adds/changes pages."
+      "last_run": "2026-07-08T16:48:52.479Z",
+      "notes": "Re-run after the design-system reskin deploy (31 URLs, 200 accepted). Recurring — remember to re-run after future deploys that add/change pages."
     },
     "search-console-verify": {
       "name": "Google Search Console — ownership verification",
@@ -19,10 +19,10 @@
     "search-console-api": {
       "name": "Google Search Console — scripted sitemap resubmission",
       "execution": "script",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Gated on search-console-verify (human-required, still pending) — needs a Cloud project + service account added to the verified Search Console property before this script can be built/run. Nothing to do until Bruno completes ownership verification.",
+      "last_run": "2026-07-08T16:47:59.431Z",
+      "notes": "Gated on search-console-verify (human-required, still pending) — needs a Cloud project + service account added to the verified Search Console property before this script can be built/run. Nothing to do until Bruno completes ownership verification."
     },
     "bing-webmaster": {
       "name": "Bing Webmaster Tools API",
@@ -35,74 +35,74 @@
     "alternativeto": {
       "name": "AlternativeTo",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Submission requires creating an AlternativeTo account (Sign up) — no anonymous/guest submission path found. Needs Bruno to sign up himself.",
+      "last_run": "2026-07-08T16:47:38.144Z",
+      "notes": "Submission requires creating an AlternativeTo account (Sign up) — no anonymous/guest submission path found. Needs Bruno to sign up himself."
     },
     "saashub": {
       "name": "SaaSHub",
       "execution": "agent-browser",
-      "status": "pending",
+      "status": "done",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-08T16:47:38.188Z",
+      "notes": "Submitted via https://www.saashub.com/services/submit — no account required. Categories: Productivity, Time Tracking. Competitors linked: vClock, Online Stopwatch, Free Countdown Timer, TickCounter. Free tier (not Priority+/paid). Contact email hello@countlink.app. Verifying it later (via email link) would raise priority but isn't required."
     },
     "slant": {
       "name": "Slant",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "slant.co site search is broken right now (returns 0 results for every query incl. generic terms like \"timer\"/\"countdown\", and the query-string URL form threw a 500). Could not find a relevant question to answer. Retry later once their search is working again.",
+      "last_run": "2026-07-08T16:47:38.231Z",
+      "notes": "slant.co site search is broken right now (returns 0 results for every query incl. generic terms like \"timer\"/\"countdown\", and the query-string URL form threw a 500). Could not find a relevant question to answer. Retry later once their search is working again."
     },
     "stackshare": {
       "name": "StackShare",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Submission (List a Tool) requires GitHub or Google OAuth sign-in — no anonymous path. Needs Bruno to authenticate himself.",
+      "last_run": "2026-07-08T16:47:38.275Z",
+      "notes": "Submission (List a Tool) requires GitHub or Google OAuth sign-in — no anonymous path. Needs Bruno to authenticate himself."
     },
     "betalist": {
       "name": "BetaList",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Submission requires an account (sign in with X, or email+password signup) — no anonymous submission path. Needs Bruno to sign up himself.",
+      "last_run": "2026-07-08T16:47:38.318Z",
+      "notes": "Submission requires an account (sign in with X, or email+password signup) — no anonymous submission path. Needs Bruno to sign up himself."
     },
     "sourceforge": {
       "name": "SourceForge",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Form (sourceforge.net/software/vendors/new) filled in fully (no login required) but is protected by reCAPTCHA — repeated Submit clicks produced no network request and no visible confirmation, consistent with invisible reCAPTCHA silently blocking automated submission. Per plan, did not attempt to work around it. Bruno can complete it manually in ~2 min: Name=Bruno, Email=hello@countlink.app, Company=CountLink, Website=https://countlink.app, Founded=2026, Software Title=CountLink, category=Productivity, Starting Price=Free, Free Version checked, Support=Online, Platform=SaaS/Web.",
+      "last_run": "2026-07-08T16:47:38.360Z",
+      "notes": "Form (sourceforge.net/software/vendors/new) filled in fully (no login required) but is protected by reCAPTCHA — repeated Submit clicks produced no network request and no visible confirmation, consistent with invisible reCAPTCHA silently blocking automated submission. Per plan, did not attempt to work around it. Bruno can complete it manually in ~2 min: Name=Bruno, Email=hello@countlink.app, Company=CountLink, Website=https://countlink.app, Founded=2026, Software Title=CountLink, category=Productivity, Starting Price=Free, Free Version checked, Support=Online, Platform=SaaS/Web."
     },
     "producthunt-prep": {
       "name": "Product Hunt — listing draft",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Saving even a draft requires signing in (LinkedIn/GitHub/X/Google/Facebook/Apple) — no anonymous draft path. Wrote the full draft (tagline, maker comment, description, screenshot checklist) to docs/producthunt-draft.md for Bruno to paste in once signed in.",
+      "last_run": "2026-07-08T16:47:38.404Z",
+      "notes": "Saving even a draft requires signing in (LinkedIn/GitHub/X/Google/Facebook/Apple) — no anonymous draft path. Wrote the full draft (tagline, maker comment, description, screenshot checklist) to docs/producthunt-draft.md for Bruno to paste in once signed in."
     },
     "gh-awesome-education": {
       "name": "GitHub awesome-lists (education)",
       "execution": "agent-browser",
-      "status": "pending",
+      "status": "done",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-08T16:47:49.541Z",
+      "notes": "Opened PR against hkalant/awesome-edtech-tools (214 stars, active) adding CountLink to the Utilities section: https://github.com/hkalant/awesome-edtech-tools/pull/56"
     },
     "gh-awesome-free": {
       "name": "GitHub awesome-lists (free software / self-hosted-adjacent)",
       "execution": "agent-browser",
-      "status": "pending",
-      "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "status": "blocked",
+      "blocked_reason": "Skipped per Bruno's call: best-fit list (johnjago/awesome-free-software, 2.8k stars) is scoped to 'free as in freedom' (open-source) software — CountLink is free-to-use but closed-source, so it doesn't actually fit their inclusion criteria. Not pursued.",
+      "last_run": "2026-07-08T16:47:49.588Z",
+      "notes": "Skipped per Bruno's call: best-fit list (johnjago/awesome-free-software, 2.8k stars) is scoped to 'free as in freedom' (open-source) software — CountLink is free-to-use but closed-source, so it doesn't actually fit their inclusion criteria. Not pursued."
     },
     "show-hn": {
       "name": "Show HN (Hacker News)",
