@@ -249,14 +249,23 @@ body.viewing .stage-section{padding-top:18px}
 .board.style-light .btn.primary{color:#fff}
 .board.style-light .btn.primary:hover{color:#fff}
 
+/* The separator is the text ":" in the DOM (for screen readers / copy-paste
+   of the rendered time), but drawn as two CSS dots rather than the glyph
+   itself — a mono font's ":" glyph doesn't sit at the same optical center
+   as the tile seam line (var(--th)/2), so the text would float off-seam.
+   align-self:stretch fills the tile row's height (var(--th)), giving the
+   dots a box to center within that always matches the seam. */
 .tile-sep{
-  font-family:var(--mono);font-weight:700;font-size:1.3rem;color:var(--amber);align-self:center;
-  width:5px;text-align:center;line-height:1;opacity:.85;flex:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:calc(var(--th) * .12);width:5px;align-self:stretch;flex:none;
+  font-size:0;color:transparent;
 }
-@media(min-width:420px){.tile-sep{font-size:1.8rem;width:7px}}
-@media(min-width:640px){.tile-sep{font-size:2.4rem;width:10px}}
-@media(min-width:900px){.tile-sep{font-size:2.9rem;width:12px}}
-@media(min-width:1200px){.tile-sep{font-size:3.4rem;width:14px}}
+.tile-sep::before,.tile-sep::after{
+  content:"";flex:none;border-radius:50%;background:var(--amber);opacity:.85;
+  width:calc(var(--th) * .09);height:calc(var(--th) * .09);
+}
+@media(min-width:420px){.tile-sep{width:7px}}
+@media(min-width:900px){.tile-sep{width:12px}}
 /* days-mode display ("172d 04:31:22") — a single text line instead of flip
    tiles, but it IS the timer on date-countdown pages, so it renders at
    display size, not caption size. */
