@@ -1,0 +1,21 @@
+<!-- @dsCard group="Components" viewport="700x160" name="Card" subtitle="Neutral surface container" -->
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg);}</style>
+</head>
+<body data-theme="dark">
+<div id="root" style="padding:24px;display:flex;gap:14px;"></div>
+<script type="text/babel">
+const { Card } = window.Countlink;
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(React.Fragment, null,
+    React.createElement(Card, {style:{width:220}}, React.createElement("div",{style:{fontSize:14,color:"var(--text-secondary)"}}, "Flush card")),
+    React.createElement(Card, {elevated:true, style:{width:220}}, React.createElement("div",{style:{fontSize:14,color:"var(--text-secondary)"}}, "Elevated card"))
+  )
+);
+</script>
+</body>
+</html>

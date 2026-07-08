@@ -1,0 +1,59 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Feedback" subtitle="Badge, Tag, Tooltip, Dialog, Toast" -->
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="../../styles.css">
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; background:var(--bg); font-family:var(--font-ui); }
+  .wrap { padding:24px; display:flex; flex-direction:column; gap:20px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .lbl { font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.08em; width:100px; flex-shrink:0; }
+</style>
+</head>
+<body data-theme="dark">
+<div id="root" class="wrap"></div>
+<script type="text/babel">
+const { Badge, Tag, Tooltip, Dialog, Toast, Button, IconButton } = window.Countlink;
+
+function Demo() {
+  const [open, setOpen] = React.useState(false);
+  const [toast, setToast] = React.useState(true);
+  return React.createElement(React.Fragment, null,
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Badge"),
+      React.createElement(Badge,{tone:"success",dot:true},"Live · 24 watching"),
+      React.createElement(Badge,{tone:"accent"},"Pro"),
+      React.createElement(Badge,{tone:"neutral"},"Draft"),
+      React.createElement(Badge,{tone:"warning"},"Ending soon"),
+      React.createElement(Badge,{tone:"danger"},"Ended")
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Tag"),
+      React.createElement(Tag,null,"alex@email.com"),
+      React.createElement(Tag,{onRemove:()=>{}},"sam@email.com"),
+      React.createElement(Tag,{onRemove:()=>{}},"+3 more")
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Tooltip"),
+      React.createElement(Tooltip,{label:"Copy share link"}, React.createElement(Button,{size:"sm",variant:"secondary"},"Hover me"))
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Dialog"),
+      React.createElement(Button,{size:"sm",onClick:()=>setOpen(true)},"Open dialog"),
+      React.createElement(Dialog,{open,onClose:()=>setOpen(false),title:"End this countdown?",footer:React.createElement(React.Fragment,null,
+        React.createElement(Button,{variant:"ghost",onClick:()=>setOpen(false)},"Cancel"),
+        React.createElement(Button,{variant:"danger",onClick:()=>setOpen(false)},"End for everyone")
+      )}, "Everyone watching will see it stop immediately.")
+    ),
+    React.createElement("div", {className:"row"},
+      React.createElement("span",{className:"lbl"},"Toast"),
+      React.createElement(Button,{size:"sm",variant:"secondary",onClick:()=>setToast(true)},"Show toast"),
+      React.createElement(Toast,{open:toast,tone:"success",onDismiss:()=>setToast(false),duration:0},"Link copied to clipboard")
+    )
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Demo));
+</script>
+</body>
+</html>
