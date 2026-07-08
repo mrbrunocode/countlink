@@ -117,6 +117,9 @@ export const TARGETS = [
   { id: "gh-awesome-free", name: "GitHub awesome-lists (free software / self-hosted-adjacent)", category: "directory-listing", execution: "agent-browser",
     url: "https://github.com/search?q=awesome+free-software&type=repositories", gated_on_domain: true,
     notes: "Same approach as the education list — quality over count." },
+  { id: "gh-awesome-remote-work", name: "GitHub awesome-lists (remote work / digital events)", category: "directory-listing", execution: "agent-browser",
+    url: "https://github.com/zenika-open-source/awesome-remote-work", gated_on_domain: true,
+    notes: "Same approach as the other awesome-list PRs — quality over count. Fits the 'Tools to set-up digital events' section (webinar/stream countdown use case), right next to OBS/Twitch." },
 
   // ---- authentic-human-only: agent may draft copy, must not post/submit ----
   { id: "show-hn", name: "Show HN (Hacker News)", category: "authentic-human-post", execution: "human-required",

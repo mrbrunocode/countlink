@@ -11,10 +11,10 @@
     "search-console-verify": {
       "name": "Google Search Console — ownership verification",
       "execution": "human-required",
-      "status": "pending",
+      "status": "done",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-08T16:50:55.463Z",
+      "notes": "Bruno confirmed he's completed and verified Search Console ownership."
     },
     "search-console-api": {
       "name": "Google Search Console — scripted sitemap resubmission",
@@ -60,9 +60,9 @@
       "name": "StackShare",
       "execution": "agent-browser",
       "status": "blocked",
-      "blocked_reason": "Submission (List a Tool) requires GitHub or Google OAuth sign-in — no anonymous path. Needs Bruno to authenticate himself.",
-      "last_run": "2026-07-08T16:47:38.275Z",
-      "notes": "Submission (List a Tool) requires GitHub or Google OAuth sign-in — no anonymous path. Needs Bruno to authenticate himself."
+      "blocked_reason": "Google OAuth sign-in worked, but their own submission system auto-rejected: 'This tool does not fit into any of our supported categories. We currently focus on developer tools, SaaS products, and technology platforms.' Scope mismatch, not a technical blocker — not worth retrying.",
+      "last_run": "2026-07-08T17:31:37.723Z",
+      "notes": "Google OAuth sign-in worked, but their own submission system auto-rejected: 'This tool does not fit into any of our supported categories. We currently focus on developer tools, SaaS products, and technology platforms.' Scope mismatch, not a technical blocker — not worth retrying."
     },
     "betalist": {
       "name": "BetaList",
@@ -83,10 +83,10 @@
     "producthunt-prep": {
       "name": "Product Hunt — listing draft",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Saving even a draft requires signing in (LinkedIn/GitHub/X/Google/Facebook/Apple) — no anonymous draft path. Wrote the full draft (tagline, maker comment, description, screenshot checklist) to docs/producthunt-draft.md for Bruno to paste in once signed in.",
-      "last_run": "2026-07-08T16:47:38.404Z",
-      "notes": "Saving even a draft requires signing in (LinkedIn/GitHub/X/Google/Facebook/Apple) — no anonymous draft path. Wrote the full draft (tagline, maker comment, description, screenshot checklist) to docs/producthunt-draft.md for Bruno to paste in once signed in."
+      "status": "done",
+      "blocked_reason": null,
+      "last_run": "2026-07-08T17:31:20.506Z",
+      "notes": "Draft saved on producthunt.com (signed in with the subs account) — name, tagline, description, 2 tags (Productivity/Education), gallery image auto-pulled from og-image, and full maker comment. Still needs: launch day picked by Bruno + being present to reply (see producthunt-launch, separate human-required item)."
     },
     "gh-awesome-education": {
       "name": "GitHub awesome-lists (education)",
@@ -151,7 +151,15 @@
       "blocked_reason": null,
       "last_run": null,
       "notes": ""
+    },
+    "gh-awesome-remote-work": {
+      "name": "GitHub awesome-lists (remote work / digital events)",
+      "execution": "agent-browser",
+      "status": "done",
+      "blocked_reason": null,
+      "last_run": "2026-07-08T17:32:49.751Z",
+      "notes": "Opened PR against zenika-open-source/awesome-remote-work (483 stars, active) adding CountLink to the 'Tools to set-up digital events' section, next to OBS/Twitch: https://github.com/zenika-open-source/awesome-remote-work/pull/135"
     }
   },
-  "last_synced": "2026-07-07T20:52:14.001Z"
+  "last_synced": "2026-07-08T17:32:49.681Z"
 }

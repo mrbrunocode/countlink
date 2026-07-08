@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T20:52:13.948Z",
+  "generated_at": "2026-07-08T17:32:49.623Z",
   "copy": {
     "name": "CountLink",
     "url": "https://countlink.app",
@@ -136,6 +136,15 @@
       "url": "https://github.com/search?q=awesome+free-software&type=repositories",
       "gated_on_domain": true,
       "notes": "Same approach as the education list — quality over count."
+    },
+    {
+      "id": "gh-awesome-remote-work",
+      "name": "GitHub awesome-lists (remote work / digital events)",
+      "category": "directory-listing",
+      "execution": "agent-browser",
+      "url": "https://github.com/zenika-open-source/awesome-remote-work",
+      "gated_on_domain": true,
+      "notes": "Same approach as the other awesome-list PRs — quality over count. Fits the 'Tools to set-up digital events' section (webinar/stream countdown use case), right next to OBS/Twitch."
     },
     {
       "id": "show-hn",
