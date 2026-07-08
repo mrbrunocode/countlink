@@ -382,7 +382,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   ],
 })}</script>
 ${faqSchema(p.faq)}
-<!-- ANALYTICS / ADSENSE placeholders — see index.html head and docs/monetization.md -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
 </head>
 <body${p.theme ? ` class="theme-${p.theme}"` : ""}>
 <a class="skip-link" href="#boardEl">Skip to timer</a>

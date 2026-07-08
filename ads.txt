@@ -1,11 +1,1 @@
-# ads.txt — required by Google AdSense to confirm you're an authorized seller
-# of ad space on this domain. Without this file at https://yourdomain/ads.txt,
-# AdSense will show far fewer/lower-paying ads once you're approved.
-#
-# Replace pub-0000000000000000 with the publisher ID AdSense gives you after
-# approval (Account > Settings > Account information). One line, exactly this
-# format, DIRECT relationship:
-#
-# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
-#
-# See docs/monetization.md step 2 for the full AdSense setup checklist.
+google.com, pub-2653891546345771, DIRECT, f08c47fec0942fa0

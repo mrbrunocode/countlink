@@ -81,8 +81,19 @@ const HEAD_BLOCK = /<!--\s*\n\s*ADSENSE \(disabled[\s\S]*?-->|<script async src=
 // comment) or an already-live unit.
 const SLOT_BLOCK = /<!-- Ad slot deliberately not rendered[\s\S]*?-->\s*<!--\s*<div class="ad-slot">[\s\S]*?-->|<div class="ad-slot">\s*<ins class="adsbygoogle"[\s\S]*?<\/div>/;
 
+// The 6 hand-written pages besides index.html never had an ADSENSE
+// placeholder (only index.html's template included one) — they only got
+// the GA4 snippet when analytics was wired up. Anchor on the GA4 config
+// line instead, and match an already-inserted loader right after it too
+// (idempotent re-run).
+const STATIC_PAGES = ["about.html", "compare.html", "contact.html", "how-it-works.html", "privacy.html", "terms.html"];
+const GA_ANCHOR = /(gtag\('js',new Date\(\)\);gtag\('config','G-WM4M28L7Y1'\);<\/script>)(\n<script async src="https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=ca-pub-\d+" crossorigin="anonymous"><\/script>)?/;
+
 // ---------- phase 1: loader + ads.txt ----------
 await patch("index.html", [["ADSENSE head block", HEAD_BLOCK, LOADER]]);
+for (const page of STATIC_PAGES) {
+  await patch(page, [["GA4 anchor / AdSense loader", GA_ANCHOR, `$1\n${LOADER}`]]);
+}
 await patch("scripts/build-timer-pages.mjs", [[
   "ADSENSE head marker",
   /<!-- ANALYTICS \/ ADSENSE placeholders — see index\.html head and docs\/monetization\.md -->|<script async src="https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=ca-pub-\d+" crossorigin="anonymous"><\/script>/,
