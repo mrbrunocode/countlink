@@ -332,12 +332,16 @@ body.viewing .stage-section{padding-top:18px}
   border-radius:6px;
 }
 /*
-  PRODUCTION: replace .ad-frame contents with your AdSense unit, e.g.:
-  <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-       data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  See docs/monetization.md for the full setup checklist.
+  PRODUCTION: don't hand-paste the AdSense unit — run
+      node scripts/enable-adsense.mjs ca-pub-XXXXXXXXXXXXXXXX --slot XXXXXXXXXX
+  which swaps the placeholder for the live unit on every page at once.
+  See docs/monetization.md step 2.
 */
+/* If AdSense has no ad to show it marks the <ins> unfilled — collapse the
+   slot rather than leave a permanent 90px hole in the page. (The one-time
+   layout shift on collapse is below the timer/controls, so it never moves
+   what the visitor is actually using.) */
+.ad-slot ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important}
 
 /* ============ SETUP ============ */
 .setup-section{padding:30px 0 0}

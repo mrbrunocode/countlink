@@ -17,8 +17,8 @@ all of it at once) and I'll paste them into the right files:
 |---|---|---|---|
 | 1 | ~~The real domain~~ **DONE** — `countlink.app` bought, deployed, live with HTTPS (2026-07-08) | — | — |
 | 2 | ~~GA4 Measurement ID~~ **DONE** — `G-WM4M28L7Y1` (property "CountLink", account "CountLink", 2026-07-08) | — | Live in every hand-written page's `<head>` (index, about, compare, contact, how-it-works, privacy, terms) and in the timer-page template — all 31 pages fire `page_view` on load, confirmed via GA4 Realtime |
-| 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
-| 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
+| 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) — shown during the application's "connect your site" step, before approval | Run `node scripts/enable-adsense.mjs ca-pub-...` — injects the verification loader into all 31 pages and writes `ads.txt` in one command |
+| 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit (after approval) | Re-run the same script with `--slot XXXXXXXXXX` — swaps the hidden placeholder for the live unit everywhere and regenerates `/timers/` |
 
 Two rows that used to be here are done already, not pending: the real contact
 email (`CONTACT_EMAIL` in `scripts/site-config.mjs`) is wired in everywhere,
@@ -97,27 +97,34 @@ plan for **1–4 weeks** of review, sometimes longer.
    site passed a mobile-first redesign and a WCAG contrast/keyboard/
    screen-reader pass, and there are no placeholder ad boxes rendered.
    There is nothing left blocking the application — apply now.
-3. Once approved, AdSense gives you:
-   - A publisher ID like `ca-pub-XXXXXXXXXXXXXXXX`.
-   - An ad unit — create a **Display ad**, format **Horizontal**, responsive.
-4. Fill in `ads.txt` at the repo root with the real line AdSense shows you
-   (format: `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`).
-   This file **must** be reachable at `https://yourdomain/ads.txt` — without
-   it, AdSense pays out at a fraction of the normal rate even after approval.
-5. In `index.html`, uncomment the AdSense `<script>` tag in `<head>` and set
-   your real `client=ca-pub-...` value.
-6. Replace the placeholder `<div class="ad-frame">...</div>` in `index.html`
-   with the real ad unit AdSense gives you:
-   ```html
-   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-        data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
-   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+3. When the application asks you to "connect your site" (paste the AdSense
+   code into your `<head>`), run **phase 1** of the enable script with the
+   publisher ID shown on screen — it injects the loader into all 31 pages'
+   heads and writes the real `ads.txt` in one go:
    ```
-7. Do the same in `scripts/build-timer-pages.mjs`'s template (search for
-   `ad-frame`), then re-run the generator so every `/timers/` page picks it
-   up — **don't** hand-edit the individual files in `/timers/`, they'll be
-   overwritten next time the script runs.
-8. Keep the ad to this one slot for now. vClock's data shows one well-placed
+   node scripts/enable-adsense.mjs ca-pub-XXXXXXXXXXXXXXXX
+   ```
+   Then commit + push (deploys automatically) and click "Verify" in AdSense.
+   No visitor-visible change happens in this phase — the loader alone
+   renders nothing.
+4. Once approved, create an ad unit in the dashboard (**Display ad**,
+   format **Horizontal**, responsive) and run **phase 2** with its numeric
+   slot ID:
+   ```
+   node scripts/enable-adsense.mjs ca-pub-XXXXXXXXXXXXXXXX --slot XXXXXXXXXX
+   ```
+   This swaps the hidden placeholder for the live unit on `index.html` and
+   every `/timers/` page (it re-runs the generator itself — never hand-edit
+   files in `/timers/`). The unit reserves its height up front (no layout
+   shift), collapses if Google has no ad to fill it (no permanent empty
+   box), and stays hidden in Fullscreen and OBS-overlay modes so an ad can
+   never appear on a projector or in a stream. Commit + push.
+5. **EEA/UK consent message (required, post-approval):** in AdSense →
+   **Privacy & messaging**, enable Google's consent message for EEA/UK
+   visitors. Google mandates a certified CMP for personalised ads in those
+   regions; AdSense's built-in message satisfies it with zero code. Without
+   it, UK/EEA visitors (including you) get limited or no ads.
+6. Keep the ad to this one slot for now. vClock's data shows one well-placed
    unit is the proven pattern; adding more (sidebar, sticky, in-content)
    raises revenue per visit only marginally and measurably hurts return
    visits on a utility tool like this — the whole value proposition is speed.
