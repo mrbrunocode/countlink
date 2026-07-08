@@ -358,6 +358,9 @@ const page = (p) => `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 <script type="application/ld+json">${JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebApplication",

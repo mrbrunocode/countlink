@@ -16,7 +16,7 @@ all of it at once) and I'll paste them into the right files:
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
 | 1 | ~~The real domain~~ **DONE** — `countlink.app` bought, deployed, live with HTTPS (2026-07-08) | — | — |
-| 2 | **GA4 Measurement ID** — looks like `G-XXXXXXXXXX` | [analytics.google.com](https://analytics.google.com) → Admin → Create Property → Web data stream | Uncomment + paste into the analytics `<script>` block in `index.html`'s `<head>` (and privacy.html, and the timer-page template) |
+| 2 | ~~GA4 Measurement ID~~ **DONE** — `G-WM4M28L7Y1` (property "CountLink", account "CountLink", 2026-07-08) | — | Live in every hand-written page's `<head>` (index, about, compare, contact, how-it-works, privacy, terms) and in the timer-page template — all 31 pages fire `page_view` on load, confirmed via GA4 Realtime |
 | 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) after your application is approved | Paste into `ads.txt`, the AdSense `<script>` tag in `<head>`, and every `data-ad-client` attribute |
 | 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit | Paste into `data-ad-slot`, replacing the `.ad-frame` placeholder div in `index.html` and in `scripts/build-timer-pages.mjs`'s template (then re-run the script) |
 
@@ -69,23 +69,17 @@ Deploys happen automatically on push to `main` via
 `.github/workflows/deploy.yml`. Search Console + Bing Webmaster submissions
 made; verification was pending as of 2026-07-08.
 
-## Step 1 — Google Analytics (GA4)
+## Step 1 — Google Analytics (GA4) — DONE (2026-07-08)
 
-Free, and useful before you have any ad revenue to see if the programmatic
-pages are actually getting indexed/visited.
+Property "CountLink" (account "CountLink", both fresh — not reused from any
+prior account) → Web data stream for `https://countlink.app` → Measurement
+ID `G-WM4M28L7Y1`. Live on all 31 pages (every hand-written page plus the
+timer-page template), confirmed firing in GA4 Realtime the same day.
 
-1. Go to [analytics.google.com](https://analytics.google.com) → Admin →
-   Create Property → enter your domain.
-2. Create a **Web** data stream for your domain; copy the Measurement ID
-   (looks like `G-XXXXXXXXXX`).
-3. In `index.html`, uncomment the analytics block in `<head>` and replace
-   both `G-XXXXXXXXXX` placeholders with your real ID.
-4. Repeat for `scripts/build-timer-pages.mjs`'s `PAGE_TEMPLATE` head comment
-   (or, simpler, extract the snippet into its own small file later — for now,
-   pasting the same two lines into the template's head comment and
-   re-running the generator is enough).
-5. Also add it to `privacy.html`'s `<head>`.
-6. Deploy, then check GA4's Realtime report to confirm it's firing.
+Went further than "index.html + privacy.html" — the snippet is on every
+page (about, compare, contact, how-it-works, terms too), since a single-page
+subset would undercount the `/timers/` traffic that's the actual point of
+the programmatic-SEO strategy in Step 3 below.
 
 ## Step 2 — Google AdSense
 
