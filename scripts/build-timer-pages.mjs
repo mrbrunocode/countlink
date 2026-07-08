@@ -436,12 +436,12 @@ ${faqSchema(p.faq)}
     </div>
   </section>
 
-  <!-- Ad slot deliberately not rendered until a real AdSense unit exists — see index.html for why. -->
-  <!--
   <div class="ad-slot">
-    <div class="ad-frame" id="adFrame">Advertisement — 728×90 responsive slot (AdSense unit goes here)</div>
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
-  -->
 
   <section class="setup-section">
     <div class="panel">
