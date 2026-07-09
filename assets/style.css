@@ -328,7 +328,17 @@ body.viewing .stage-section{padding-top:18px}
 
 /* ============ AD SLOT — placed exactly where vClock places theirs: ============ */
 /* directly below the timer stage/controls, above supporting content.        */
-.ad-slot{margin:0 auto;max-width:1000px;padding:16px 20px 0}
+/* max-height + overflow is a hard cap independent of what AdSense decides to
+   render — observed reserving a large blank block on some mobile UAs while
+   the account is pending review (a known, temporary AdSense review-period
+   quirk, not specific to this site), before data-ad-status is ever set for
+   the unfilled-collapse rule below to catch. Whatever the cause (pending
+   review today, an unusually large filled creative later), the one-slot
+   design this site is built around means no ad state should ever be allowed
+   to claim more than a bounded amount of screen space.  280px comfortably
+   fits a real 250/280-tall responsive unit; anything taller gets clipped
+   rather than pushing the page's own content down. */
+.ad-slot{margin:0 auto;max-width:1000px;padding:16px 20px 0;max-height:280px;overflow:hidden}
 @media(min-width:640px){.ad-slot{padding:18px 32px 0}}
 .ad-frame{
   border:1px dashed var(--panel-line);background:var(--panel);
