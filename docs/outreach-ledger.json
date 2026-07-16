@@ -109,48 +109,48 @@
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "Title + first-comment draft ready in docs/human-required-drafts.md. Still needs Bruno: post from his own account, pick a day he can watch/reply for 1-2hrs, don't same-day cross-post to Reddit."
     },
     "producthunt-launch": {
       "name": "Product Hunt — launch day",
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "Draft (producthunt-prep) confirmed still live on producthunt.com. Screenshots: hero, fullscreen board, and light-theme board all reviewed live on countlink.app and render correctly — ready to attach. Mobile-view shot still outstanding (a quick phone capture is easiest — automation couldn't reliably force a narrow viewport this session). Still needs Bruno: pick launch day + be present to reply."
     },
     "reddit-sideproject": {
       "name": "r/SideProject",
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "Title + body draft ready in docs/human-required-drafts.md."
     },
     "reddit-internetisbeautiful": {
       "name": "r/InternetIsBeautiful",
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "Draft ready in docs/human-required-drafts.md, but flagged there: this sub is strict on self-promo and some subs like it require mod pre-approval before the maker posts. Check current sidebar rules / message mods before posting, not just copy-paste the draft."
     },
     "reddit-teachers": {
       "name": "r/Teachers / r/Professors",
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "Draft ready in docs/human-required-drafts.md, framed as a classroom tool share rather than a launch announcement per this sub's different norms."
     },
     "blog-roundup-outreach": {
       "name": "Teacher/workshop-tool blog roundup outreach",
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-07-16T00:00:00.000Z",
+      "notes": "4 live, currently-unlisted-on candidate roundups found (toolsjam.co, teachersresourceforce.com, lauracandler.com, blog.tcea.org x2) + a personalized email template, all in docs/human-required-drafts.md. Author names/emails intentionally left as placeholders — fill in from each site's own contact page for a genuinely personalized send, and send individually, not mail-merged."
     },
     "gh-awesome-remote-work": {
       "name": "GitHub awesome-lists (remote work / digital events)",
