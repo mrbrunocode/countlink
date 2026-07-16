@@ -91,3 +91,50 @@ Both changes are live on `countlink.app` as of this commit
 re-check should specifically watch whether classroom-timer starts
 appearing for education-intent queries where it previously didn't
 compete at all on content depth.
+
+## 2026-07-16 — Re-check (8 days post-baseline)
+
+**Status: unchanged — still not indexed, still not ranking.** Not a
+regression; 8 days with zero backlink age is well within Google's normal
+indexing lag for a brand-new domain (commonly weeks, sometimes longer
+without any inbound links). Re-run again at the ~1-month mark, and treat a
+still-zero result *then* as the point to actually investigate rather than
+wait further.
+
+### Indexation check
+| Query | Result |
+|---|---|
+| `site:countlink.app` | No results returned |
+| `"countlink.app"` (exact phrase) | No results returned |
+
+### Target keyword rankings
+| Keyword | CountLink position | Notes |
+|---|---|---|
+| shared countdown timer free no signup | Not ranking | Same competitor set as baseline (countdownshare.com, tickcounter.com, webcountdown.net, eventtimer.io, watchisup.com now also visible) |
+| OBS countdown timer browser source free | Not ranking | Same competitor set as baseline |
+| classroom timer shared link students | Not ranking | countdownshare.com/use-cases/classroom-timer still ranks; sharemytimer.live and stagetimer.io still present. CountLink's classroom-timer content fix from 2026-07-08 hasn't shown any ranking effect yet — expected, since the page still isn't indexed at all |
+| pomodoro timer online free | Not ranking | Crowded niche unchanged |
+
+### A technical finding worth noting (unrelated to indexing lag)
+Found and fixed a robots.txt self-contradiction while doing this check:
+`robots.txt` had explicit `Allow: /` lines for `GPTBot` and `ClaudeBot`
+(the training-purpose crawler tokens), but Cloudflare auto-injects an
+edge-level "Managed content" block ahead of the origin's own file that
+`Disallow: /`s those same two tokens account-wide. Same user-agent token
+appearing in two conflicting groups in one served robots.txt is undefined
+behavior across parsers — not reliably honored either way. This has no
+bearing on why the site isn't indexed yet (Googlebot itself was never
+touched by any of this), but it's a latent correctness issue independent
+of indexing lag. Removed the two dead/contradicted lines and aligned the
+file with the family-wide AI-crawler policy now documented in
+`boring-app-factory/docs/seo-outreach-plan.md` (block training-only
+crawlers, explicitly allow every search/citation crawler that can actually
+send traffic or cite the site). See that commit for the full reasoning.
+
+### What to check next time (~2026-08-16)
+- Same as before: `site:countlink.app`, the four target keywords, and
+  Search Console impressions (more sensitive than manual search).
+- Whether the September 2026 Cloudflare default-AI-bot-policy change
+  (new domains only, per `boring-app-factory/docs/seo-outreach-plan.md`)
+  ends up affecting this zone — it shouldn't, since countlink onboarded
+  before that date, but worth a one-line sanity check.

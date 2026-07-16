@@ -1,21 +1,25 @@
 User-agent: *
 Allow: /
 
-# Explicit lines for AI search/citation crawlers are not required — the
-# wildcard block above already allows every crawler that has no more-specific
-# rule of its own — but they're listed anyway as a defensive, self-documenting
-# choice: it makes it obvious nobody accidentally added a training-bot block
-# that silently shadows search/citation access too. See docs/battle-plan-*.md.
-User-agent: GPTBot
-Allow: /
-
+# 2026-07-16: this file used to also carry explicit `Allow: /` lines for
+# GPTBot and ClaudeBot themselves (the training-purpose tokens), on the
+# stated intent that the wildcard rule above shouldn't get silently shadowed
+# by an accidental training-bot block. That assumption no longer holds —
+# Cloudflare now auto-injects a "Managed content" robots.txt block (edge-
+# level, prepended ahead of everything below) that disallows GPTBot and
+# ClaudeBot account-wide. Having the same user-agent token in two conflicting
+# groups in one served file is undefined behavior across parsers (some take
+# the first match, some the last, some union-with-tie-break-to-least-
+# restrictive) — so those two lines were live but not reliably honored.
+# Removed them rather than leave an ambiguous contradiction; this also
+# brings countlink in line with the family-wide policy now documented in
+# boring-app-factory/docs/seo-outreach-plan.md — block training-only
+# crawlers, leave every search/citation crawler (which actually sends
+# traffic or gets cited) explicitly allowed below, unambiguously.
 User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
 Allow: /
 
 User-agent: Claude-User
@@ -32,6 +36,8 @@ Allow: /
 
 # Training-only crawlers (not search/citation) — uncomment to opt out of
 # training use while still allowing the search/citation crawlers above.
+# (GPTBot and ClaudeBot are already blocked by Cloudflare's own managed
+# rule above this file; these three aren't, so they're spelled out.)
 # User-agent: CCBot
 # Disallow: /
 # User-agent: anthropic-ai
