@@ -26,7 +26,7 @@ body{
   font-family:var(--sans);background:var(--board);color:var(--paper-text);
   min-height:100vh;font-size:16px;line-height:1.55;
   background-image:
-    radial-gradient(ellipse 120% 60% at 50% -10%, oklch(0.72 0.16 265 / .07), transparent 55%),
+    radial-gradient(ellipse 130% 65% at 50% -12%, oklch(0.72 0.16 265 / .11), transparent 58%),
     repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
 }
 ::selection{background:var(--amber);color:var(--board)}
@@ -106,7 +106,8 @@ header{
 .eyebrow::before{content:"";width:14px;height:1px;background:var(--amber-deep)}
 h1{
   font-family:var(--display);font-weight:800;font-size:clamp(1.55rem,5.5vw,3.6rem);
-  line-height:1.05;letter-spacing:-.02em;color:var(--paper-text);max-width:24ch;text-transform:none;
+  line-height:1.05;letter-spacing:-.035em;color:var(--paper-text);max-width:24ch;text-transform:none;
+  text-wrap:balance;
 }
 @media(min-width:640px){h1{line-height:1.02;max-width:16ch}}
 .lede{margin-top:8px;font-size:.86rem;line-height:1.55;color:var(--paper-dim);max-width:52ch}
@@ -144,7 +145,7 @@ body.viewing .stage-section{padding-top:18px}
   background:linear-gradient(180deg,var(--panel),var(--board-deep));
   border:1px solid var(--panel-line);border-radius:10px;
   padding:24px 8px 22px;text-align:center;position:relative;
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px hsl(260 30% 4% / .30), 0 2px 6px hsl(260 30% 4% / .24);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 50px 90px -30px hsl(260 30% 2% / .55), 0 8px 24px hsl(260 30% 4% / .30), 0 2px 6px hsl(260 30% 4% / .24);
 }
 @media(min-width:360px){.board{--tw:38px;--th:54px;--fs:1.9rem}}
 @media(min-width:420px){.board{padding:26px 16px 24px;--tw:50px;--th:68px;--fs:2.5rem}}
