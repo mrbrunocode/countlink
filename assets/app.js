@@ -354,7 +354,15 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
     // Restart: same duration/label as the countdown that just ended (fresh link)
     if(direction==="up")startUp(label);
     else if(total>0)start(total,label);
-    else startFromForm();
+    // A recipient who opened the link after it already expired never had a
+    // positive `total` to begin with — there's no way to recover the
+    // original duration with no server, so this page's own default length
+    // is the honest fallback. But `label` (synced from the actual link via
+    // readHash()) is always correct — startFromForm() reads the evtName
+    // FORM FIELD instead, which a recipient's page never syncs to the link's
+    // real label, so it silently restarted under the page's stale default
+    // text rather than the timer that just finished.
+    else start((+$("customMin").value||25)*60e3,label);
     return;
   }
   startFromForm();
