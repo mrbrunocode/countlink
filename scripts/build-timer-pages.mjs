@@ -68,7 +68,7 @@ const CLASSROOM_EXTRA = `
 // deadline countdown/stopwatch: repeating work/rest phases derived from one
 // cycle-start instant. Its own panel + defaults per page (a boxing round
 // timer defaults to 3min/1min/12; a Tabata timer to 20s/10s/8), wired to
-// assets/app.js's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
+// assets/app.js?v=030236b6's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
 const ivExtra = (workSec, restSec, rounds) => `
         <div class="obs-extra">
           <h3>Set your rounds</h3>
@@ -340,6 +340,17 @@ export const PAGES = [
       { q: "Can I use this for Muay Thai or kickboxing instead?", a: "Yes — set the work/rest lengths to match whichever format you need (Muay Thai commonly uses 3-minute rounds with 2-minute rests, for instance) and the round count for however many rounds the bout runs." },
       { q: "Is there a ten-second warning before the round ends?", a: "Not a distinct warning sound, but the screen-reader announcement and the visible countdown both update every second in the final stretch, so it's easy to see (or hear, with assistive tech) a round winding down." },
     ] },
+  { slug: "multiple-timers-at-once", minutes: 5, label: "", eyebrow: "Multiple Timers",
+    multiTimer: true,
+    h1: "Multiple Timers at Once — Shareable Dashboard",
+    meta: "Run several named countdowns on one screen — cooking, multi-station events, parallel exam sections — all synced by one shareable link.",
+    intro: "Add as many named timers as you need — each one is its own independent countdown, all shown together on one dashboard. Share the link and everyone sees the identical set of timers, all counting down together.",
+    faq: [
+      { q: "Do all the timers share one countdown, or run independently?", a: "Independently — each timer you add has its own name and its own end time. Adding, removing, or finishing one has no effect on the others." },
+      { q: "How is the set of timers kept in sync across devices?", a: "The same mechanic as every other page here: each timer's end instant is encoded in the page's link. Copy the link after adding your timers, and anyone who opens it sees the identical set, each counting down from wherever it currently is." },
+      { q: "Is there a limit to how many timers I can add?", a: "No hard limit, but a screen full of dozens of cards gets hard to scan — for most uses (cooking a multi-dish meal, running parallel breakout timers) a handful at once is the practical ceiling." },
+      { q: "Can I remove just one timer without resetting the others?", a: "Yes — each card has its own remove button; removing one leaves the rest of the set (and the shareable link) intact." },
+    ] },
   { slug: "new-year-countdown", theme: "newyear", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
     h1: "New Year Countdown — Live, Shareable",
     meta: "A live countdown to New Year you can share: days, hours, minutes and seconds to midnight January 1st, identical on every screen that opens the link.",
@@ -393,86 +404,38 @@ const faqHtml = (faq) => faq ? `
   </section>` : "";
 
 // Seasonal page themes — body class drives a CSS-variable palette swap in
-// assets/style.css?v=507f72cc (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
+// assets/style.css?v=962ffe38 (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
 // browser-chrome theme-color meta in step with each palette's chassis tone.
 const THEME_COLORS = { christmas: "#182219", newyear: "#141826" };
 
-const page = (p) => `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${p.h1} | ${BRAND}</title>
-<meta name="description" content="${p.meta}">
-<link rel="canonical" href="${SITE_URL}/timers/${p.slug}">
-<meta property="og:title" content="${p.h1}">
-<meta property="og:description" content="${p.meta}">
-<meta property="og:type" content="website">
-<meta property="og:image" content="${SITE_URL}/assets/og-image.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
-<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-<link rel="apple-touch-icon" href="../assets/favicon.svg">
-<link rel="manifest" href="../manifest.json">
-<meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=507f72cc">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
-<script type="application/ld+json">${JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: BRAND,
-  url: `${SITE_URL}/timers/${p.slug}`,
-  description: p.meta,
-  applicationCategory: "UtilitiesApplication",
-  operatingSystem: "Any (web browser)",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  datePublished: CONTENT_DATE,
-  dateModified: CONTENT_DATE,
-})}</script>
-<script type="application/ld+json">${JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: BRAND, item: `${SITE_URL}/` },
-    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}/timers/${p.slug}` },
-  ],
-})}</script>
-${faqSchema(p.faq)}
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
-</head>
-<body${p.theme ? ` class="theme-${p.theme}"` : ""}>
-<a class="skip-link" href="#boardEl">Skip to timer</a>
-
-<header>
-  <a class="logo" href="/">${BRAND}</a>
-  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
-</header>
-<nav class="main-nav" aria-label="Site">
-  <a href="/how-it-works">How It Works</a>
-  <a href="/compare">Compare</a>
-  <a href="/about">About</a>
-  <a href="/privacy">Privacy</a>
-  <a href="/terms">Terms</a>
-  <a href="/contact">Contact</a>
-</nav>
-
-<main class="wrap">
-  <section class="hero">
-    <div class="hero-inner">
-      <span class="eyebrow">${p.eyebrow}</span>
-      <h1>${p.h1}</h1>
-      <p class="lede">${p.intro}</p>
-    </div>
-    <div class="hero-fact">
-      <span class="n">00</span>servers to run this
+// Multi-timer dashboard: a genuinely different UI (several independent
+// countdown cards, not one split-flap board), so it swaps out the whole
+// stage/setup/recent-timers block below rather than reusing it.
+const multiDashboardSection = `
+  <section class="stage-section">
+    <div class="multi-dashboard" id="multiDashboard">
+      <div class="multi-add-row">
+        <input id="multiLabel" placeholder="Timer name (e.g. Pasta, Round 1)">
+        <input id="multiMinutes" type="number" min="1" value="5" aria-label="Minutes">
+        <button type="button" class="btn primary" id="multiAddBtn">Add timer</button>
+      </div>
+      <div class="multi-cards" id="multiCards"></div>
+      <div class="stage-btns" style="margin-top:16px">
+        <button type="button" class="btn" id="multiShareBtn">Copy link to this set</button>
+        <button type="button" class="btn" id="multiClearBtn">Clear all</button>
+      </div>
+      <div class="sync-note"><span id="syncMsg">Anyone opening this exact link sees the identical set of timers, counting down together.</span></div>
     </div>
   </section>
 
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>`;
+
+const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : `
   <section class="stage-section">
     <div class="board" id="boardEl">
       <span class="bolt-br"></span><span class="bolt-bl"></span>
@@ -564,7 +527,84 @@ ${faqSchema(p.faq)}
       <div id="recentList"></div>
       <button class="pro-link" id="recentClear">Clear list</button>
     </div>
+  </section>`;
+return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${p.h1} | ${BRAND}</title>
+<meta name="description" content="${p.meta}">
+<link rel="canonical" href="${SITE_URL}/timers/${p.slug}">
+<meta property="og:title" content="${p.h1}">
+<meta property="og:description" content="${p.meta}">
+<meta property="og:type" content="website">
+<meta property="og:image" content="${SITE_URL}/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/favicon.svg">
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css?v=962ffe38">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: BRAND,
+  url: `${SITE_URL}/timers/${p.slug}`,
+  description: p.meta,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any (web browser)",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  datePublished: CONTENT_DATE,
+  dateModified: CONTENT_DATE,
+})}</script>
+<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: BRAND, item: `${SITE_URL}/` },
+    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}/timers/${p.slug}` },
+  ],
+})}</script>
+${faqSchema(p.faq)}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+</head>
+<body${p.theme ? ` class="theme-${p.theme}"` : ""}>
+<a class="skip-link" href="#boardEl">Skip to timer</a>
+
+<header>
+  <a class="logo" href="/">${BRAND}</a>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
+</header>
+<nav class="main-nav" aria-label="Site">
+  <a href="/how-it-works">How It Works</a>
+  <a href="/compare">Compare</a>
+  <a href="/about">About</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a>
+</nav>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">${p.eyebrow}</span>
+      <h1>${p.h1}</h1>
+      <p class="lede">${p.intro}</p>
+    </div>
+    <div class="hero-fact">
+      <span class="n">00</span>servers to run this
+    </div>
   </section>
+
+  ${stageBlock}
   ${p.extra || ""}
   ${faqHtml(p.faq)}
 </main>
@@ -582,10 +622,10 @@ ${faqSchema(p.faq)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=b14d6af8" defer></script>
+<script src="../assets/app.js?v=030236b6" defer></script>
 </body>
 </html>
-`;
+`; };
 
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 

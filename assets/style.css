@@ -360,6 +360,27 @@ body.viewing .stage-section{padding-top:18px}
    what the visitor is actually using.) */
 .ad-slot ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important}
 
+/* ============ MULTI-TIMER DASHBOARD ============ */
+.multi-dashboard{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px}
+@media(min-width:640px){.multi-dashboard{padding:28px 30px}}
+.multi-add-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.multi-add-row input{flex:1 1 160px;min-width:0}
+.multi-add-row input#multiMinutes{flex:0 0 90px}
+.multi-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.multi-card{
+  position:relative;padding:16px 14px;background:var(--board-deep);border:1px solid var(--panel-line);
+  border-radius:10px;text-align:center;
+}
+.multi-card.done{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--board-deep))}
+.multi-card-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;color:var(--paper-dim);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.multi-card-time{font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em;color:var(--paper-text);font-variant-numeric:tabular-nums}
+.multi-card.done .multi-card-time{color:var(--amber)}
+.multi-card-remove{
+  position:absolute;top:6px;right:8px;background:none;border:0;color:var(--paper-dim);font-size:1.1rem;
+  line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px;
+}
+.multi-card-remove:hover{color:var(--paper-text);background:var(--panel-line)}
+
 /* ============ SETUP ============ */
 .setup-section{padding:30px 0 0}
 @media(min-width:640px){.setup-section{padding:40px 0 0}}

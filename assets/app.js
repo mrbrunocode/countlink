@@ -439,7 +439,7 @@ function startFromForm(){
   if(dirty)start(new Date($("untilTime").value)-Date.now(),$("evtName").value);
   else start((+$("customMin").value||25)*60e3,$("evtName").value);
 }
-$("startBtn").addEventListener("click",()=>{
+if($("startBtn"))$("startBtn").addEventListener("click",()=>{
   startFromForm();
   // the form sits below the board — bring the now-running board back on screen
   $("boardEl").scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -483,7 +483,7 @@ if($("evtName"))$("evtName").addEventListener("input",e=>{
   if(state!=="running")$("evtLabel").textContent=e.target.value;
 });
 
-$("shareBtn").addEventListener("click",async e=>{
+if($("shareBtn"))$("shareBtn").addEventListener("click",async e=>{
   const link=makeLink();
   // On touch devices, the native share sheet (WhatsApp/Messages/etc.) beats a
   // silent clipboard copy; everywhere else, copy is the pro move.
@@ -533,13 +533,13 @@ if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{
   e.target.textContent="Copied ✓";
   setTimeout(()=>{e.target.textContent="Copy embed code";},1600);
 });
-$("fsBtn").addEventListener("click",()=>{
+if($("fsBtn"))$("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
   const on=document.body.classList.contains("fs");
   $("fsBtn").textContent=on?"Exit fullscreen":"Fullscreen";
   $("fsBtn").setAttribute("aria-pressed",on);
 });
-$("soundBtn").addEventListener("click",e=>{
+if($("soundBtn"))$("soundBtn").addEventListener("click",e=>{
   sound=!sound;
   e.target.textContent="Sound: "+(sound?"on":"off");
   e.target.setAttribute("aria-pressed",sound);
@@ -547,8 +547,10 @@ $("soundBtn").addEventListener("click",e=>{
 
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){
-  $("boardEl").classList.toggle("style-minimal",name==="minimal");
-  $("boardEl").classList.toggle("style-light",name==="light");
+  const board=$("boardEl");
+  if(!board)return; // no board on pages without one (e.g. the multi-timer dashboard)
+  board.classList.toggle("style-minimal",name==="minimal");
+  board.classList.toggle("style-light",name==="light");
   document.querySelectorAll(".style-toggle button").forEach(b=>{
     b.classList.toggle("active",b.dataset.style===name);
     b.setAttribute("aria-pressed",b.dataset.style===name);
@@ -584,6 +586,88 @@ function bootFromHash(){
   render();
 }
 
+// ---------- Multi-timer dashboard ----------
+// Several independent countdowns tracked at once (e.g. multiple kitchen
+// timers), each with its own end instant — same "the link is the timer"
+// mechanic as everywhere else, just an array of {label,end} in the hash
+// instead of one. Deliberately a plain countdown per card (mm:ss text, no
+// split-flap tiles) — this is a different, simpler display, not a grid of
+// full boards.
+let multiTimers=[]; // [{label, end}]
+function encodeMultiHash(){
+  return "m="+encodeURIComponent(JSON.stringify(multiTimers));
+}
+function decodeMultiHash(){
+  const m=new URLSearchParams(location.hash.slice(1)).get("m");
+  if(!m)return [];
+  try{
+    const parsed=JSON.parse(decodeURIComponent(m));
+    if(Array.isArray(parsed))return parsed.filter(t=>t&&typeof t.end==="number"&&typeof t.label==="string");
+  }catch(e){}
+  return [];
+}
+function fmtMulti(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(s/3600),mn=Math.floor(s%3600/60),sec=s%60;
+  return h>0?`${fmt2(h)}:${fmt2(mn)}:${fmt2(sec)}`:`${fmt2(mn)}:${fmt2(sec)}`;
+}
+function initMultiDashboard(){
+  const cardsEl=$("multiCards");
+  const labelEl=$("multiLabel"),minutesEl=$("multiMinutes");
+  multiTimers=decodeMultiHash();
+  function persist(){ history.replaceState(null,"",location.pathname+location.search+"#"+encodeMultiHash()); }
+  function renderCards(){
+    cardsEl.innerHTML=multiTimers.map((t,i)=>{
+      const left=t.end-Date.now();
+      const done=left<=0;
+      return `<div class="multi-card${done?" done":""}" data-i="${i}">
+        <div class="multi-card-label">${t.label.replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))||"Timer "+(i+1)}</div>
+        <div class="multi-card-time">${done?"Done":fmtMulti(left)}</div>
+        <button type="button" class="multi-card-remove" data-remove="${i}" aria-label="Remove this timer">×</button>
+      </div>`;
+    }).join("") || `<p class="hint">No timers yet — add one above.</p>`;
+  }
+  renderCards();
+  persist();
+  setInterval(renderCards,250);
+
+  if($("multiAddBtn"))$("multiAddBtn").addEventListener("click",()=>{
+    const mins=Math.max(1,+minutesEl.value||5);
+    const label=(labelEl.value||"").trim();
+    multiTimers.push({label,end:Date.now()+mins*60000});
+    labelEl.value="";
+    renderCards();
+    persist();
+  });
+  cardsEl.addEventListener("click",(e)=>{
+    const btn=e.target.closest("[data-remove]");
+    if(!btn)return;
+    multiTimers.splice(+btn.dataset.remove,1);
+    renderCards();
+    persist();
+  });
+  if($("multiClearBtn"))$("multiClearBtn").addEventListener("click",()=>{
+    multiTimers=[];
+    renderCards();
+    persist();
+  });
+  if($("multiShareBtn"))$("multiShareBtn").addEventListener("click",async (e)=>{
+    await navigator.clipboard.writeText(location.href);
+    const t=e.target.textContent;e.target.textContent="Link copied ✓";
+    setTimeout(()=>{e.target.textContent=t;},1600);
+  });
+  window.addEventListener("hashchange",()=>{multiTimers=decodeMultiHash();renderCards();});
+}
+
+// Multi-timer dashboard is a completely separate page/flow from the single-
+// countdown board above — several independent timers, not one deadline — so
+// it gets its own init path and returns here rather than running any of the
+// single-timer boot sequence below, which assumes board/setup elements
+// (#untilTime, #evtLabel, #tiles, ...) exist and would throw if they don't.
+if(document.getElementById("multiDashboard")){
+  initMultiDashboard();
+}else{
+
 setDefaultUntil();
 if(readHash()){
   bootFromHash();
@@ -617,5 +701,7 @@ renderRecent();
 /* Recent-timer links point at this same page with a different hash — no page
    load happens, so re-boot the board on hashchange. */
 window.addEventListener("hashchange",()=>{if(readHash())bootFromHash();});
+
+}
 
 })();

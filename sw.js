@@ -3,8 +3,17 @@
  * cache HTML pages: they're what actually change (new timer pages, content
  * edits), and a stale cached page here could show old prose or a broken
  * "Restart" state — network-first for those, cache is only the shell.
+ *
+ * Network-first for the shell too (fixed from an earlier cache-first/stale-
+ * while-revalidate version): app.js/style.css are requested with a static
+ * ?v= cache-busting query that only changes when someone remembers to run
+ * scripts/bump-asset-version.mjs, which isn't guaranteed on every deploy.
+ * Cache-first means a returning visitor's first-ever cached copy could
+ * silently outlive several real deploys. Network-first still gets the
+ * "works offline" goal (cache is the fallback when the network fails) with
+ * none of the staleness risk online.
  */
-const CACHE_NAME = "countlink-shell-v1";
+const CACHE_NAME = "countlink-shell-v2";
 const SHELL_ASSETS = ["/assets/style.css", "/assets/app.js", "/assets/favicon.svg", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -30,14 +39,11 @@ self.addEventListener("fetch", (event) => {
   if (!isShellAsset) return; // let HTML pages hit the network normally
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((response) => {
-          if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
