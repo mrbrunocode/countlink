@@ -1,4 +1,6 @@
 /* CountLink — split-flap countdown logic. Shared by index.html and every /timers/*.html page. */
+(function(){
+
 const $=id=>document.getElementById(id);
 let end=null,label="",sound=true,fired=false,tick=null,total=0;
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
@@ -15,6 +17,21 @@ let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up).
    decides when their five minutes begin, instead of finding 30 seconds
    already gone by the time they've read the page. */
 let state="ready";
+
+// Exposes the pure duration-formatting functions to Node's test runner (see
+// test/duration.test.mjs). Placed here, after every `let`/`const` above is
+// initialized (referencing `mode` before its own `let mode=null;` runs
+// would throw — the temporal dead zone applies even to a function that
+// only reads it once called, if that call happens before init), but before
+// any DOM access below. fmt2/charsFor are declared further down but, like
+// every function in this file, hoisted to the top of this IIFE's scope, so
+// they're already callable here. This whole file used to be a bare
+// top-level script (not wrapped in a function) — it's wrapped here purely
+// so this early-return trick works, exactly like diffhero/textbench do.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { fmt2: fmt2, charsFor: charsFor };
+  return;
+}
 
 function fmt2(n){return String(n).padStart(2,"0")}
 
@@ -193,15 +210,19 @@ function updateTiles(chars){
   });
 }
 
-function charsFor(left){
+function charsFor(left,modeOverride){
   // Branches on the FIXED mode decided at start() — never on live h/m/s —
   // so the tile count never changes mid-countdown (see start()).
+  // modeOverride lets tests exercise all three branches without needing a
+  // live start()/bootFromHash() call to set the closure `mode` first; every
+  // real call site omits it and gets the normal closure-driven behavior.
+  const effMode=modeOverride===undefined?mode:modeOverride;
   const s=Math.max(0,Math.floor(left/1000));
-  if(mode==="days"){
+  if(effMode==="days"){
     const days=Math.floor(s/86400),h=Math.floor(s%86400/3600);
     return {plain:`${days}d ${fmt2(h)}:${fmt2(Math.floor(s%3600/60))}:${fmt2(s%60)}`};
   }
-  if(mode==="hms"){
+  if(effMode==="hms"){
     const h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
     const hh=fmt2(h),mm=fmt2(m),ss=fmt2(sec);
     return {tiles:[
@@ -488,3 +509,5 @@ renderRecent();
 /* Recent-timer links point at this same page with a different hash — no page
    load happens, so re-boot the board on hashchange. */
 window.addEventListener("hashchange",()=>{if(readHash())bootFromHash();});
+
+})();
