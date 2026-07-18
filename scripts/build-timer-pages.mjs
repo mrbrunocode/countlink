@@ -412,6 +412,8 @@ const page = (p) => `<!DOCTYPE html>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/favicon.svg">
+<link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

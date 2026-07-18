@@ -1,0 +1,12 @@
+{
+  "name": "CountLink",
+  "short_name": "CountLink",
+  "description": "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1c1c1a",
+  "theme_color": "#1c1c1a",
+  "icons": [
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

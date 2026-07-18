@@ -13,10 +13,11 @@ name: Deploy to Cloudflare Pages
 # must stay in sync with the "public site files" set (index.html,
 # privacy.html, compare.html, about.html, how-it-works.html, terms.html,
 # contact.html, robots.txt, sitemap.xml, llms.txt, ads.txt, _headers,
-# _redirects, assets/, timers/) if that set ever changes — every hand-written
-# .html page added to STATIC_PAGES in scripts/build-timer-pages.mjs needs a
-# matching entry in the `cp` line below, or its nav/footer links will
-# resolve everywhere except the one place that matters: production.
+# _redirects, manifest.json, sw.js, assets/, timers/) if that set ever
+# changes — every hand-written .html page added to STATIC_PAGES in
+# scripts/build-timer-pages.mjs needs a matching entry in the `cp` line
+# below, or its nav/footer links will resolve everywhere except the one
+# place that matters: production.
 on:
   push:
     branches: [main]
@@ -33,7 +34,7 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html privacy.html compare.html about.html how-it-works.html terms.html contact.html \
-             robots.txt sitemap.xml llms.txt ads.txt _headers _redirects dist/
+             robots.txt sitemap.xml llms.txt ads.txt _headers _redirects manifest.json sw.js dist/
           cp -r assets dist/
           cp -r timers dist/
           # IndexNow key file (32-hex-char name) — must be reachable at the

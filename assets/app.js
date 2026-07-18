@@ -36,6 +36,16 @@ if (typeof module !== "undefined" && module.exports) {
   return;
 }
 
+// Installable/offline shell: registers the service worker that caches
+// style.css/app.js/the icon (see sw.js) so the board itself works offline
+// once a page has loaded once. Deliberately never caches HTML pages — see
+// sw.js's own comment for why. Silently no-ops in browsers without SW support.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 function fmt2(n){return String(n).padStart(2,"0")}
 
 function setDefaultUntil(){
