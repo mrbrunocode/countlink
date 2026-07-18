@@ -1,0 +1,6 @@
+# www is not the canonical host (see site-config.mjs SITE_URL) — force it
+# to the apex domain instead of silently serving duplicate content. Google
+# was crawling https://www.countlink.app/ and correctly marking it an
+# alternate of the apex page's canonical tag, but the intended fix is a
+# redirect so www is never independently crawlable in the first place.
+https://www.countlink.app/* https://countlink.app/:splat 301!
