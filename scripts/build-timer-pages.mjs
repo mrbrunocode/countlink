@@ -544,6 +544,12 @@ ${faqSchema(p.faq)}
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
       </div>
+      <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
+      <div id="embedWrap" style="display:none;margin-top:10px">
+        <textarea id="embedCode" readonly rows="3" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
+        <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
+        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same code streamers use for an OBS overlay works as a plain &lt;iframe&gt; on any page.</div>
+      </div>
     </div>
   </section>
 

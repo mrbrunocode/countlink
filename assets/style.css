@@ -487,7 +487,8 @@ body.fs .tiles{gap:4px}
    §2 — this closes the OBS-integration gap without needing a native app. */
 body.overlay-mode{background:transparent;background-image:none}
 body.overlay-mode .wrap>*:not(.stage-section),
-body.overlay-mode header,body.overlay-mode footer,body.overlay-mode .ad-slot{display:none}
+body.overlay-mode header,body.overlay-mode footer,body.overlay-mode .ad-slot,
+body.overlay-mode .main-nav{display:none}
 body.overlay-mode .stage-section{padding:0}
 body.overlay-mode .wrap{max-width:none;padding:0}
 body.overlay-mode{display:grid;place-items:center;min-height:100vh}

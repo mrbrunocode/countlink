@@ -506,6 +506,23 @@ if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
   e.target.textContent="Overlay link copied — paste into OBS";
   setTimeout(()=>{e.target.textContent="Copy OBS overlay link →";},2200);
 });
+/* General-purpose embed: the exact same ?overlay=1 mechanism the OBS button
+   above uses, generalized into a plain <iframe> snippet for any website —
+   the chrome-stripped view was already built for streamers; this just gives
+   everyone else a copy-pasteable embed code instead of a bare link. */
+if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
+  const showing=$("embedWrap").style.display!=="none";
+  if(showing){$("embedWrap").style.display="none";$("embedBtn").textContent="Embed on your site →";return;}
+  const u=new URL(makeLink());
+  u.searchParams.set("overlay","1");
+  $("embedCode").value=`<iframe src="${u.toString()}" width="400" height="160" style="border:0" title="${label||"Countdown"} — CountLink"></iframe>`;
+  $("embedWrap").style.display="block";$("embedBtn").textContent="Hide embed code";
+});
+if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{
+  await navigator.clipboard.writeText($("embedCode").value);
+  e.target.textContent="Copied ✓";
+  setTimeout(()=>{e.target.textContent="Copy embed code";},1600);
+});
 $("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
   const on=document.body.classList.contains("fs");
