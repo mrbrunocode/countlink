@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { fmt2, charsFor } = loadDuration();
+const { fmt2, charsFor, numOr } = loadDuration();
 
 test("fmt2 zero-pads single digits, leaves two-digit numbers alone", () => {
   assert.equal(fmt2(0), "00");
@@ -68,4 +68,32 @@ test("charsFor defaults to the module's closure `mode` when no override is passe
   // default (mm:ss) branch, same as the "ms" case above.
   const c = charsFor(65000);
   assert.deepEqual(c.tiles.map((t) => t.v), ["0", "1", ":", "0", "5"]);
+});
+
+// Regression tests for a real bug found via live interaction testing: reading
+// a user-editable numeric field/URL-param with `raw||fallback` silently
+// discards an intentionally-entered 0 (falsy) and substitutes the fallback
+// instead — which broke interval-timer's documented "rest can be 0 seconds"
+// case (both from the live Start button and from a shared-link round-trip)
+// and the multi-timer dashboard's 0-minute duration case. numOr() replaces
+// that pattern everywhere it mattered; see readHash(), the ivStartBtn
+// handler, and initMultiDashboard()'s multiAddBtn handler in assets/app.js.
+test("numOr passes through an explicit 0 instead of falling back", () => {
+  assert.equal(numOr("0", 10), 0);
+  assert.equal(numOr(0, 10), 0);
+});
+
+test("numOr falls back on missing/blank values", () => {
+  assert.equal(numOr(null, 10), 10);
+  assert.equal(numOr(undefined, 10), 10);
+  assert.equal(numOr("", 10), 10);
+});
+
+test("numOr falls back on non-numeric strings", () => {
+  assert.equal(numOr("abc", 10), 10);
+});
+
+test("numOr passes through ordinary positive and negative numbers unchanged", () => {
+  assert.equal(numOr("5", 10), 5);
+  assert.equal(numOr("-5", 10), -5);
 });

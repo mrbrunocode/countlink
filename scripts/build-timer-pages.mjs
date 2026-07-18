@@ -68,7 +68,7 @@ const CLASSROOM_EXTRA = `
 // deadline countdown/stopwatch: repeating work/rest phases derived from one
 // cycle-start instant. Its own panel + defaults per page (a boxing round
 // timer defaults to 3min/1min/12; a Tabata timer to 20s/10s/8), wired to
-// assets/app.js?v=030236b6's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
+// assets/app.js?v=dd8fde59's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
 const ivExtra = (workSec, restSec, rounds) => `
         <div class="obs-extra">
           <h3>Set your rounds</h3>
@@ -622,7 +622,7 @@ ${faqSchema(p.faq)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=030236b6" defer></script>
+<script src="../assets/app.js?v=dd8fde59" defer></script>
 </body>
 </html>
 `; };

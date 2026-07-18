@@ -32,7 +32,7 @@ let state="ready";
 // top-level script (not wrapped in a function) — it's wrapped here purely
 // so this early-return trick works, exactly like diffhero/textbench do.
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { fmt2: fmt2, charsFor: charsFor };
+  module.exports = { fmt2: fmt2, charsFor: charsFor, numOr: numOr };
   return;
 }
 
@@ -47,6 +47,20 @@ if ("serviceWorker" in navigator) {
 }
 
 function fmt2(n){return String(n).padStart(2,"0")}
+
+// Reads a user-editable numeric field/URL-param, falling back to `fallback`
+// only when the raw value is missing/blank/non-numeric — NOT via `raw||fallback`,
+// which silently discards an intentionally-entered 0 (falsy) and substitutes
+// an unrelated default instead. Found via live testing: entering 0 rest-seconds
+// on an interval timer (an explicitly supported "back-to-back rounds" case per
+// this site's own FAQ) or 0 minutes on the multi-timer dashboard both got
+// silently bumped to the field's fallback constant instead of being clamped by
+// the caller's own Math.max(...) — the exact bug the `||` pattern was hiding.
+function numOr(raw,fallback){
+  if(raw===null||raw===undefined||raw==="")return fallback;
+  const n=+raw;
+  return Number.isNaN(n)?fallback:n;
+}
 
 function setDefaultUntil(){
   const d=new Date(Date.now()+3600e3);d.setSeconds(0,0);
@@ -66,7 +80,7 @@ function readHash(){
     if(m.get("d")==="up")direction="up";
     else if(m.get("d")==="iv"){
       direction="interval";
-      ivWork=Math.max(1,+m.get("w")||20);ivRest=Math.max(0,+m.get("r")||10);ivRounds=Math.max(1,+m.get("n")||8);
+      ivWork=Math.max(1,numOr(m.get("w"),20));ivRest=Math.max(0,numOr(m.get("r"),10));ivRounds=Math.max(1,numOr(m.get("n"),8));
     }else direction="down";
     return true;
   }
@@ -470,9 +484,9 @@ if($("stopBtn"))$("stopBtn").addEventListener("click",stopTimer);
    other extra-row control since it's absent on every non-interval page. */
 if($("ivStartBtn"))$("ivStartBtn").addEventListener("click",()=>{
   startInterval(
-    +($("ivWorkSec")&&$("ivWorkSec").value)||20,
-    +($("ivRestSec")&&$("ivRestSec").value)||10,
-    +($("ivRounds")&&$("ivRounds").value)||8,
+    numOr($("ivWorkSec")&&$("ivWorkSec").value,20),
+    numOr($("ivRestSec")&&$("ivRestSec").value,10),
+    numOr($("ivRounds")&&$("ivRounds").value,8),
     $("evtName")?$("evtName").value:""
   );
   $("boardEl").scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -632,7 +646,7 @@ function initMultiDashboard(){
   setInterval(renderCards,250);
 
   if($("multiAddBtn"))$("multiAddBtn").addEventListener("click",()=>{
-    const mins=Math.max(1,+minutesEl.value||5);
+    const mins=Math.max(1,numOr(minutesEl.value,5));
     const label=(labelEl.value||"").trim();
     multiTimers.push({label,end:Date.now()+mins*60000});
     labelEl.value="";
