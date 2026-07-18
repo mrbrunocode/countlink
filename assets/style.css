@@ -5,20 +5,20 @@
    tiles, riveted steel chassis, amber signal, mechanical everything.
    =================================================================== */
 :root{
-  --board:oklch(0.14 0.012 260);         /* app background */
-  --board-deep:oklch(0.10 0.01 260);
-  --panel:oklch(0.23 0.014 260);         /* elevated surface / card */
-  --panel-line:oklch(0.36 0.015 260);    /* border, strong */
-  --flap:oklch(0.94 0.004 260);          /* split-flap tile face */
-  --flap-ink:oklch(0.14 0.012 260);
-  --amber:oklch(0.72 0.16 265);          /* accent — link-blue */
-  --amber-deep:oklch(0.62 0.18 265);
-  --paper-text:oklch(0.94 0.004 260);    /* body copy on dark chassis */
-  --paper-dim:oklch(0.62 0.012 260);
+  --board:oklch(0.14 0.012 75);         /* app background */
+  --board-deep:oklch(0.10 0.01 75);
+  --panel:oklch(0.23 0.014 75);         /* elevated surface / card */
+  --panel-line:oklch(0.36 0.015 75);    /* border, strong */
+  --flap:oklch(0.94 0.004 75);          /* split-flap tile face */
+  --flap-ink:oklch(0.14 0.012 75);
+  --amber:oklch(0.72 0.16 70);          /* accent — link-blue */
+  --amber-deep:oklch(0.62 0.18 70);
+  --paper-text:oklch(0.94 0.004 75);    /* body copy on dark chassis */
+  --paper-dim:oklch(0.62 0.012 75);
   --ok:oklch(0.72 0.16 152);
-  --display:"Inter",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --display:"Big Shoulders Display","Oswald",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
   --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --sans:"Inter",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --sans:"Work Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -26,7 +26,7 @@ body{
   font-family:var(--sans);background:var(--board);color:var(--paper-text);
   min-height:100vh;font-size:16px;line-height:1.55;
   background-image:
-    radial-gradient(ellipse 130% 65% at 50% -12%, oklch(0.72 0.16 265 / .11), transparent 58%),
+    radial-gradient(ellipse 130% 65% at 50% -12%, oklch(0.72 0.16 70 / .11), transparent 58%),
     repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
 }
 ::selection{background:var(--amber);color:var(--board)}
@@ -69,7 +69,7 @@ header{
 }
 .logo::before{
   content:"";width:9px;height:9px;background:var(--amber);border-radius:50%;flex:none;
-  box-shadow:0 0 8px 1px oklch(0.72 0.16 265 / .7);
+  box-shadow:0 0 8px 1px oklch(0.72 0.16 70 / .7);
 }
 .head-meta{font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);letter-spacing:.02em;line-height:1.6}
 .head-meta b{color:var(--amber);font-weight:500}
@@ -143,9 +143,9 @@ body.viewing .stage-section{padding-top:18px}
      then snaps to full size — a real, measured CLS hit on every page load. */
   --tw:34px;--th:48px;--fs:1.7rem;
   background:linear-gradient(180deg,var(--panel),var(--board-deep));
-  border:1px solid var(--panel-line);border-radius:10px;
+  border:1px solid var(--panel-line);border-radius:6px;
   padding:24px 8px 22px;text-align:center;position:relative;
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 50px 90px -30px hsl(260 30% 2% / .55), 0 8px 24px hsl(260 30% 4% / .30), 0 2px 6px hsl(260 30% 4% / .24);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 50px 90px -30px hsl(75 30% 2% / .55), 0 8px 24px hsl(75 30% 4% / .30), 0 2px 6px hsl(75 30% 4% / .24);
 }
 @media(min-width:360px){.board{--tw:38px;--th:54px;--fs:1.9rem}}
 @media(min-width:420px){.board{padding:26px 16px 24px;--tw:50px;--th:68px;--fs:2.5rem}}
@@ -240,11 +240,11 @@ body.viewing .stage-section{padding-top:18px}
 .board.style-light{
   /* Design-system light-theme neutrals + accent (both already WCAG AA on
      their own surfaces — see design-system/tokens/colors.css). */
-  --board:oklch(0.985 0.004 260); --board-deep:oklch(1 0 0); --panel:oklch(0.975 0.005 260); --panel-line:oklch(0.88 0.008 260);
-  --flap:oklch(1 0 0); --flap-ink:oklch(0.19 0.014 260); --paper-text:oklch(0.19 0.014 260); --paper-dim:oklch(0.50 0.014 260);
-  --amber:oklch(0.56 0.19 265); --amber-deep:oklch(0.46 0.20 265); --ok:oklch(0.52 0.15 152);
+  --board:oklch(0.985 0.004 75); --board-deep:oklch(1 0 0); --panel:oklch(0.975 0.005 75); --panel-line:oklch(0.88 0.008 75);
+  --flap:oklch(1 0 0); --flap-ink:oklch(0.19 0.014 75); --paper-text:oklch(0.19 0.014 75); --paper-dim:oklch(0.50 0.014 75);
+  --amber:oklch(0.56 0.19 70); --amber-deep:oklch(0.46 0.20 70); --ok:oklch(0.52 0.15 152);
   background:var(--board);border-color:var(--panel-line);
-  box-shadow:0 1px 0 rgba(0,0,0,.03) inset, 0 8px 24px hsl(260 30% 60% / .16), 0 2px 6px hsl(260 30% 60% / .10);
+  box-shadow:0 1px 0 rgba(0,0,0,.03) inset, 0 8px 24px hsl(75 30% 60% / .16), 0 2px 6px hsl(75 30% 60% / .10);
 }
 /* on the darkened light-theme amber, dark ink no longer clears 4.5:1 — white does */
 .board.style-light .btn.primary{color:#fff}
@@ -296,7 +296,7 @@ body.viewing .stage-section{padding-top:18px}
 .btn{
   font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;
   padding:14px 20px;min-height:46px;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-text);
-  transition:background .15s,color .15s,border-color .15s;border-radius:10px;
+  transition:background .15s,color .15s,border-color .15s;border-radius:6px;
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   width:100%;
 }
@@ -361,7 +361,7 @@ body.viewing .stage-section{padding-top:18px}
 .ad-slot ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important}
 
 /* ============ MULTI-TIMER DASHBOARD ============ */
-.multi-dashboard{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px}
+.multi-dashboard{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:6px}
 @media(min-width:640px){.multi-dashboard{padding:28px 30px}}
 .multi-add-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
 .multi-add-row input{flex:1 1 160px;min-width:0}
@@ -369,7 +369,7 @@ body.viewing .stage-section{padding-top:18px}
 .multi-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .multi-card{
   position:relative;padding:16px 14px;background:var(--board-deep);border:1px solid var(--panel-line);
-  border-radius:10px;text-align:center;
+  border-radius:6px;text-align:center;
 }
 .multi-card.done{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--board-deep))}
 .multi-card-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;color:var(--paper-dim);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -384,14 +384,14 @@ body.viewing .stage-section{padding-top:18px}
 /* ============ SETUP ============ */
 .setup-section{padding:30px 0 0}
 @media(min-width:640px){.setup-section{padding:40px 0 0}}
-.panel{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px}
+.panel{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:6px}
 @media(min-width:640px){.panel{padding:28px 30px}}
 .panel h2{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em;margin-bottom:4px;text-transform:none;color:var(--paper-text)}
 .panel .hint{font-size:.8rem;color:var(--paper-dim);margin-bottom:16px;line-height:1.55}
 label{display:block;font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);margin:14px 0 6px}
 input,select{
   width:100%;padding:12px 12px;font-family:var(--sans);font-size:1rem;color:var(--paper-text);
-  background:var(--board-deep);border:1px solid var(--panel-line);border-radius:10px;min-height:46px;
+  background:var(--board-deep);border:1px solid var(--panel-line);border-radius:6px;min-height:46px;
   transition:border-color .15s;color-scheme:dark;
 }
 input:focus,select:focus{outline:none;border-color:var(--amber)}
@@ -400,13 +400,13 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
 .dir-toggle .q.active{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:600}
 .q{
   font-family:var(--mono);font-size:.72rem;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-dim);
-  padding:11px 6px;transition:all .15s;border-radius:10px;min-height:44px;
+  padding:11px 6px;transition:all .15s;border-radius:6px;min-height:44px;
 }
 .q:hover{border-color:var(--amber);color:var(--amber)}
 .stack2{display:flex;flex-direction:column}
 @media(min-width:520px){.stack2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}}
 .share-box{
-  margin-top:16px;background:var(--board-deep);border:1px solid var(--panel-line);padding:12px 14px;border-radius:10px;
+  margin-top:16px;background:var(--board-deep);border:1px solid var(--panel-line);padding:12px 14px;border-radius:6px;
   font-size:.72rem;color:var(--amber);word-break:break-all;font-family:var(--mono);
 }
 
@@ -421,7 +421,7 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
 .recent-item{
   display:flex;justify-content:space-between;align-items:baseline;gap:12px;
   padding:11px 12px;margin-top:8px;background:var(--board-deep);border:1px solid var(--panel-line);
-  border-radius:10px;text-decoration:none;transition:border-color .15s;
+  border-radius:6px;text-decoration:none;transition:border-color .15s;
 }
 .recent-item:hover{border-color:var(--amber)}
 .recent-item .rl{
@@ -442,7 +442,7 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
    callout) — a distinct structural element beyond prose, per the SXO/content
    audit finding that a reworded intro alone reads as thin/templated */
 .obs-extra{
-  margin:26px 0 0;padding:20px 22px;background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;
+  margin:26px 0 0;padding:20px 22px;background:var(--panel);border:1px solid var(--panel-line);border-radius:6px;
 }
 .obs-extra h3{font-family:var(--display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;text-transform:none;margin-bottom:10px;color:var(--paper-text)}
 .obs-extra p{font-size:.86rem;color:var(--paper-dim);line-height:1.6;margin-bottom:10px}

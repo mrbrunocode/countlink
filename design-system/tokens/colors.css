@@ -1,25 +1,28 @@
-/* Countlink — Color tokens
-   Cool neutral base (subtle blue undertone) + one confident accent (link-blue)
-   plus three semantic accents sharing the same lightness/chroma, varied hue.
+/* CountLink — Color tokens
+   Warm neutral base + one genuine amber accent (the site's copy has always
+   called this a "departure board" with an "amber signal" — this token file
+   previously still had the generic violet-indigo hue used elsewhere in the
+   family; the amber name only matched the actual color starting here) plus
+   three semantic accents sharing the same lightness/chroma, varied hue.
    Dark-first: :root is dark; [data-theme="light"] overrides. */
 
 :root {
   color-scheme: dark;
 
   /* ---- Base neutrals (dark) ---- */
-  --n-0: oklch(0.14 0.012 260);   /* app background */
-  --n-1: oklch(0.185 0.013 260);  /* surface */
-  --n-2: oklch(0.23 0.014 260);   /* elevated surface / card */
-  --n-3: oklch(0.29 0.015 260);   /* hover surface */
-  --n-4: oklch(0.36 0.015 260);   /* border, strong */
-  --n-5: oklch(0.46 0.014 260);   /* border, subtle-on-dark / disabled text */
-  --n-6: oklch(0.62 0.012 260);   /* secondary text */
-  --n-7: oklch(0.80 0.008 260);   /* tertiary/placeholder inverse */
-  --n-8: oklch(0.94 0.004 260);   /* primary text */
-  --n-9: oklch(0.99 0.002 260);   /* max contrast text */
+  --n-0: oklch(0.14 0.012 75);   /* app background */
+  --n-1: oklch(0.185 0.013 75);  /* surface */
+  --n-2: oklch(0.23 0.014 75);   /* elevated surface / card */
+  --n-3: oklch(0.29 0.015 75);   /* hover surface */
+  --n-4: oklch(0.36 0.015 75);   /* border, strong */
+  --n-5: oklch(0.46 0.014 75);   /* border, subtle-on-dark / disabled text */
+  --n-6: oklch(0.62 0.012 75);   /* secondary text */
+  --n-7: oklch(0.80 0.008 75);   /* tertiary/placeholder inverse */
+  --n-8: oklch(0.94 0.004 75);   /* primary text */
+  --n-9: oklch(0.99 0.002 75);   /* max contrast text */
 
-  /* ---- Accent: link-blue (primary brand color) ---- */
-  --accent-h: 265;
+  /* ---- Accent: amber signal (primary brand color) ---- */
+  --accent-h: 70;
   --accent-c: 0.16;
   --accent-l: 0.72;
   --accent: oklch(var(--accent-l) var(--accent-c) var(--accent-h));
@@ -37,9 +40,9 @@
   --warning-strong: oklch(0.62 0.18 80);
   --warning-soft: oklch(0.72 0.16 80 / 0.16);
 
-  --danger: oklch(var(--accent-l) var(--accent-c) 25);
-  --danger-strong: oklch(0.60 0.19 25);
-  --danger-soft: oklch(0.72 0.16 25 / 0.16);
+  --danger: oklch(var(--accent-l) var(--accent-c) 12);
+  --danger-strong: oklch(0.60 0.19 12);
+  --danger-soft: oklch(0.72 0.16 12 / 0.16);
 
   /* ---- Semantic aliases (dark) ---- */
   --bg: var(--n-0);
@@ -54,22 +57,22 @@
   --text-on-accent: var(--on-accent);
   --focus-ring: oklch(0.72 0.16 var(--accent-h) / 0.45);
 
-  --shadow-color: 260 30% 4%;
+  --shadow-color: 75 30% 4%;
 }
 
 [data-theme="light"] {
   color-scheme: light;
 
-  --n-0: oklch(0.985 0.004 260);
+  --n-0: oklch(0.985 0.004 75);
   --n-1: oklch(1 0 0);
-  --n-2: oklch(0.975 0.005 260);
-  --n-3: oklch(0.94 0.007 260);
-  --n-4: oklch(0.88 0.008 260);
-  --n-5: oklch(0.72 0.01 260);
-  --n-6: oklch(0.50 0.014 260);
-  --n-7: oklch(0.36 0.014 260);
-  --n-8: oklch(0.19 0.014 260);
-  --n-9: oklch(0.10 0.012 260);
+  --n-2: oklch(0.975 0.005 75);
+  --n-3: oklch(0.94 0.007 75);
+  --n-4: oklch(0.88 0.008 75);
+  --n-5: oklch(0.72 0.01 75);
+  --n-6: oklch(0.50 0.014 75);
+  --n-7: oklch(0.36 0.014 75);
+  --n-8: oklch(0.19 0.014 75);
+  --n-9: oklch(0.10 0.012 75);
 
   --accent: oklch(0.56 0.19 var(--accent-h));
   --accent-strong: oklch(0.46 0.20 var(--accent-h));
@@ -81,13 +84,13 @@
   --success-strong: oklch(0.42 0.15 152);
   --success-soft: oklch(0.52 0.15 152 / 0.12);
 
-  --warning: oklch(0.55 0.16 75);
-  --warning-strong: oklch(0.45 0.17 75);
-  --warning-soft: oklch(0.55 0.16 75 / 0.14);
+  --warning: oklch(0.55 0.16 100);
+  --warning-strong: oklch(0.45 0.17 100);
+  --warning-soft: oklch(0.55 0.16 100 / 0.14);
 
-  --danger: oklch(0.55 0.20 25);
-  --danger-strong: oklch(0.46 0.21 25);
-  --danger-soft: oklch(0.55 0.20 25 / 0.12);
+  --danger: oklch(0.55 0.20 12);
+  --danger-strong: oklch(0.46 0.21 12);
+  --danger-soft: oklch(0.55 0.20 12 / 0.12);
 
   --bg: var(--n-0);
   --surface: var(--n-1);
@@ -101,5 +104,5 @@
   --text-on-accent: var(--on-accent);
   --focus-ring: oklch(0.56 0.19 var(--accent-h) / 0.35);
 
-  --shadow-color: 260 30% 60%;
+  --shadow-color: 75 30% 60%;
 }

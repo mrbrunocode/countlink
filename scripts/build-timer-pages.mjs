@@ -404,7 +404,7 @@ const faqHtml = (faq) => faq ? `
   </section>` : "";
 
 // Seasonal page themes — body class drives a CSS-variable palette swap in
-// assets/style.css?v=962ffe38 (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
+// assets/style.css?v=642f1e91 (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
 // browser-chrome theme-color meta in step with each palette's chassis tone.
 const THEME_COLORS = { christmas: "#182219", newyear: "#141826" };
 
@@ -548,8 +548,8 @@ return `<!DOCTYPE html>
 <meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=962ffe38">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css?v=642f1e91">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>

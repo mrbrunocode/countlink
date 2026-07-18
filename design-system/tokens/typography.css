@@ -1,13 +1,19 @@
-/* Countlink — Type tokens
-   Inter for UI (humanist grotesk, excellent at small sizes).
+/* CountLink — Type tokens
+   Work Sans for UI (plain, warm humanist grotesk — legible body copy that
+   doesn't compete with the display face).
+   Big Shoulders Display for headings/logo/hero numbers — a condensed,
+   industrial face in the lineage of transit and fire-escape signage,
+   matching the "departure board" concept instead of a generic Inter/
+   Space-Grotesk startup look.
    JetBrains Mono for the timer/counter display — the product's single most
    important surface is a big synced number, so it gets a dedicated,
    technical, high-precision face with true tabular figures. */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap");
 
 :root {
-  --font-ui: "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-ui: "Work Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-heading: "Big Shoulders Display", "Oswald", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-display: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Type scale (px) */
