@@ -356,7 +356,7 @@ const page = (p) => `<!DOCTYPE html>
 <meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css?v=507f72cc">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
@@ -522,12 +522,19 @@ ${faqSchema(p.faq)}
 
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
+// Sitemap lastmod reflects when the pages were actually (re)generated, not
+// the hand-bumped CONTENT_DATE used for JSON-LD datePublished/dateModified —
+// derive it from the current date at build time so every rebuild keeps the
+// sitemap fresh automatically instead of freezing on whatever date someone
+// last remembered to type in.
+const BUILD_DATE = new Date().toISOString().split("T")[0];
+
 const sitemap = () => {
-  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
-  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${CONTENT_DATE}</lastmod></url>`).join("\n");
+  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
+  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE_URL}/</loc><lastmod>${CONTENT_DATE}</lastmod></url>
+  <url><loc>${SITE_URL}/</loc><lastmod>${BUILD_DATE}</lastmod></url>
 ${staticUrls}
 ${urls}
 </urlset>
