@@ -64,7 +64,7 @@ const CLASSROOM_EXTRA = `
           <p>Whatever the length, the mechanism is the same: project the board at the front, and if students have devices, share the same link — everyone counts down to the identical second, so "how much time is left" stops being a question anyone needs to ask you.</p>
         </div>`;
 
-const PAGES = [
+export const PAGES = [
   { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
     h1: "5 Minute Timer — Free, Shareable, In Sync",
     meta: "A free 5 minute timer for quick breaks, lightning talks and board-game turns — share the link and everyone's countdown ends together.",

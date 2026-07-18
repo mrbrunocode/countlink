@@ -1,0 +1,24 @@
+name: test
+
+# Content-integrity and build-generator checks (see test/) — catches a
+# timers/ page row that breaks the build, duplicate title/meta/FAQ text
+# (the main reason programmatic pages get de-indexed), or a page that's
+# silently missing from the sitemap. Uses node:test (built into Node
+# 18+) — no dependencies to install, no browser automation, single fast
+# job.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm test

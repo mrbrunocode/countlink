@@ -1,0 +1,14 @@
+{
+  "name": "countlink",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync.",
+  "scripts": {
+    "build": "node scripts/build-timer-pages.mjs",
+    "dev": "node scripts/build-timer-pages.mjs && node scripts/dev-server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
