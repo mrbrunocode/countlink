@@ -38,5 +38,8 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 - [Auction Countdown](https://countlink.app/timers/auction-countdown)
 - [Online Stopwatch](https://countlink.app/timers/stopwatch)
 - [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer)
+- [Tabata Timer](https://countlink.app/timers/tabata-timer)
+- [Interval Timer](https://countlink.app/timers/interval-timer)
+- [Boxing Round Timer](https://countlink.app/timers/boxing-round-timer)
 - [New Year Countdown](https://countlink.app/timers/new-year-countdown)
 - [Christmas Countdown](https://countlink.app/timers/christmas-countdown)

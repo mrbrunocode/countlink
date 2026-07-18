@@ -64,6 +64,32 @@ const CLASSROOM_EXTRA = `
           <p>Whatever the length, the mechanism is the same: project the board at the front, and if students have devices, share the same link — everyone counts down to the identical second, so "how much time is left" stops being a question anyone needs to ask you.</p>
         </div>`;
 
+// Interval/Tabata mode is a genuinely different flow from the single-
+// deadline countdown/stopwatch: repeating work/rest phases derived from one
+// cycle-start instant. Its own panel + defaults per page (a boxing round
+// timer defaults to 3min/1min/12; a Tabata timer to 20s/10s/8), wired to
+// assets/app.js's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
+const ivExtra = (workSec, restSec, rounds) => `
+        <div class="obs-extra">
+          <h3>Set your rounds</h3>
+          <div class="stack2">
+            <div>
+              <label for="ivWorkSec">Work (seconds)</label>
+              <input id="ivWorkSec" type="number" min="1" value="${workSec}">
+            </div>
+            <div>
+              <label for="ivRestSec">Rest (seconds)</label>
+              <input id="ivRestSec" type="number" min="0" value="${restSec}">
+            </div>
+          </div>
+          <div>
+            <label for="ivRounds">Rounds</label>
+            <input id="ivRounds" type="number" min="1" value="${rounds}">
+          </div>
+          <button class="btn primary" id="ivStartBtn" style="margin-top:12px">Start interval timer</button>
+          <div class="hint" style="margin-top:6px" id="ivPhase"></div>
+        </div>`;
+
 export const PAGES = [
   { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
     h1: "5 Minute Timer — Free, Shareable, In Sync",
@@ -280,6 +306,39 @@ export const PAGES = [
       { q: "Why 25 minutes?", a: "That's the classic pomodoro length from Francesco Cirillo's original technique — long enough to get real work done, short enough that starting doesn't feel heavy. The custom-minutes field takes any length if your group prefers 50/10." },
       { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
       { q: "Does it auto-start the break when the 25 minutes end?", a: "No — at zero every screen chimes together, then whoever runs the session starts the 5-minute break and shares that link. The one-click Restart button makes the next focus round instant." },
+    ] },
+  { slug: "tabata-timer", minutes: 4, label: "Tabata complete", eyebrow: "Tabata Timer",
+    h1: "Tabata Timer — 20s Work / 10s Rest, Shareable",
+    meta: "A free Tabata timer — 20 seconds work, 10 seconds rest, 8 rounds by default, and every screen with the link stays on the identical round.",
+    intro: "Classic Tabata is 20 seconds of maximum effort, 10 seconds of rest, repeated 8 times — about 4 minutes total. Set your rounds below, press start, and share the link so a whole class or gym floor follows the identical work/rest cycle from the same board.",
+    setupHint: "Defaults to the classic Tabata protocol (20s work, 10s rest, 8 rounds) — change any of the three below before you start.",
+    extra: ivExtra(20, 10, 8),
+    faq: [
+      { q: "Why 20 seconds work and 10 seconds rest?", a: "That's Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training — short enough to sustain near-maximal effort, with just enough rest to repeat it eight times." },
+      { q: "Can I change the work/rest lengths or round count?", a: "Yes — all three (work seconds, rest seconds, rounds) are editable before you start. It stops being strictly \"Tabata\" once you change the classic 20/10 ratio, but the same shared-link mechanic works for any interval ratio." },
+      { q: "Does everyone see the same round at the same time?", a: "Yes — like every timer here, the cycle's start instant is encoded in the link itself, so every device computes the current round and phase independently from the same starting point, with no server keeping them in sync." },
+    ] },
+  { slug: "interval-timer", minutes: 10, label: "Rounds complete", eyebrow: "Interval Timer",
+    h1: "Interval Timer — Work/Rest Rounds, Shareable",
+    meta: "A free interval timer — set your own work and rest lengths and round count, and share the link so a whole group follows the identical cycle.",
+    intro: "Set a work length, a rest length, and how many rounds — press start, and share the link so everyone doing the same workout, drill, or exercise sees the identical round and phase, on their own device.",
+    setupHint: "Set any work/rest split and round count below — there's no fixed protocol here, unlike the Tabata-specific timer.",
+    extra: ivExtra(30, 15, 10),
+    faq: [
+      { q: "How is this different from the Tabata timer?", a: "Tabata is this same mechanic locked to its classic 20-seconds-work/10-seconds-rest protocol. This page defaults to a more general 30/15 split, but both pages let you set any work length, rest length, and round count you want." },
+      { q: "Can rest be zero seconds, for back-to-back rounds?", a: "Yes — set rest to 0 and each round runs straight into the next work phase with no pause, useful for a fixed number of consecutive timed sets." },
+      { q: "What happens when all rounds finish?", a: "Every screen shows \"Done\" together and chimes if sound is on. Press Restart for the identical work/rest/rounds setup again, or adjust the numbers below and start fresh." },
+    ] },
+  { slug: "boxing-round-timer", minutes: 3, label: "Fight's over", eyebrow: "Boxing Round Timer",
+    h1: "Boxing Round Timer — 3 Min Rounds, 1 Min Rest",
+    meta: "A free boxing/kickboxing round timer — 3-minute rounds, 1-minute rest, 12 rounds by default, shareable so the whole gym stays on the same clock.",
+    intro: "Standard boxing rounds are 3 minutes with a 1-minute rest between them. Set your round count below, press start, and share the link so a coach's phone and every fighter's own screen stay on the identical round and rest period.",
+    setupHint: "Defaults to standard boxing rounds (3 min work, 1 min rest, 12 rounds) — change any of the three for kickboxing, Muay Thai, or a custom sparring format.",
+    extra: ivExtra(180, 60, 12),
+    faq: [
+      { q: "Does this match standard boxing round timing?", a: "Yes — 3 minutes per round with a 1-minute rest is the standard professional format. Amateur bouts and other combat sports often use shorter rounds; change the work-seconds field to match (e.g. 120 for 2-minute rounds)." },
+      { q: "Can I use this for Muay Thai or kickboxing instead?", a: "Yes — set the work/rest lengths to match whichever format you need (Muay Thai commonly uses 3-minute rounds with 2-minute rests, for instance) and the round count for however many rounds the bout runs." },
+      { q: "Is there a ten-second warning before the round ends?", a: "Not a distinct warning sound, but the screen-reader announcement and the visible countdown both update every second in the final stretch, so it's easy to see (or hear, with assistive tech) a round winding down." },
     ] },
   { slug: "new-year-countdown", theme: "newyear", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
     h1: "New Year Countdown — Live, Shareable",

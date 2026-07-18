@@ -6,9 +6,12 @@ let end=null,label="",sound=true,fired=false,tick=null,total=0;
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
 let prevValues=null;  // last rendered digit string per tile, so we only flip tiles that changed
 let audioCtx=null;
-let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up).
-                      // In "up" mode, `end` holds the START instant instead of the deadline —
-                      // same single timestamp-in-the-link mechanic, just read the other way.
+let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up) | "interval" (repeating work/rest cycle).
+                      // In "up" and "interval" modes, `end` holds the START instant instead of
+                      // the deadline — same single timestamp-in-the-link mechanic, just read
+                      // the other way; "interval" additionally derives which phase/round is
+                      // current from elapsed time, rather than counting to one fixed deadline.
+let ivWork=20,ivRest=10,ivRounds=8; // interval mode: work/rest seconds per round, total rounds
 /* The board has three lifecycle states, driving which buttons show:
    "ready"    — nothing running; preset duration displayed; Start lives ON the board
    "running"  — counting; Share/Stop replace Start
@@ -42,14 +45,19 @@ function setDefaultUntil(){
 }
 function makeLink(){
   const u=new URL(location.href);
-  u.hash=`t=${end}&l=${encodeURIComponent(label)}${direction==="up"?"&d=up":""}`;
+  const dirParam=direction==="up"?"&d=up":direction==="interval"?`&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`:"";
+  u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}`;
   return u.toString();
 }
 function readHash(){
   const m=new URLSearchParams(location.hash.slice(1));
   if(m.get("t")){
     end=+m.get("t");label=decodeURIComponent(m.get("l")||"");
-    direction=m.get("d")==="up"?"up":"down";
+    if(m.get("d")==="up")direction="up";
+    else if(m.get("d")==="iv"){
+      direction="interval";
+      ivWork=Math.max(1,+m.get("w")||20);ivRest=Math.max(0,+m.get("r")||10);ivRounds=Math.max(1,+m.get("n")||8);
+    }else direction="down";
     return true;
   }
   return false;
@@ -95,6 +103,23 @@ function startUp(lab){
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
   lastAnnouncedMin=null;announcedFinal=false;
   announce("Stopwatch started"+(label?": "+label:""));
+  saveRecent();
+  setState("running");
+  render();
+}
+/* Interval mode: `end` is the cycle START instant (like "up"), and every tick
+   derives the current phase/round from elapsed time modulo (work+rest) —
+   there's no per-round timestamp to track, so "resume from a shared link"
+   and "resume after a tab was backgrounded" both just work, same as every
+   other mode here. */
+function startInterval(workSec,restSec,rounds,lab){
+  direction="interval";
+  end=Date.now();label=lab;fired=false;prevValues=null;
+  ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
+  mode="ms";
+  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`;
+  lastAnnouncedMin=null;announcedFinal=false;
+  announce(`Interval timer started: ${ivRounds} rounds of ${ivWork}s work, ${ivRest}s rest`);
   saveRecent();
   setState("running");
   render();
@@ -273,6 +298,45 @@ function draw(){
     $("shareUrl").textContent=makeLink();
     return;
   }
+
+  if(direction==="interval"){
+    const cycleSec=ivWork+ivRest;
+    const elapsedMs=Date.now()-end;
+    const totalMs=cycleSec*1000*ivRounds;
+    const ivPhaseEl=$("ivPhase");
+    if(elapsedMs>=totalMs){
+      const chars=charsFor(0,"ms").tiles;
+      if(!document.querySelector(".tile"))buildTiles(chars);else updateTiles(chars);
+      if(ivPhaseEl)ivPhaseEl.textContent=`Done — ${ivRounds} of ${ivRounds} rounds complete`;
+      // Overrides the plain label set at the top of draw() — the board's
+      // most prominent text slot is the natural place for phase/round
+      // status, not the setup panel someone has likely scrolled away from.
+      $("evtLabel").textContent=`Done — ${ivRounds} of ${ivRounds} rounds`+(label?" · "+label:"");
+      $("subLine").innerHTML="<b>All rounds complete.</b> This screen — and every screen with your link — just finished together.";
+      $("barFill").style.width="100%";
+      if(!fired){fired=true;beep();setState("finished");announceLeft(0);}
+      return;
+    }
+    document.querySelector(".bar").style.display="";
+    const posMs=elapsedMs%(cycleSec*1000);
+    const round=Math.floor(elapsedMs/(cycleSec*1000))+1;
+    const inWork=posMs<ivWork*1000;
+    const phaseLeftMs=inWork?ivWork*1000-posMs:cycleSec*1000-posMs;
+    const c=charsFor(phaseLeftMs,"ms");
+    const curSecond=Math.floor(phaseLeftMs/1000);
+    if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
+    else updateTiles(c.tiles);
+    if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
+    lastSecond=curSecond;
+    if(ivPhaseEl)ivPhaseEl.textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`;
+    $("evtLabel").textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`+(label?" · "+label:"");
+    announceLeft(phaseLeftMs);
+    $("subLine").innerHTML=`round <b>${round} of ${ivRounds}</b> — synced on every screen with this link`;
+    $("barFill").style.width=Math.max(0,Math.min(100,(1-phaseLeftMs/((inWork?ivWork:cycleSec)*1000))*100))+"%";
+    $("shareUrl").textContent=makeLink();
+    return;
+  }
+
   document.querySelector(".bar").style.display="";
 
   const left=end-Date.now();
@@ -374,6 +438,7 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
   if(state==="finished"){
     // Restart: same duration/label as the countdown that just ended (fresh link)
     if(direction==="up")startUp(label);
+    else if(direction==="interval")startInterval(ivWork,ivRest,ivRounds,label);
     else if(total>0)start(total,label);
     // A recipient who opened the link after it already expired never had a
     // positive `total` to begin with — there's no way to recover the
@@ -389,6 +454,19 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
   startFromForm();
 });
 if($("stopBtn"))$("stopBtn").addEventListener("click",stopTimer);
+
+/* Interval/Tabata setup panel — a self-contained extra block (see
+   scripts/build-timer-pages.mjs INTERVAL_EXTRA), wired defensively like every
+   other extra-row control since it's absent on every non-interval page. */
+if($("ivStartBtn"))$("ivStartBtn").addEventListener("click",()=>{
+  startInterval(
+    +($("ivWorkSec")&&$("ivWorkSec").value)||20,
+    +($("ivRestSec")&&$("ivRestSec").value)||10,
+    +($("ivRounds")&&$("ivRounds").value)||8,
+    $("evtName")?$("evtName").value:""
+  );
+  $("boardEl").scrollIntoView({behavior:"smooth",block:"nearest"});
+});
 
 /* live-preview the label on the ready board as it's typed */
 if($("evtName"))$("evtName").addEventListener("input",e=>{
@@ -465,8 +543,11 @@ function bootFromHash(){
   // A device opening someone else's shared link never calls start(), so the
   // tile-count mode has to be derived here too — from the remaining time at
   // the moment THIS device loaded the link, then fixed from that point on.
+  // (Interval mode always renders via an explicit "ms" override in draw(),
+  // so the exact value of `mode` here doesn't matter for it — set anyway
+  // for consistency with every other mode.)
   total=end-Date.now();
-  mode = total>=86400000?"days":total>=3600000?"hms":"ms";
+  mode = direction==="interval"?"ms":total>=86400000?"days":total>=3600000?"hms":"ms";
   fired=false;prevValues=null;lastSecond=null;
   // A recipient came for the timer, not the pitch — hide the marketing hero
   // so the board is the first thing on their screen.
