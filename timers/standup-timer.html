@@ -76,6 +76,14 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
+        <label class="alarm-tone-picker" for="alarmToneSelect">
+          <select id="alarmToneSelect" aria-label="Alarm sound">
+            <option value="chime">Chime</option>
+            <option value="gentle">Gentle</option>
+            <option value="digital">Digital</option>
+            <option value="bell">Bell</option>
+          </select>
+        </label>
       </div>
       <div class="sync-note"><span class="dot" id="syncDot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
@@ -159,6 +167,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <div class="faq-item"><h3>Will remote and in-office teammates see the same countdown?</h3><dd>Yes — the deadline is one shared instant regardless of device or location, so remote and in-office teammates see identical time remaining.</dd></div>
     </dl>
   </section>
+  
 </main>
 
 <footer>
@@ -190,6 +199,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
           <a href="/timers/interval-timer">Interval Timer</a>
           <a href="/timers/boxing-round-timer">Boxing Round Timer</a>
           <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
           <a href="/timers/new-year-countdown">New Year Countdown</a>
           <a href="/timers/christmas-countdown">Christmas Countdown</a>
     </div>

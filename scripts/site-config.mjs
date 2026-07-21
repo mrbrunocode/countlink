@@ -20,3 +20,12 @@ export const CONTENT_DATE = "2026-07-08"; // ISO date used for datePublished/dat
 export const DESCRIPTION =
   "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync — " +
   "no account, no server, no app. Built for classrooms, exams, webinars, workshops and standups.";
+
+// Affiliate recommendation card (empty until a real affiliate account
+// exists). Only rendered on pages tagged `affiliate: true` in PAGES (see
+// build-timer-pages.mjs) — the work/productivity-context timers, not the
+// party/countdown ones, so the recommendation stays genuinely relevant
+// instead of feeling bolted on.
+export const AFFILIATE_NAME = "";
+export const AFFILIATE_URL = "";
+export const AFFILIATE_BLURB = "";

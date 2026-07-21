@@ -307,6 +307,13 @@ body.viewing .stage-section{padding-top:18px}
 .btn.primary{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:700}
 .btn.primary:hover{background:var(--amber-deep);color:var(--flap-ink);border-color:var(--amber-deep)}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
+.alarm-tone-picker{display:inline-flex;align-items:center}
+.alarm-tone-picker select{
+  font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;
+  padding:0 14px;min-height:46px;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-text);
+  border-radius:6px;cursor:pointer;
+}
+.alarm-tone-picker select:hover{border-color:var(--amber);color:var(--amber)}
 .sync-note{
   display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.7rem;color:var(--paper-dim);
 }
@@ -381,6 +388,31 @@ body.viewing .stage-section{padding-top:18px}
 }
 .multi-card-remove:hover{color:var(--paper-text);background:var(--panel-line)}
 
+.agenda-dashboard{padding:22px 18px;background:var(--panel);border:1px solid var(--panel-line);border-radius:6px}
+@media(min-width:640px){.agenda-dashboard{padding:28px 30px}}
+.agenda-list{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-direction:column;gap:8px}
+.agenda-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--board-deep);
+  border:1px solid var(--panel-line);border-radius:6px;
+}
+.agenda-item-order{
+  font-family:var(--mono);font-size:.68rem;color:var(--amber);flex:0 0 auto;min-width:18px;text-align:center;
+}
+.agenda-item-label{flex:1 1 auto;font-family:var(--mono);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda-item-mins{flex:0 0 auto;font-family:var(--mono);font-size:.72rem;color:var(--paper-dim)}
+.agenda-item-btn{
+  flex:0 0 auto;background:none;border:0;color:var(--paper-dim);font-size:1rem;line-height:1;
+  cursor:pointer;padding:2px 6px;border-radius:6px;
+}
+.agenda-item-btn:hover:not(:disabled){color:var(--paper-text);background:var(--panel-line)}
+.agenda-item-btn:disabled{opacity:.3;cursor:default}
+.agenda-item--done{opacity:.5}
+.agenda-item--current{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--board-deep))}
+.agenda-now{text-align:center;padding:12px 0 20px}
+.agenda-now-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-dim);margin-bottom:6px}
+.agenda-now-time{font-family:var(--display);font-weight:800;font-size:2.6rem;letter-spacing:-.01em;color:var(--amber);font-variant-numeric:tabular-nums}
+.agenda-now-sub{font-family:var(--mono);font-size:.72rem;color:var(--paper-dim);margin-top:6px}
+
 /* ============ SETUP ============ */
 .setup-section{padding:30px 0 0}
 @media(min-width:640px){.setup-section{padding:40px 0 0}}
@@ -388,6 +420,9 @@ body.viewing .stage-section{padding-top:18px}
 @media(min-width:640px){.panel{padding:28px 30px}}
 .panel h2{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em;margin-bottom:4px;text-transform:none;color:var(--paper-text)}
 .panel .hint{font-size:.8rem;color:var(--paper-dim);margin-bottom:16px;line-height:1.55}
+.affiliate-card{margin-top:20px}
+.affiliate-card .affiliate-label{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.affiliate-card .hint{margin-bottom:12px}
 label{display:block;font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);margin:14px 0 6px}
 input,select{
   width:100%;padding:12px 12px;font-family:var(--sans);font-size:1rem;color:var(--paper-text);

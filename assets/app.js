@@ -3,6 +3,8 @@
 
 const $=id=>document.getElementById(id);
 let end=null,label="",sound=true,fired=false,tick=null,total=0;
+let alarmTone="chime";
+try{alarmTone=localStorage.getItem("samesecond_alarm_tone")||"chime"}catch(e){}
 let mode=null;        // "hms" | "ms" | "days" — decided once per start() so tile count stays fixed
 let prevValues=null;  // last rendered digit string per tile, so we only flip tiles that changed
 let audioCtx=null;
@@ -32,7 +34,12 @@ let state="ready";
 // top-level script (not wrapped in a function) — it's wrapped here purely
 // so this early-return trick works, exactly like diffhero/textbench do.
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { fmt2: fmt2, charsFor: charsFor, numOr: numOr };
+  module.exports = {
+    fmt2: fmt2, charsFor: charsFor, numOr: numOr,
+    encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
+    boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
+    alarmTones: alarmTones,
+  };
   return;
 }
 
@@ -89,6 +96,7 @@ function readHash(){
 
 function setState(s){
   state=s;
+  setWakeLockActive(s==="running"||s==="finished");
   const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?"":"none"};
   show("boardStartBtn",s!=="running");
   show("shareBtn",s==="running");
@@ -204,17 +212,94 @@ function tick_sound(){
   const g=c.createGain();g.gain.setValueAtTime(.16,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
   src.connect(bp).connect(g).connect(c.destination);src.start();
 }
-function beep(){
-  if(!sound)return;
-  const c=ctx();
-  [0,.28,.56].forEach((t,i)=>{
+/* A few distinct alarm tones, all synthesized (no audio files to fetch) —
+   picking one is purely a per-viewer local preference (like board style),
+   never part of the shared sync link. */
+// A `function` (not `const`), purely so it can be exported to the test
+// runner below the early module.exports return point (function declarations
+// hoist their full body; a `const` object here would still be in its
+// temporal dead zone at that point, since the code that initializes it never
+// actually runs under the test harness's early return).
+function alarmTones(){return{
+  chime:c=>[0,.28,.56].forEach((t,i)=>{
     const o=c.createOscillator(),g=c.createGain();
     o.frequency.value=i===2?1318:880;o.type="sine";
     g.gain.setValueAtTime(.32,c.currentTime+t);
     g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.24);
     o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.25);
-  });
+  }),
+  gentle:c=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.frequency.value=660;o.type="sine";
+    g.gain.setValueAtTime(0,c.currentTime);
+    g.gain.linearRampToValueAtTime(.22,c.currentTime+.15);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+1.1);
+    o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+1.15);
+  },
+  digital:c=>[0,.14,.28].forEach(t=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.frequency.value=988;o.type="square";
+    g.gain.setValueAtTime(.14,c.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.1);
+    o.connect(g).connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+.11);
+  }),
+  bell:c=>{
+    [880,1760,2640].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain();
+      o.frequency.value=f;o.type="sine";
+      g.gain.setValueAtTime(i===0?.3:.09,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+1.4);
+      o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+1.4);
+    });
+  },
+};}
+function beep(){
+  if(!sound)return;
+  const tones=alarmTones();
+  (tones[alarmTone]||tones.chime)(ctx());
 }
+
+/* ---------- keep the screen awake while a timer is actually showing ----------
+   A projected exam/workshop/webinar timer that lets the screen dim mid-count
+   defeats the whole point. Silent, automatic, no toggle: there's no case
+   where a viewer wants their screen to sleep while a countdown they opened is
+   the thing on screen, and it degrades to a no-op on any browser without the
+   Wake Lock API (Safari < 16.4, most non-Chromium mobile browsers) — the
+   timer works exactly the same either way, just without this extra. */
+let wakeLock=null,wakeLockActive=false,wakeLockAcquiring=false;
+async function acquireWakeLock(){
+  if(!("wakeLock" in navigator)||wakeLockAcquiring)return;
+  wakeLockAcquiring=true;
+  try{
+    wakeLock=await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release",()=>{wakeLock=null;});
+  }catch(e){/* denied (e.g. low battery mode) or not in a secure context — fail silently */}
+  wakeLockAcquiring=false;
+}
+function releaseWakeLock(){
+  if(wakeLock){wakeLock.release().catch(()=>{});wakeLock=null;}
+}
+// Pure decision extracted from setWakeLockActive() so the exact guard logic
+// (the bug-prone part — get this wrong and it either spams navigator.wakeLock
+// or never re-acquires after a failed first attempt) is directly testable
+// without any browser API.
+function shouldSkipWakeLockChange(on,active,held,acquiring){
+  return on===active&&(on?(held||acquiring):true);
+}
+function setWakeLockActive(on){
+  // Some start paths call this twice in the same tick (setting location.hash
+  // fires a same-tab hashchange that re-derives state) — the acquiring/held
+  // checks make every call after the first a safe no-op either way.
+  if(shouldSkipWakeLockChange(on,wakeLockActive,!!wakeLock,wakeLockAcquiring))return;
+  wakeLockActive=on;
+  if(on)acquireWakeLock();else releaseWakeLock();
+}
+// The spec releases the lock whenever the tab is hidden (switching apps,
+// locking a phone) and never re-acquires it automatically — so re-request it
+// on return if a timer is still meant to be keeping the screen on.
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&wakeLockActive&&!wakeLock)acquireWakeLock();
+});
 
 /* ---------- split-flap tile rendering ---------- */
 function buildTiles(chars){
@@ -558,6 +643,14 @@ if($("soundBtn"))$("soundBtn").addEventListener("click",e=>{
   e.target.textContent="Sound: "+(sound?"on":"off");
   e.target.setAttribute("aria-pressed",sound);
 });
+if($("alarmToneSelect")){
+  $("alarmToneSelect").value=alarmTone;
+  $("alarmToneSelect").addEventListener("change",e=>{
+    alarmTone=e.target.value;
+    try{localStorage.setItem("samesecond_alarm_tone",alarmTone)}catch(err){}
+    if(sound){const tones=alarmTones();(tones[alarmTone]||tones.chime)(ctx());} // preview
+  });
+}
 
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){
@@ -631,15 +724,18 @@ function initMultiDashboard(){
   multiTimers=decodeMultiHash();
   function persist(){ history.replaceState(null,"",location.pathname+location.search+"#"+encodeMultiHash()); }
   function renderCards(){
+    let anyActive=false;
     cardsEl.innerHTML=multiTimers.map((t,i)=>{
       const left=t.end-Date.now();
       const done=left<=0;
+      if(!done)anyActive=true;
       return `<div class="multi-card${done?" done":""}" data-i="${i}">
         <div class="multi-card-label">${t.label.replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))||"Timer "+(i+1)}</div>
         <div class="multi-card-time">${done?"Done":fmtMulti(left)}</div>
         <button type="button" class="multi-card-remove" data-remove="${i}" aria-label="Remove this timer">×</button>
       </div>`;
     }).join("") || `<p class="hint">No timers yet — add one above.</p>`;
+    setWakeLockActive(anyActive);
   }
   renderCards();
   persist();
@@ -673,13 +769,170 @@ function initMultiDashboard(){
   window.addEventListener("hashchange",()=>{multiTimers=decodeMultiHash();renderCards();});
 }
 
+// ---------- Agenda timer: an ordered, auto-advancing sequence ----------
+// Same "the link is the timer" mechanic as startInterval() above, generalized
+// from one repeating work/rest pair to an arbitrary ordered list of named,
+// different-length segments. Only {segments, start} ever go in the hash —
+// every viewer derives "which segment is active, how much of it is left"
+// from Date.now()-start, so no server ever has to push an "advance" event.
+function encodeAgendaHash(segments,start){
+  return "ag="+encodeURIComponent(JSON.stringify(segments))+"&s="+start;
+}
+// Pure parser, split out from decodeAgendaHash() below purely so it's testable
+// without a `location` global — takes the raw hash string (no leading "#"),
+// same shape URLSearchParams(location.hash.slice(1)) would give it.
+function parseAgendaHash(hashStr){
+  const m=new URLSearchParams(hashStr||"");
+  const raw=m.get("ag"),s=m.get("s");
+  if(!raw||!s)return null;
+  try{
+    const segments=JSON.parse(decodeURIComponent(raw));
+    if(!Array.isArray(segments)||!segments.length)return null;
+    const clean=segments.filter(seg=>seg&&typeof seg.label==="string"&&typeof seg.minutes==="number"&&seg.minutes>0);
+    if(!clean.length)return null;
+    return {segments:clean,start:+s};
+  }catch(e){return null;}
+}
+function decodeAgendaHash(){
+  return parseAgendaHash(location.hash.slice(1));
+}
+// cumulative END time of each segment, in ms from the agenda's own start
+function boundaries(segments){
+  let acc=0;
+  return segments.map(seg=>{acc+=seg.minutes*60000;return acc;});
+}
+function fmtAgenda(ms){
+  const s=Math.max(0,Math.ceil(ms/1000));
+  const m=Math.floor(s/60),sec=s%60;
+  return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+}
+// The auto-advance derivation itself — pure function of (segments, start, now),
+// no DOM, no Date.now() call baked in, so it's directly testable: given a
+// start instant and elapsed time, which segment is active and how much of the
+// whole agenda is left. idx===-1 means the agenda has finished.
+function computeAgendaState(segments,start,now){
+  const bounds=boundaries(segments);
+  const total=bounds[bounds.length-1];
+  const elapsed=now-start;
+  const idx=bounds.findIndex(b=>elapsed<b);
+  return {bounds,total,elapsed,idx};
+}
+function initAgendaDashboard(){
+  let agendaSegments=[];
+  const builderEl=$("agendaBuilder"),runningEl=$("agendaRunning");
+  const listEl=$("agendaList"),runningListEl=$("agendaRunningList");
+  const labelEl=$("agendaLabel"),minutesEl=$("agendaMinutes");
+  let agendaTick=null,agendaFired=false;
+
+  function esc(s){return String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));}
+
+  function renderBuilderList(){
+    listEl.innerHTML=agendaSegments.map((seg,i)=>`
+      <li class="agenda-item" data-i="${i}">
+        <span class="agenda-item-order">${i+1}</span>
+        <span class="agenda-item-label">${esc(seg.label)||"Segment "+(i+1)}</span>
+        <span class="agenda-item-mins">${seg.minutes} min</span>
+        <button type="button" class="agenda-item-btn" data-up="${i}" ${i===0?"disabled":""} aria-label="Move up">↑</button>
+        <button type="button" class="agenda-item-btn" data-down="${i}" ${i===agendaSegments.length-1?"disabled":""} aria-label="Move down">↓</button>
+        <button type="button" class="agenda-item-btn" data-remove="${i}" aria-label="Remove">×</button>
+      </li>`).join("") || `<li class="hint" style="list-style:none">No segments yet — add one above.</li>`;
+  }
+
+  function renderRunning(segments,start){
+    const {bounds,total,elapsed,idx}=computeAgendaState(segments,start,Date.now());
+
+    runningListEl.innerHTML=segments.map((seg,i)=>{
+      const state=idx===-1||i<idx?"done":i===idx?"current":"upcoming";
+      return `<li class="agenda-item agenda-item--${state}">
+        <span class="agenda-item-order">${state==="done"?"✓":i+1}</span>
+        <span class="agenda-item-label">${esc(seg.label)||"Segment "+(i+1)}</span>
+        <span class="agenda-item-mins">${seg.minutes} min</span>
+      </li>`;
+    }).join("");
+
+    if(idx===-1){
+      setWakeLockActive(false);
+      $("agendaNowLabel").textContent="Agenda complete";
+      $("agendaNowTime").textContent="00:00";
+      $("agendaNowSub").textContent=segments.length+" segment"+(segments.length===1?"":"s")+" finished.";
+      if(!agendaFired){agendaFired=true;beep();}
+      return;
+    }
+    setWakeLockActive(true);
+    const segStart=idx===0?0:bounds[idx-1];
+    const remainingInSeg=bounds[idx]-elapsed;
+    const totalRemaining=total-elapsed;
+    $("agendaNowLabel").textContent=(segments[idx].label||"Segment "+(idx+1));
+    $("agendaNowTime").textContent=fmtAgenda(remainingInSeg);
+    $("agendaNowSub").textContent=`Segment ${idx+1} of ${segments.length} · ${fmtAgenda(totalRemaining)} left in the whole agenda`;
+  }
+
+  function bootRunning(){
+    const decoded=decodeAgendaHash();
+    if(!decoded){showBuilder();return;}
+    builderEl.hidden=true;runningEl.hidden=false;
+    agendaFired=false;
+    clearInterval(agendaTick);
+    renderRunning(decoded.segments,decoded.start);
+    agendaTick=setInterval(()=>renderRunning(decoded.segments,decoded.start),250);
+  }
+  function showBuilder(){
+    clearInterval(agendaTick);agendaTick=null;
+    setWakeLockActive(false);
+    builderEl.hidden=false;runningEl.hidden=true;
+    renderBuilderList();
+  }
+
+  if($("agendaAddBtn"))$("agendaAddBtn").addEventListener("click",()=>{
+    const mins=Math.max(1,numOr(minutesEl.value,5));
+    const label=(labelEl.value||"").trim();
+    agendaSegments.push({label,minutes:mins});
+    labelEl.value="";
+    renderBuilderList();
+    labelEl.focus();
+  });
+  listEl.addEventListener("click",(e)=>{
+    const btn=e.target.closest("button");
+    if(!btn)return;
+    if(btn.dataset.remove!==undefined)agendaSegments.splice(+btn.dataset.remove,1);
+    else if(btn.dataset.up!==undefined){const i=+btn.dataset.up;[agendaSegments[i-1],agendaSegments[i]]=[agendaSegments[i],agendaSegments[i-1]];}
+    else if(btn.dataset.down!==undefined){const i=+btn.dataset.down;[agendaSegments[i+1],agendaSegments[i]]=[agendaSegments[i],agendaSegments[i+1]];}
+    renderBuilderList();
+  });
+  if($("agendaClearBtn"))$("agendaClearBtn").addEventListener("click",()=>{
+    agendaSegments=[];renderBuilderList();
+  });
+  if($("agendaStartBtn"))$("agendaStartBtn").addEventListener("click",()=>{
+    if(!agendaSegments.length)return;
+    const start=Date.now();
+    location.hash=encodeAgendaHash(agendaSegments,start);
+    bootRunning();
+  });
+  if($("agendaShareBtn"))$("agendaShareBtn").addEventListener("click",async (e)=>{
+    await navigator.clipboard.writeText(location.href);
+    const t=e.target.textContent;e.target.textContent="Link copied ✓";
+    setTimeout(()=>{e.target.textContent=t;},1600);
+  });
+  if($("agendaRestartBtn"))$("agendaRestartBtn").addEventListener("click",()=>{
+    agendaSegments=[];
+    history.replaceState(null,"",location.pathname+location.search);
+    showBuilder();
+  });
+  window.addEventListener("hashchange",()=>{decodeAgendaHash()?bootRunning():showBuilder();});
+
+  decodeAgendaHash()?bootRunning():showBuilder();
+}
+
 // Multi-timer dashboard is a completely separate page/flow from the single-
 // countdown board above — several independent timers, not one deadline — so
 // it gets its own init path and returns here rather than running any of the
 // single-timer boot sequence below, which assumes board/setup elements
 // (#untilTime, #evtLabel, #tiles, ...) exist and would throw if they don't.
+// The agenda dashboard is a third, equally separate flow, gated the same way.
 if(document.getElementById("multiDashboard")){
   initMultiDashboard();
+}else if(document.getElementById("agendaDashboard")){
+  initAgendaDashboard();
 }else{
 
 setDefaultUntil();

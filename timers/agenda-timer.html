@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Timer — Auto-Advancing Segments, Synced | CountLink</title>
+<meta name="description" content="Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.">
+<link rel="canonical" href="https://countlink.app/timers/agenda-timer">
+<meta property="og:title" content="Agenda Timer — Auto-Advancing Segments, Synced">
+<meta property="og:description" content="Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://countlink.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.app/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/favicon.svg">
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css?v=642f1e91">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/agenda-timer","description":"Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"datePublished":"2026-07-08","dateModified":"2026-07-08"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Agenda Timer","item":"https://countlink.app/timers/agenda-timer"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does this really auto-advance without a server?","acceptedAnswer":{"@type":"Answer","text":"Yes — the trick is the same one the Interval/Tabata timer uses: only the start instant and the list of segment lengths are in the link. Every device computes which segment is \"now\" from elapsed time since that instant, so there's nothing to synchronize after the link is shared — no server ever tells anyone to advance."}},{"@type":"Question","name":"Can I reorder segments before starting?","acceptedAnswer":{"@type":"Answer","text":"Yes — use the up/down arrows next to each segment in the builder to reorder, or the × to remove one, before pressing Start agenda. Once started, the order is locked in for that run."}},{"@type":"Question","name":"What happens when the whole agenda finishes?","acceptedAnswer":{"@type":"Answer","text":"Every open screen shows \"Agenda complete\" together and chimes if sound is on — the same shared-instant mechanic means everyone's screen reaches the end at the same moment."}},{"@type":"Question","name":"Can I edit the agenda after starting?","acceptedAnswer":{"@type":"Answer","text":"Not the running one — press \"New agenda\" to build and start a fresh sequence. This keeps the sync guarantee simple: one link is always one fixed, unambiguous sequence."}}]}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#boardEl">Skip to timer</a>
+
+<header>
+  <a class="logo" href="/">CountLink</a>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
+</header>
+<nav class="main-nav" aria-label="Site">
+  <a href="/how-it-works">How It Works</a>
+  <a href="/compare">Compare</a>
+  <a href="/about">About</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a>
+</nav>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Agenda Timer</span>
+      <h1>Agenda Timer — Auto-Advancing Segments, Synced</h1>
+      <p class="lede">Add segments in order — Intro, Break, Q&A, whatever your session needs — then start. Unlike a single countdown, this one auto-advances from one segment to the next on its own, and everyone who opens the link sees the identical segment and time remaining, in sync.</p>
+    </div>
+    <div class="hero-fact">
+      <span class="n">00</span>servers to run this
+    </div>
+  </section>
+
+  
+  <section class="stage-section">
+    <div class="agenda-dashboard" id="agendaDashboard">
+      <div class="agenda-builder" id="agendaBuilder">
+        <div class="multi-add-row">
+          <input id="agendaLabel" placeholder="Segment name (e.g. Intro, Break, Q&amp;A)">
+          <input id="agendaMinutes" type="number" min="1" value="5" aria-label="Minutes">
+          <button type="button" class="btn primary" id="agendaAddBtn">Add segment</button>
+        </div>
+        <ol class="agenda-list" id="agendaList"></ol>
+        <div class="stage-btns" style="margin-top:16px">
+          <button type="button" class="btn primary" id="agendaStartBtn">Start agenda</button>
+          <button type="button" class="btn" id="agendaClearBtn">Clear all</button>
+        </div>
+      </div>
+      <div class="agenda-running" id="agendaRunning" hidden>
+        <div class="agenda-now">
+          <div class="agenda-now-label" id="agendaNowLabel"></div>
+          <div class="agenda-now-time" id="agendaNowTime"></div>
+          <div class="agenda-now-sub" id="agendaNowSub"></div>
+        </div>
+        <ol class="agenda-list agenda-list--running" id="agendaRunningList"></ol>
+        <div class="stage-btns" style="margin-top:16px">
+          <button type="button" class="btn" id="agendaShareBtn">Copy sync link</button>
+          <button type="button" class="btn" id="agendaRestartBtn">New agenda</button>
+        </div>
+        <div class="sync-note"><span class="dot" id="agendaSyncDot"></span><span id="agendaSyncMsg">Anyone opening this link sees the identical agenda, in sync.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
+  
+  
+  <section class="faq">
+    <h2>Common questions</h2>
+    <dl class="faq-grid">
+      <div class="faq-item"><h3>Does this really auto-advance without a server?</h3><dd>Yes — the trick is the same one the Interval/Tabata timer uses: only the start instant and the list of segment lengths are in the link. Every device computes which segment is "now" from elapsed time since that instant, so there's nothing to synchronize after the link is shared — no server ever tells anyone to advance.</dd></div>
+      <div class="faq-item"><h3>Can I reorder segments before starting?</h3><dd>Yes — use the up/down arrows next to each segment in the builder to reorder, or the × to remove one, before pressing Start agenda. Once started, the order is locked in for that run.</dd></div>
+      <div class="faq-item"><h3>What happens when the whole agenda finishes?</h3><dd>Every open screen shows "Agenda complete" together and chimes if sound is on — the same shared-instant mechanic means everyone's screen reaches the end at the same moment.</dd></div>
+      <div class="faq-item"><h3>Can I edit the agenda after starting?</h3><dd>Not the running one — press "New agenda" to build and start a fresh sequence. This keeps the sync guarantee simple: one link is always one fixed, unambiguous sequence.</dd></div>
+    </dl>
+  </section>
+  
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="/timers/5-minute-timer">5 Minute Timer</a>
+          <a href="/timers/10-minute-timer">10 Minute Timer</a>
+          <a href="/timers/15-minute-timer">15 Minute Timer</a>
+          <a href="/timers/20-minute-timer">20 Minute Timer</a>
+          <a href="/timers/25-minute-timer">25 Minute Timer</a>
+          <a href="/timers/30-minute-timer">30 Minute Timer</a>
+          <a href="/timers/45-minute-timer">45 Minute Timer</a>
+          <a href="/timers/60-minute-timer">1 Hour Timer</a>
+          <a href="/timers/exam-timer">Exam Timer</a>
+          <a href="/timers/classroom-timer">Classroom Timer</a>
+          <a href="/timers/webinar-countdown">Webinar Countdown</a>
+          <a href="/timers/standup-timer">Standup Timer</a>
+          <a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a>
+          <a href="/timers/google-meet-timer">Google Meet Timer</a>
+          <a href="/timers/obs-countdown-timer">OBS Countdown Timer</a>
+          <a href="/timers/twitch-stream-timer">Twitch Stream Timer</a>
+          <a href="/timers/workshop-timer">Workshop Timer</a>
+          <a href="/timers/group-study-timer">Group Study Timer</a>
+          <a href="/timers/game-night-timer">Game Night Timer</a>
+          <a href="/timers/auction-countdown">Auction Countdown</a>
+          <a href="/timers/stopwatch">Online Stopwatch</a>
+          <a href="/timers/pomodoro-timer">Pomodoro Timer</a>
+          <a href="/timers/tabata-timer">Tabata Timer</a>
+          <a href="/timers/interval-timer">Interval Timer</a>
+          <a href="/timers/boxing-round-timer">Boxing Round Timer</a>
+          <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
+          <a href="/timers/new-year-countdown">New Year Countdown</a>
+          <a href="/timers/christmas-countdown">Christmas Countdown</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
+      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+
+<script>window.COUNTLINK_DEFAULT={"minutes":5,"label":""};</script>
+<script src="../assets/app.js?v=dd8fde59" defer></script>
+</body>
+</html>

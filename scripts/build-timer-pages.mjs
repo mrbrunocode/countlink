@@ -17,7 +17,26 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE } from "./site-config.mjs";
+import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
+
+// A single, clearly-labeled affiliate recommendation card. Renders nothing
+// until AFFILIATE_NAME/URL/BLURB are set in site-config.mjs (same
+// off-by-default pattern as the ad slot) and only on pages tagged
+// `affiliate: true` in PAGES — the work/productivity timers, not the party
+// or countdown ones, so it reads as genuinely relevant rather than bolted on.
+// Sits after the FAQ, below the ad slot, so it never competes with either.
+// cfg defaults to the real site-config values; tests pass an explicit cfg so
+// both the "off" and "configured" branches are checkable without mocking a
+// module of `const` bindings.
+export const affiliateCard = (p, cfg = { name: AFFILIATE_NAME, url: AFFILIATE_URL, blurb: AFFILIATE_BLURB }) => {
+  if (!p.affiliate || !cfg.name || !cfg.url || !cfg.blurb) return "";
+  return `
+  <div class="panel affiliate-card">
+    <p class="affiliate-label">Sponsored</p>
+    <p class="hint">${cfg.blurb}</p>
+    <a class="pro-link" href="${cfg.url}" rel="sponsored noopener" target="_blank">Try ${cfg.name} →</a>
+  </div>`;
+};
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT_DIR = join(ROOT, "timers");
@@ -163,7 +182,7 @@ export const PAGES = [
       { q: "Can I use this for a one-hour meeting to help it end on time?", a: "Yes — share the link at the start and leave it visible on a shared screen or everyone's own device; watching the same clock count down is a simple, effective way to keep a meeting on schedule." },
       { q: "What happens after the hour runs out?", a: "The board reads zero and every screen with the link chimes together (if sound is on) — it doesn't restart or do anything else automatically." },
     ] },
-  { slug: "exam-timer", minutes: 60, label: "Time is up — pens down", eyebrow: "Exam Timer",
+  { slug: "exam-timer", minutes: 60, label: "Time is up — pens down", eyebrow: "Exam Timer", affiliate: true,
     h1: "Exam Timer — One Countdown For The Whole Room",
     meta: "A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.",
     intro: "Put the countdown on the front screen and, if students have devices, on theirs too — everyone sees the identical time remaining, which is the whole point of a fair exam clock. Set it to your exam length and share the link before the paper starts.",
@@ -173,7 +192,7 @@ export const PAGES = [
       { q: "What happens if a student's device clock is wrong?", a: "It doesn't matter — the countdown is calculated from the shared deadline in the link, not from the device's own clock, so display accuracy only depends on the device's clock being roughly correct (typically accurate to within a second), not on it being manually set right." },
       { q: "Is this accurate enough for a formal, timed exam?", a: "It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy." },
     ] },
-  { slug: "classroom-timer", minutes: 10, label: "Back to it", eyebrow: "Classroom Timer",
+  { slug: "classroom-timer", minutes: 10, label: "Back to it", eyebrow: "Classroom Timer", affiliate: true,
     h1: "Classroom Timer — For Group Work & Transitions",
     meta: "A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.",
     intro: "Group work, quiz rounds, silent reading, transition time between activities — a visible shared countdown ends the “how much longer” questions on its own. Project it fullscreen or share the link to student devices.",
@@ -183,7 +202,7 @@ export const PAGES = [
       { q: "Can I reuse the same setup for different activities during one lesson?", a: "Yes — set a new quick-timer duration for each activity and share the fresh link; each activity gets its own clean countdown." },
       { q: "Does this need a school Wi-Fi login or account?", a: "No signup for you or your students. The page itself needs to load once (standard classroom Wi-Fi/projector network is enough), and after that each device counts down locally." },
     ] },
-  { slug: "webinar-countdown", minutes: 5, label: "We're starting", eyebrow: "Webinar Countdown",
+  { slug: "webinar-countdown", minutes: 5, label: "We're starting", eyebrow: "Webinar Countdown", affiliate: true,
     h1: "Webinar Countdown — For Attendee Start Times",
     meta: "A shareable pre-webinar countdown. Put the link in your registration email or waiting room so every attendee's screen counts down to the same start time.",
     intro: "Drop this link in your registration confirmation or waiting-room slide. Every attendee who opens it — on any device, in any timezone — sees a countdown to the exact same start moment, because the deadline travels inside the link itself.",
@@ -192,7 +211,7 @@ export const PAGES = [
       { q: "Can I put this in an email before the webinar starts?", a: "Yes — that's a common use: paste the link into your registration confirmation or reminder email so attendees can see exactly how long until you go live." },
       { q: "What should attendees see after the countdown ends?", a: "The board shows the countdown has reached zero; from there, switch attendees to your actual webinar link/room, since this page is the countdown itself, not the meeting." },
     ] },
-  { slug: "standup-timer", minutes: 10, label: "Standup over", eyebrow: "Standup Timer",
+  { slug: "standup-timer", minutes: 10, label: "Standup over", eyebrow: "Standup Timer", affiliate: true,
     h1: "Standup Timer — Keep Daily Standups Short",
     meta: "A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.",
     intro: "The easiest way to keep a daily standup to ten minutes is a countdown everyone can see. Set the length, drop the link in your team channel, and project it during the call.",
@@ -201,7 +220,7 @@ export const PAGES = [
       { q: "Does everyone need to join a call to see it?", a: "No — anyone with the link can open it on their own device, whether they're in a video call, in the office, or just watching from a browser tab." },
       { q: "Will remote and in-office teammates see the same countdown?", a: "Yes — the deadline is one shared instant regardless of device or location, so remote and in-office teammates see identical time remaining." },
     ] },
-  { slug: "zoom-meeting-timer", minutes: 10, label: "Time's up", eyebrow: "Zoom Meeting Timer",
+  { slug: "zoom-meeting-timer", minutes: 10, label: "Time's up", eyebrow: "Zoom Meeting Timer", affiliate: true,
     h1: "Zoom Meeting Timer — Keep Every Call On Time",
     meta: "A free shared timer for Zoom calls that doesn't need screen-sharing — copy the link into the chat and everyone's own screen counts down together.",
     intro: "Screen-sharing a timer inside Zoom works, but it takes over your whole screen. Open this on a second monitor or phone instead, or drop the link in the meeting chat — everyone gets their own synced countdown without you sharing anything.",
@@ -211,7 +230,7 @@ export const PAGES = [
       { q: "Can I use this instead of Zoom's built-in meeting timer?", a: "Yes — CountLink's link is visible to every attendee on their own device, while Zoom's built-in timer is host-only and disappears once you share your screen." },
       { q: "Does it still work if I'm also sharing my screen?", a: "Yes — since attendees open the link on their own device or a second monitor, it works whether or not you're sharing your screen for something else." },
     ] },
-  { slug: "google-meet-timer", minutes: 10, label: "Time's up", eyebrow: "Google Meet Timer",
+  { slug: "google-meet-timer", minutes: 10, label: "Time's up", eyebrow: "Google Meet Timer", affiliate: true,
     h1: "Google Meet Timer — Shared Countdown For Calls",
     meta: "A free shared timer for Google Meet. Copy the link into the meeting chat and everyone's own screen counts down in sync — no extension, no screen share.",
     intro: "Paste the link into the in-call chat the moment the meeting starts. Nobody needs to install an extension or watch your shared screen — everyone's own tab counts down to the exact same second.",
@@ -240,7 +259,7 @@ export const PAGES = [
       { q: "Can my co-streamer or mod use the same countdown on their own screen?", a: "Yes — share the regular (non-overlay) link with them and their device shows the identical time remaining, useful for coordinating a multi-person stream start." },
       { q: "Does this cost anything or add a watermark to my stream?", a: "No — it's free with no watermark. The one exception is if you use the QR-code button, which calls a third-party API only when clicked; the overlay/timer itself never does." },
     ] },
-  { slug: "workshop-timer", minutes: 15, label: "Segment over", eyebrow: "Workshop Timer",
+  { slug: "workshop-timer", minutes: 15, label: "Segment over", eyebrow: "Workshop Timer", affiliate: true,
     h1: "Workshop Timer — One Countdown For Every Table",
     meta: "A free shared timer for workshop facilitators. Set the segment length, share the link, and every table or breakout group sees the identical countdown.",
     intro: "Facilitators running breakout groups or table exercises know the problem: one group finishes early, another runs long, because everyone's eyeballing their own phone clock. Share this link instead and every table counts down from the same number.",
@@ -249,7 +268,7 @@ export const PAGES = [
       { q: "Can I set up several segments in a row (talk, break, Q&A)?", a: "Right now each link is one countdown at a time — start the next segment's timer and share its link when the previous one ends. Chained agenda sequences are on the roadmap." },
       { q: "Is this suitable for a large room with many tables?", a: "Yes — there's no limit on how many devices can open the same link, so it scales to as many tables or groups as you have." },
     ] },
-  { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer",
+  { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer", affiliate: true,
     h1: "Group Study Timer — Study With Me, In Sync",
     meta: "A free shared study timer for study groups and study-with-me sessions. Set a focus block, share the link, and everyone's break lands at the same moment.",
     intro: "Studying with friends or running a study-with-me stream works best when breaks actually line up. Set a focus block here, share the link with your group, and everyone's countdown — and everyone's break — happens at the exact same moment.",
@@ -286,7 +305,7 @@ export const PAGES = [
       { q: "Does the stopwatch keep running if I close the tab?", a: "Effectively yes — nothing is actually \"running\" anywhere. The link records when the stopwatch started, so reopening it later shows the correct elapsed time, as if it had been running the whole time." },
       { q: "Is there a lap or split function?", a: "No — this is deliberately a simple shared stopwatch. For lap timing you'd want a single-device sports stopwatch; this tool's job is showing one agreed elapsed time on many screens." },
     ] },
-  { slug: "pomodoro-timer", minutes: 25, label: "Pomodoro — focus", eyebrow: "Pomodoro Timer",
+  { slug: "pomodoro-timer", minutes: 25, label: "Pomodoro — focus", eyebrow: "Pomodoro Timer", affiliate: true,
     h1: "Pomodoro Timer — 25 Minutes, Shareable",
     meta: "A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.",
     intro: "The pomodoro technique is 25 minutes of focus, then a 5-minute break, repeated. Solo, any kitchen timer works — but a pomodoro is better with company. Start the 25 minutes here, share the link, and your study group or team focuses to the same clock and breaks at the same moment.",
@@ -350,6 +369,17 @@ export const PAGES = [
       { q: "How is the set of timers kept in sync across devices?", a: "The same mechanic as every other page here: each timer's end instant is encoded in the page's link. Copy the link after adding your timers, and anyone who opens it sees the identical set, each counting down from wherever it currently is." },
       { q: "Is there a limit to how many timers I can add?", a: "No hard limit, but a screen full of dozens of cards gets hard to scan — for most uses (cooking a multi-dish meal, running parallel breakout timers) a handful at once is the practical ceiling." },
       { q: "Can I remove just one timer without resetting the others?", a: "Yes — each card has its own remove button; removing one leaves the rest of the set (and the shareable link) intact." },
+    ] },
+  { slug: "agenda-timer", minutes: 5, label: "", eyebrow: "Agenda Timer",
+    agendaTimer: true,
+    h1: "Agenda Timer — Auto-Advancing Segments, Synced",
+    meta: "Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.",
+    intro: "Add segments in order — Intro, Break, Q&A, whatever your session needs — then start. Unlike a single countdown, this one auto-advances from one segment to the next on its own, and everyone who opens the link sees the identical segment and time remaining, in sync.",
+    faq: [
+      { q: "Does this really auto-advance without a server?", a: "Yes — the trick is the same one the Interval/Tabata timer uses: only the start instant and the list of segment lengths are in the link. Every device computes which segment is \"now\" from elapsed time since that instant, so there's nothing to synchronize after the link is shared — no server ever tells anyone to advance." },
+      { q: "Can I reorder segments before starting?", a: "Yes — use the up/down arrows next to each segment in the builder to reorder, or the × to remove one, before pressing Start agenda. Once started, the order is locked in for that run." },
+      { q: "What happens when the whole agenda finishes?", a: "Every open screen shows \"Agenda complete\" together and chimes if sound is on — the same shared-instant mechanic means everyone's screen reaches the end at the same moment." },
+      { q: "Can I edit the agenda after starting?", a: "Not the running one — press \"New agenda\" to build and start a fresh sequence. This keeps the sync guarantee simple: one link is always one fixed, unambiguous sequence." },
     ] },
   { slug: "new-year-countdown", theme: "newyear", minutes: 10, untilMonthDay: [1, 1], label: "Happy New Year!", eyebrow: "New Year Countdown",
     h1: "New Year Countdown — Live, Shareable",
@@ -435,7 +465,53 @@ const multiDashboardSection = `
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
 
-const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : `
+// Agenda timer: an ORDERED sequence of named segments that auto-advances —
+// unlike the multi-timer dashboard above (independent, parallel timers),
+// this is one continuous run. It reuses the exact "the link is the timer"
+// mechanic as the interval/Tabata timer (one start instant, every viewer's
+// device derives the current phase from elapsed time — see startInterval()
+// in assets/app.js), just with a list of different-length segments instead
+// of one repeating work/rest pair, so it genuinely auto-advances with no
+// server involved.
+const agendaDashboardSection = `
+  <section class="stage-section">
+    <div class="agenda-dashboard" id="agendaDashboard">
+      <div class="agenda-builder" id="agendaBuilder">
+        <div class="multi-add-row">
+          <input id="agendaLabel" placeholder="Segment name (e.g. Intro, Break, Q&amp;A)">
+          <input id="agendaMinutes" type="number" min="1" value="5" aria-label="Minutes">
+          <button type="button" class="btn primary" id="agendaAddBtn">Add segment</button>
+        </div>
+        <ol class="agenda-list" id="agendaList"></ol>
+        <div class="stage-btns" style="margin-top:16px">
+          <button type="button" class="btn primary" id="agendaStartBtn">Start agenda</button>
+          <button type="button" class="btn" id="agendaClearBtn">Clear all</button>
+        </div>
+      </div>
+      <div class="agenda-running" id="agendaRunning" hidden>
+        <div class="agenda-now">
+          <div class="agenda-now-label" id="agendaNowLabel"></div>
+          <div class="agenda-now-time" id="agendaNowTime"></div>
+          <div class="agenda-now-sub" id="agendaNowSub"></div>
+        </div>
+        <ol class="agenda-list agenda-list--running" id="agendaRunningList"></ol>
+        <div class="stage-btns" style="margin-top:16px">
+          <button type="button" class="btn" id="agendaShareBtn">Copy sync link</button>
+          <button type="button" class="btn" id="agendaRestartBtn">New agenda</button>
+        </div>
+        <div class="sync-note"><span class="dot" id="agendaSyncDot"></span><span id="agendaSyncMsg">Anyone opening this link sees the identical agenda, in sync.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>`;
+
+const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : p.agendaTimer ? agendaDashboardSection : `
   <section class="stage-section">
     <div class="board" id="boardEl">
       <span class="bolt-br"></span><span class="bolt-bl"></span>
@@ -455,6 +531,14 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
+        <label class="alarm-tone-picker" for="alarmToneSelect">
+          <select id="alarmToneSelect" aria-label="Alarm sound">
+            <option value="chime">Chime</option>
+            <option value="gentle">Gentle</option>
+            <option value="digital">Digital</option>
+            <option value="bell">Bell</option>
+          </select>
+        </label>
       </div>
       <div class="sync-note"><span class="dot" id="syncDot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
@@ -607,6 +691,7 @@ ${faqSchema(p.faq)}
   ${stageBlock}
   ${p.extra || ""}
   ${faqHtml(p.faq)}
+  ${affiliateCard(p)}
 </main>
 
 <footer>

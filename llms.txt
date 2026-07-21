@@ -42,5 +42,6 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 - [Interval Timer](https://countlink.app/timers/interval-timer)
 - [Boxing Round Timer](https://countlink.app/timers/boxing-round-timer)
 - [Multiple Timers](https://countlink.app/timers/multiple-timers-at-once)
+- [Agenda Timer](https://countlink.app/timers/agenda-timer)
 - [New Year Countdown](https://countlink.app/timers/new-year-countdown)
 - [Christmas Countdown](https://countlink.app/timers/christmas-countdown)
