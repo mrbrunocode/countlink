@@ -16,8 +16,8 @@ all of it at once) and I'll paste them into the right files:
 | # | What I need from you | Where you get it | What I do with it |
 |---|---|---|---|
 | 1 | ~~The real domain~~ **DONE** — `countlink.app` bought, deployed, live with HTTPS (2026-07-08) | — | — |
-| 2 | ~~GA4 Measurement ID~~ **DONE** — `G-WM4M28L7Y1` (property "CountLink", account "CountLink", 2026-07-08) | — | Live in every hand-written page's `<head>` (index, about, compare, contact, how-it-works, privacy, terms) and in the timer-page template — all 31 pages fire `page_view` on load, confirmed via GA4 Realtime |
-| 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) — shown during the application's "connect your site" step, before approval | Run `node scripts/enable-adsense.mjs ca-pub-...` — injects the verification loader into all 31 pages and writes `ads.txt` in one command |
+| 2 | ~~GA4 Measurement ID~~ **DONE** — `G-WM4M28L7Y1` (property "CountLink", account "CountLink", 2026-07-08) | — | Live in every hand-written page's `<head>` (index, about, compare, contact, how-it-works, privacy, terms) and in the timer-page template — all 36 pages (7 static + 29 timer, as of 2026-07-21 — recount if `PAGES` in `scripts/build-timer-pages.mjs` has grown since) fire `page_view` on load, confirmed via GA4 Realtime |
+| 3 | **AdSense Publisher ID** — looks like `ca-pub-XXXXXXXXXXXXXXXX` | [adsense.google.com](https://www.google.com/adsense/) — shown during the application's "connect your site" step, before approval | Run `node scripts/enable-adsense.mjs ca-pub-...` — injects the verification loader into all 36 pages (7 static + 29 timer, as of 2026-07-21 — recount if `PAGES` in `scripts/build-timer-pages.mjs` has grown since) and writes `ads.txt` in one command |
 | 4 | **AdSense Ad Slot ID** — looks like `XXXXXXXXXX` (shorter, numeric) | AdSense dashboard → Ads → By ad unit → create a **Display / Horizontal / Responsive** unit (after approval) | Re-run the same script with `--slot XXXXXXXXXX` — swaps the hidden placeholder for the live unit everywhere and regenerates `/timers/` |
 
 Two rows that used to be here are done already, not pending: the real contact
@@ -73,7 +73,7 @@ made; verification was pending as of 2026-07-08.
 
 Property "CountLink" (account "CountLink", both fresh — not reused from any
 prior account) → Web data stream for `https://countlink.app` → Measurement
-ID `G-WM4M28L7Y1`. Live on all 31 pages (every hand-written page plus the
+ID `G-WM4M28L7Y1`. Live on all 36 pages (7 static + 29 timer, as of 2026-07-21 — recount if `PAGES` in `scripts/build-timer-pages.mjs` has grown since) (every hand-written page plus the
 timer-page template), confirmed firing in GA4 Realtime the same day.
 
 Went further than "index.html + privacy.html" — the snippet is on every
@@ -99,7 +99,7 @@ plan for **1–4 weeks** of review, sometimes longer.
    There is nothing left blocking the application — apply now.
 3. When the application asks you to "connect your site" (paste the AdSense
    code into your `<head>`), run **phase 1** of the enable script with the
-   publisher ID shown on screen — it injects the loader into all 31 pages'
+   publisher ID shown on screen — it injects the loader into all 36 pages (7 static + 29 timer, as of 2026-07-21 — recount if `PAGES` in `scripts/build-timer-pages.mjs` has grown since)'
    heads and writes the real `ads.txt` in one go:
    ```
    node scripts/enable-adsense.mjs ca-pub-XXXXXXXXXXXXXXXX

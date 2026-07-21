@@ -5,11 +5,12 @@ a room — everyone who opens that link sees the identical countdown, perfectly
 in sync, because the deadline is a timestamp encoded in the URL itself. No
 account, no server, no database.
 
-Live prototype: `index.html` (open directly, or serve the folder — see below).
+Live at [countlink.app](https://countlink.app). For local dev, open `index.html`
+directly or serve the folder — see below.
 
 ## Why this exists
 
-Full research and reasoning is in the project memory (see `/Users/bruno/.claude/projects/-Users-bruno-onepage/memory/`),
+Full research and reasoning is in the project memory (see `/Users/bruno/.claude/projects/-Users-bruno-Code-boring-apps/memory/`),
 but the short version: single-purpose "boring" utility sites (vClock, Wheel of
 Names, word counters) generate real, verifiable ad revenue at near-zero
 operating cost. vClock specifically — a free online timer — earns an
