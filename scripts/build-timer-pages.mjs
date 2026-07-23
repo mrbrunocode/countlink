@@ -109,6 +109,151 @@ const ivExtra = (workSec, restSec, rounds) => `
           <div class="hint" style="margin-top:6px" id="ivPhase"></div>
         </div>`;
 
+// Per-page supporting content, keyed by slug. Every page that doesn't already
+// carry an inline `extra` gets one of these injected in the render (see the
+// `${p.extra || EXTRA_BY_SLUG[p.slug] || ""}` line in the page template). Each
+// block is unique, written for its specific duration or use case — the point
+// is that no two pages share this section, so each URL stands on its own as a
+// genuinely useful page rather than a thin duration swap. Keep them specific
+// (real examples, real numbers, real trade-offs), not generic filler.
+const EXTRA_BY_SLUG = {
+  "5-minute-timer": `
+        <div class="obs-extra">
+          <h3>What five minutes is actually good for</h3>
+          <p>Five minutes is the "reset" length: short enough that everyone in the room will genuinely watch it end, long enough to do one small thing properly. It's the classic slot for a between-session comfort break, a single Pomodoro-style short break, letting a pot come to the boil, steeping tea, a plank-and-stretch reset at your desk, or a hard stop on "any other business" at the end of a meeting.</p>
+          <p>It's also the standard length for a <b>lightning talk</b> and for most <b>speed-networking</b> rotations. When you share the link, every speaker and every table is watching the same five minutes rather than eight different phone clocks, so the round changes over cleanly with no "wait, whose timer?" Set it, copy the link, and drop it into the chat or put it on the projector before the first speaker starts.</p>
+        </div>`,
+  "10-minute-timer": `
+        <div class="obs-extra">
+          <h3>Ten minutes, and how to make it hold</h3>
+          <p>Ten minutes is the workhorse timebox. It's the default length for a daily standup, a "ten-minute tidy," a warm-up writing sprint, a short quiz round, or the "we'll take ten" break that always drifts to fifteen unless something visible is counting down.</p>
+          <p>The trick to keeping ten to ten is making the deadline shared, not personal. If the countdown lives only on the organiser's phone, everyone else quietly assumes there's slack. Put this on the projector, or paste the link into the group chat, and the number becomes a fact everyone can see — people wrap up on their own as it approaches zero, without anyone having to play timekeeper. For a standup specifically, glance at it between updates: if you're at five minutes with half the team still to go, that's your cue to move the deep-dives to a follow-up.</p>
+        </div>`,
+  "15-minute-timer": `
+        <div class="obs-extra">
+          <h3>Fifteen minutes: the "one proper thing" block</h3>
+          <p>Fifteen minutes is long enough to finish a real task but short enough to start without dread — which is exactly why it shows up everywhere: a quiz or trivia round, a workshop breakout, a "fifteen minutes on inbox" focus block, a coffee break with a hard end, or the reading-and-annotating slot in a class.</p>
+          <p>Because it sits right on the edge of "I could get lost in this," a visible shared countdown earns its keep here more than at shorter lengths. Share the link so every breakout group or quiz team sees the identical time remaining, and the cutoff stops being something you have to announce and defend — the screen announces it for you. If a segment routinely overruns, that's useful data: shorten it to twelve next time, or split it into two.</p>
+        </div>`,
+  "20-minute-timer": `
+        <div class="obs-extra">
+          <h3>Twenty minutes for workshops, naps and drills</h3>
+          <p>Twenty minutes is the sweet spot for a workshop exercise — enough to make progress, tight enough to keep energy up — and it's the length most sleep advice gives for a "power nap" that refreshes without leaving you groggy. It's also a common circuit or mobility-drill block, and a good single sitting for focused study before a stretch.</p>
+          <p>For anything run with a group, the shared link does the coordinating for you: one facilitator sets twenty minutes, everyone opens the same countdown, and every table or station finishes together instead of one group drifting five minutes past because they were watching a different clock. Put it fullscreen on the room screen for a glanceable board, and share the link to phones for people who are heads-down and want the time in front of them.</p>
+        </div>`,
+  "25-minute-timer": `
+        <div class="obs-extra">
+          <h3>The 25-minute focus block, shared</h3>
+          <p>Twenty-five minutes is the focus half of the Pomodoro technique: one unbroken block of work, then a short break, repeated. The length is deliberate — long enough to get properly into something, short enough that starting doesn't feel like a commitment, which is what makes it so effective at beating the "I'll begin in a minute" stall.</p>
+          <p>Done solo, any timer works. Done with company — a study group, a co-working room, a body-doubling call — the shared link is the upgrade: everyone starts the same 25 minutes and, crucially, everyone's break lands at the same moment, so the room stays in phase instead of one person breaking while another is mid-flow. At zero, hit the 5-minute quick button for the break and share that link, then restart for the next block. Every fourth round, take a longer 15–30 minute break — that's the classic rhythm.</p>
+        </div>`,
+  "30-minute-timer": `
+        <div class="obs-extra">
+          <h3>Half an hour, kept honest</h3>
+          <p>Thirty minutes is the default meeting length that most often runs over, the standard slot for a workout or a home-cooking step, and a common section length for a timed test. It's long enough that people stop watching the clock — which is exactly when a visible shared countdown pays off, because it quietly reminds the room without anyone having to interrupt.</p>
+          <p>For a half-hour meeting, share the link at the start and leave it on screen: the last five minutes become obvious to everyone, so you land the decisions and actions instead of discovering you're out of time. For a workout or a bake, put it fullscreen where you'll pass it. And if the room is bright — a gym, a sunlit kitchen, a projector under fluorescent lights — switch to the Light board style so the digits stay readable from across the room.</p>
+        </div>`,
+  "45-minute-timer": `
+        <div class="obs-extra">
+          <h3>The class-period length</h3>
+          <p>Forty-five minutes is one of the most common school class-period lengths, and it doubles as a solid single block of deep work, a lecture slot, or a long workshop segment. It's long enough that "how much time is left?" becomes a recurring interruption — the exact thing a projected, shared countdown removes.</p>
+          <p>Put it on the front screen fullscreen so the whole room can glance at it, and, if devices are allowed, share the link so students or attendees can keep the same countdown on their own screen while they work heads-down. Because each device calculates the time from the deadline encoded in the link rather than from a live connection, the countdown keeps running even if the classroom Wi-Fi hiccups mid-session — every screen that already loaded the page stays correct to the second.</p>
+        </div>`,
+  "60-minute-timer": `
+        <div class="obs-extra">
+          <h3>An hour that ends when it should</h3>
+          <p>An hour covers a full class, a standard exam block, a one-hour meeting, a slow-cooker step, or a dedicated deep-work session. Once a countdown crosses the hour mark the board switches to HH:MM:SS and holds that format the whole way down, so the display never jumps or reflows partway through — useful when it's projected and people are glancing at it from across a room.</p>
+          <p>For meetings, the honest version of "let's keep this to an hour" is a countdown everyone can see: share the link at the start and the final ten minutes become visible to the whole room, which is usually all it takes to move from discussion to decisions. For an exam or timed block, display it on the front screen and — if your rules allow devices — share the link so every candidate sees the identical time remaining, with no ambiguity about whose clock is right.</p>
+        </div>`,
+  "webinar-countdown": `
+        <div class="obs-extra">
+          <h3>Running a clean pre-webinar countdown</h3>
+          <p>The few minutes before a webinar are where attendance leaks: people join, see a blank "waiting" screen, and tab away. A live countdown to your exact start time fixes that — it signals the session is really happening and gives people a reason to stay put.</p>
+          <ol>
+            <li>Start the countdown to your go-live moment and copy the link.</li>
+            <li>Paste it into your registration confirmation email and any reminder emails, and put it on your waiting-room slide.</li>
+            <li>At zero, switch attendees to the actual session — this page is the countdown, not the meeting room.</li>
+          </ol>
+          <p>Because the link encodes one exact instant rather than a wall-clock time, attendees in every timezone see a correct countdown to the same real moment automatically — there's nothing for anyone to convert, and no chance of the classic "wait, was that your 3pm or mine?" mix-up.</p>
+        </div>`,
+  "standup-timer": `
+        <div class="obs-extra">
+          <h3>How to actually keep a standup short</h3>
+          <p>Standups overrun for one reason: nobody can see the time, so nobody self-regulates. Making the countdown visible to the whole team — projected on the call, or pasted into the channel — shifts that. People wrap their update as the number drops, because the pressure is coming from a shared fact rather than from someone playing timekeeper.</p>
+          <p>A simple rule of thumb: for a team of six aiming at ten minutes, that's roughly a minute each with a little slack for the shared stuff. If you're halfway down the clock with more than half the team still to go, that's the signal to park the deep-dives — "let's take that offline" — and keep the round moving. The blockers are what standup is for; the debugging session it uncovers belongs in a smaller follow-up, not in front of everyone.</p>
+        </div>`,
+  "google-meet-timer": `
+        <div class="obs-extra">
+          <h3>Using it inside a Google Meet call</h3>
+          <p>Meet has no shared timer that every participant can see, and screen-sharing a countdown means giving up your screen for everything else. The lighter approach is to keep the timer separate from the call:</p>
+          <ol>
+            <li>Start your countdown here and copy the link.</li>
+            <li>Paste it into the Meet in-call chat the moment the segment begins — anyone can open it in a new tab.</li>
+            <li>Or keep it open yourself on a second monitor or your phone, so you can pace the meeting without it being on the shared screen.</li>
+          </ol>
+          <p>There's no extension to install and nothing specific to Google about it — it's just a link that happens to work well pasted into Meet's chat, so everyone who opens it counts down to the same second on their own device.</p>
+        </div>`,
+  "workshop-timer": `
+        <div class="obs-extra">
+          <h3>Timing breakouts without herding</h3>
+          <p>The recurring headache when you're facilitating is uneven groups: one table finishes early and goes quiet, another runs long, because each is glancing at a different phone. Share one link and every table counts down from the same number, so segments actually end together and you're not shouting "two more minutes" across a noisy room.</p>
+          <p>A practical pattern for planning a session: give each activity slightly less time than feels comfortable — groups expand to fill whatever they're given, and a tight clock keeps the energy up. Between segments, start the next duration and share the fresh link (each countdown is its own link). Put the current timer fullscreen on the room's main screen as the source of truth, and let anyone who wants it pull the same countdown up on their own device.</p>
+        </div>`,
+  "group-study-timer": `
+        <div class="obs-extra">
+          <h3>Studying together, actually in sync</h3>
+          <p>Group study and "study with me" sessions work best when the focus blocks and breaks line up — otherwise someone's always mid-break while someone else is deep in a problem, and the shared momentum you came for never materialises. A single shared countdown fixes that: everyone starts the same block and everyone breaks at the same moment.</p>
+          <p>For a study-with-me stream, drop the link in your chat or description so viewers studying along see the identical time remaining down to the second. For a study group in a library or on a call, one person runs the clock: start a focus block (25 or 50 minutes are the usual choices), share the link, and at zero start the break and share that one. The rhythm — focus, short break, repeat, with a longer break every few rounds — is what keeps a long session sustainable.</p>
+        </div>`,
+  "game-night-timer": `
+        <div class="obs-extra">
+          <h3>Turn timing by game type</h3>
+          <p>A shared turn timer quietly settles the two arguments every game night eventually has: how long a turn is, and whether someone's gone over. Put it where everyone can see it and the countdown becomes the referee.</p>
+          <ul>
+            <li><b>Party / word games</b> (charades, Taboo, Pictionary): 60–90 seconds a turn keeps the pace frantic and funny.</li>
+            <li><b>Drafting / deck-building</b> phases: 30–60 seconds a pick stops the table stalling on one agonising decision.</li>
+            <li><b>Strategy / worker-placement</b> turns: 2–3 minutes is usually enough to plan a move without derailing into full analysis paralysis.</li>
+          </ul>
+          <p>Put it fullscreen on a central phone or tablet the whole table can see, or share the link so each player can watch it on their own screen — then just tap the same quick-timer button to reset it for the next player.</p>
+        </div>`,
+  "auction-countdown": `
+        <div class="obs-extra">
+          <h3>A closing time nobody can dispute</h3>
+          <p>Whether it's a charity auction, a fundraiser paddle-raise, or a limited online drop, the whole thing hinges on everyone agreeing on when bidding closes. If people are watching their own clocks, the final seconds turn into an argument. Share this link and every bidder's screen counts down to the identical instant, because the closing time is encoded in the link itself, not read off each device's own clock.</p>
+          <p>Share it before bidding opens so nobody can claim they didn't know the deadline, and put it fullscreen on the room screen at a live event so the last minute is visible to everyone at once. Treat the moment every screen hits zero as your hard cutoff — anyone can reopen the link and confirm they were seeing the same countdown, which is exactly the kind of transparency a bidding deadline needs.</p>
+        </div>`,
+  "stopwatch": `
+        <div class="obs-extra">
+          <h3>A stopwatch several people can watch at once</h3>
+          <p>The stopwatch on your phone lives on your phone. This one is shareable: the instant you press start is recorded in the link, so anyone who opens it sees the same elapsed time ticking up — useful whenever a group needs to agree on how long something has been running.</p>
+          <p>That covers timing a live event from a shared "clock" everyone can see, tracking elapsed focus time in a co-working room, timing a cook or a process where several people care about the number, or running a "study with me" session where viewers want to see the same elapsed count you do. Because nothing is actually running on a server, closing and reopening the link is fine — it re-reads the start instant and shows the correct elapsed time, as if it had been running the whole time. It's deliberately simple: one shared elapsed time on many screens, no laps or splits.</p>
+        </div>`,
+  "multiple-timers-at-once": `
+        <div class="obs-extra">
+          <h3>When one countdown isn't enough</h3>
+          <p>Some situations need several clocks at once, each independent: a multi-dish meal where the potatoes, the roast and the sauce all finish at different times; an event with parallel stations each on its own schedule; exam sections with different lengths; or a kitchen, workshop or lab running a few processes side by side.</p>
+          <p>Add a named timer for each — they're shown together on one board and each counts down on its own, so finishing or removing one never disturbs the others. Then copy the link: whoever opens it sees the identical set of timers, each picking up from wherever it currently is, so a co-host or the rest of the kitchen can watch the same dashboard without you calling out times. There's no hard limit on how many you add, though a handful stays far easier to scan at a glance than a wall of twenty.</p>
+        </div>`,
+  "agenda-timer": `
+        <div class="obs-extra">
+          <h3>Build the running order once, let it drive itself</h3>
+          <p>A single countdown times one thing. An agenda times a <i>sequence</i> — intro, then a talk, then a break, then Q&A — and advances from one segment to the next on its own, so you're facilitating instead of fumbling for the next timer. Add your segments in order, reorder them with the arrows if you change your mind, then start.</p>
+          <p>The useful part is what the shared link carries: only the start instant and the list of segment lengths. Every device works out which segment is "now" from the time that's elapsed since the start, so once you've shared the link there's nothing left to synchronise — no server tells anyone to advance, and every screen reaches the end together. Once an agenda is running its order is locked in; to change it, start a fresh one. That constraint is deliberate — it means one link is always one unambiguous running order that everyone can trust.</p>
+        </div>`,
+  "new-year-countdown": `
+        <div class="obs-extra">
+          <h3>Setting it up for the party</h3>
+          <p>The board is already counting down to the next midnight on January 1st in your own timezone — you don't have to set anything to use it as-is. For a party, press start, open the link on the TV or projector, and switch to Fullscreen so the final minute is unmissable from anywhere in the room. If the space is bright, the Light board style keeps the big digits crisp.</p>
+          <p>One thing worth knowing if you share the link: it locks in <i>your</i> midnight as one exact instant, so friends in other timezones counting down with you will hit zero at that same moment — the instant your clock strikes twelve — rather than their own local midnight. That's what keeps every screen in sync. If someone elsewhere wants a countdown to their own midnight, they just start their own timer and share that link instead.</p>
+        </div>`,
+  "christmas-countdown": `
+        <div class="obs-extra">
+          <h3>An advent countdown the kids can check themselves</h3>
+          <p>The board counts down to midnight on the next December 25th in your timezone, shown as days plus hours, minutes and seconds — and it always recomputes the <i>next</i> Christmas when it loads, so it never gets stuck on a date that's already passed. Start it, share the link, and the kids can pull up the identical countdown on any device instead of asking "how many more sleeps?" for the tenth time.</p>
+          <p>Want to count to Christmas Eve, the start of the school holidays, or the moment presents get opened instead? Use the date-and-time field to pick any moment, then start and share that link. And if you send the link to relatives in another timezone, they'll count down to the same instant you're counting to (your midnight), which keeps everyone's screens agreeing — rather than each showing a separate local midnight.</p>
+        </div>`,
+};
+
 export const PAGES = [
   { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
     h1: "5 Minute Timer — Free, Shareable, In Sync",
@@ -689,7 +834,7 @@ ${faqSchema(p.faq)}
   </section>
 
   ${stageBlock}
-  ${p.extra || ""}
+  ${p.extra || EXTRA_BY_SLUG[p.slug] || ""}
   ${faqHtml(p.faq)}
   ${affiliateCard(p)}
 </main>
