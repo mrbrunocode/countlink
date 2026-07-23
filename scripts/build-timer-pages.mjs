@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
+import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
 
 // A single, clearly-labeled affiliate recommendation card. Renders nothing
 // until AFFILIATE_NAME/URL/BLURB are set in site-config.mjs (same
@@ -813,6 +814,7 @@ ${faqSchema(p.faq)}
   <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
 </header>
 <nav class="main-nav" aria-label="Site">
+  <a href="/guides">Guides</a>
   <a href="/how-it-works">How It Works</a>
   <a href="/compare">Compare</a>
   <a href="/about">About</a>
@@ -857,6 +859,152 @@ ${faqSchema(p.faq)}
 </html>
 `; };
 
+// ── Editorial articles (/guides) ───────────────────────────────────────────
+// The "proof" layer a tool site needs for AdSense / E-E-A-T: standalone,
+// long-form, genuinely useful pieces separate from the timer pages, each with
+// an author byline. Content lives in scripts/articles.mjs.
+const fmtDate = (iso) =>
+  new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+
+// Shared shell for the guide index and article pages. `rel` is the asset path
+// prefix ("" for the root-level /guides index, "../" for /guides/<slug>).
+const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main }) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title} | ${NAME}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${SITE_URL}${canonicalPath}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="${SITE_URL}${canonicalPath}">
+<meta property="og:image" content="${SITE_URL}/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="${rel}assets/favicon.svg">
+<link rel="apple-touch-icon" href="${rel}assets/favicon.svg">
+<link rel="manifest" href="${rel}manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="${rel}assets/style.css?v=642f1e91">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+${headJsonLd}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header>
+  <a class="logo" href="/">${NAME}</a>
+  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
+</header>
+<nav class="main-nav" aria-label="Site">
+  <a href="/guides" class="active">Guides</a>
+  <a href="/how-it-works">How It Works</a>
+  <a href="/compare">Compare</a>
+  <a href="/about">About</a>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a>
+</nav>
+<main class="wrap" id="main">
+${main}
+</main>
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      ${timerLinks}
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
+      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
+`;
+
+const byline = (a) => `<p class="byline">By <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a> · <time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.read} min read</p>`;
+
+const authorBox = () => `
+  <aside class="author-box">
+    <p class="author-box-name">${AUTHOR_NAME}</p>
+    <p>${AUTHOR_BIO} <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME.replace(/ FK$/, "")}'s site →</a></p>
+  </aside>`;
+
+const guidePage = (a) => {
+  const jsonLd = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.title,
+    description: a.description,
+    author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
+    publisher: { "@type": "Organization", name: NAME },
+    datePublished: a.date,
+    dateModified: a.date,
+    mainEntityOfPage: `${SITE_URL}/guides/${a.slug}`,
+  })}</script>
+<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: NAME, item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides` },
+      { "@type": "ListItem", position: 3, name: a.title, item: `${SITE_URL}/guides/${a.slug}` },
+    ],
+  })}</script>`;
+  const main = `
+  <article class="article seo-intro">
+    <span class="eyebrow">Guide</span>
+    <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem);margin:6px 0 4px">${a.title}</h1>
+    ${byline(a)}
+    ${a.bodyHtml}
+    ${authorBox()}
+    <p class="article-back"><a href="/guides">← All guides</a></p>
+  </article>
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>`;
+  return guideShell({ rel: "../", title: a.title, description: a.description, canonicalPath: `/guides/${a.slug}`, headJsonLd: jsonLd, main });
+};
+
+const guidesIndexPage = () => {
+  const cards = ARTICLES.map((a) => `
+    <a class="guide-card" href="/guides/${a.slug}">
+      <h2>${a.title}</h2>
+      <p>${a.excerpt}</p>
+      <span class="guide-card-meta">${a.read} min read</span>
+    </a>`).join("\n");
+  const jsonLd = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: NAME, item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides` },
+    ],
+  })}</script>`;
+  const main = `
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Guides</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">Timing &amp; productivity guides</h1>
+      <p class="lede">Practical writing on running meetings, classes, workouts and study to time — the ideas behind a shared countdown, and how to use one well.</p>
+    </div>
+  </section>
+  <div class="guide-list">${cards}
+  </div>`;
+  return guideShell({ rel: "../", title: "Timing & Productivity Guides", description: "Practical guides on running meetings, exams, classes, workshops, standups and workouts to time — timeboxing, the Pomodoro technique, interval training and more.", canonicalPath: "/guides", headJsonLd: jsonLd, main });
+};
+
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
 // Sitemap lastmod reflects when the pages were actually (re)generated, not
@@ -869,10 +1017,14 @@ const BUILD_DATE = new Date().toISOString().split("T")[0];
 const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
+  const guideUrls = [`  <url><loc>${SITE_URL}/guides</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
+    .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
+    .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE_URL}/</loc><lastmod>${BUILD_DATE}</lastmod></url>
 ${staticUrls}
+${guideUrls}
 ${urls}
 </urlset>
 `;
@@ -900,6 +1052,9 @@ ${BRAND} is a static web app: no signup, no backend, no per-viewer cost. The syn
 - [Privacy policy](${SITE_URL}/privacy): what data is (and isn't) collected
 - [Terms of Service](${SITE_URL}/terms)
 - [Contact](${SITE_URL}/contact)
+
+## Guides
+${ARTICLES.map(a => `- [${a.title}](${SITE_URL}/guides/${a.slug}): ${a.description}`).join("\n")}
 
 ## Duration timers
 ${durationLines}
@@ -939,6 +1094,18 @@ async function main() {
   }
   console.log(`Wrote ${written.length} pages to ${relative(ROOT, OUT_DIR)}/`);
   for (const w of written) console.log(" -", relative(ROOT, w));
+
+  // Editorial articles: /guides index + /guides/<slug> pages.
+  // A guides/ directory holds the articles, so /guides must resolve to
+  // guides/index.html (directory index) — not a sibling guides.html, which the
+  // directory would shadow both locally and on Cloudflare Pages.
+  const guidesDir = join(ROOT, "guides");
+  await mkdir(guidesDir, { recursive: true });
+  await writeFile(join(guidesDir, "index.html"), guidesIndexPage(), "utf-8");
+  for (const a of ARTICLES) {
+    await writeFile(join(guidesDir, `${a.slug}.html`), guidePage(a), "utf-8");
+  }
+  console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
 
   const sitemapPath = join(ROOT, "sitemap.xml");
   await writeFile(sitemapPath, sitemap(), "utf-8");
