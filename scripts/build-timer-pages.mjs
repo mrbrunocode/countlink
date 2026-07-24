@@ -19,6 +19,7 @@ import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
+import { makeDateTracker } from "./content-dates.mjs";
 
 // A single, clearly-labeled affiliate recommendation card. Renders nothing
 // until AFFILIATE_NAME/URL/BLURB are set in site-config.mjs (same
@@ -41,6 +42,10 @@ export const affiliateCard = (p, cfg = { name: AFFILIATE_NAME, url: AFFILIATE_UR
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT_DIR = join(ROOT, "timers");
+
+// dateModified per page, changing only when that page's content changes.
+// See scripts/content-dates.mjs for why this is not just the build date.
+const dates = makeDateTracker(join(ROOT, "content-dates.json"), new Date().toISOString().slice(0, 10));
 
 // Each row is one indexed landing page. slug -> filename (timers/<slug>.html).
 // minutes: preset duration the tool boots into.
@@ -88,7 +93,7 @@ const CLASSROOM_EXTRA = `
 // deadline countdown/stopwatch: repeating work/rest phases derived from one
 // cycle-start instant. Its own panel + defaults per page (a boxing round
 // timer defaults to 3min/1min/12; a Tabata timer to 20s/10s/8), wired to
-// assets/app.js?v=dd8fde59's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
+// assets/app.js?v=6911eadc's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
 const ivExtra = (workSec, restSec, rounds) => `
         <div class="obs-extra">
           <h3>Set your rounds</h3>
@@ -610,7 +615,7 @@ const faqHtml = (faq) => faq ? `
   </section>` : "";
 
 // Seasonal page themes — body class drives a CSS-variable palette swap in
-// assets/style.css?v=642f1e91 (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
+// assets/style.css?v=c3b2af1e (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
 // browser-chrome theme-color meta in step with each palette's chassis tone.
 const THEME_COLORS = { christmas: "#182219", newyear: "#141826" };
 
@@ -646,7 +651,7 @@ const multiDashboardSection = `
 // this is one continuous run. It reuses the exact "the link is the timer"
 // mechanic as the interval/Tabata timer (one start instant, every viewer's
 // device derives the current phase from elapsed time — see startInterval()
-// in assets/app.js), just with a list of different-length segments instead
+// in assets/app.js?v=6911eadc), just with a list of different-length segments instead
 // of one repeating work/rest pair, so it genuinely auto-advances with no
 // server involved.
 const agendaDashboardSection = `
@@ -809,7 +814,7 @@ return `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=642f1e91">
+<link rel="stylesheet" href="../assets/style.css?v=c3b2af1e">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -828,7 +833,10 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   // the whole domain read as unattributed.
   author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
   datePublished: CONTENT_DATE,
-  dateModified: CONTENT_DATE,
+  dateModified: dates.dateFor(`timers/${p.slug}`, [
+    p.title, p.h1, p.meta, p.intro, p.faq, p.eyebrow,
+    p.extra || EXTRA_BY_SLUG[p.slug] || "",
+  ]),
 })}</script>
 <script type="application/ld+json">${JSON.stringify({
   "@context": "https://schema.org",
@@ -873,6 +881,7 @@ ${faqSchema(p.faq)}
   ${stageBlock}
   ${p.extra || EXTRA_BY_SLUG[p.slug] || ""}
   ${faqHtml(p.faq)}
+  ${relatedGuides(p.slug)}
   ${affiliateCard(p)}
 </main>
 
@@ -890,7 +899,7 @@ ${faqSchema(p.faq)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=dd8fde59" defer></script>
+<script src="../assets/app.js?v=6911eadc" defer></script>
 </body>
 </html>
 `; };
@@ -904,7 +913,7 @@ const fmtDate = (iso) =>
 
 // Shared shell for the guide index and article pages. `rel` is the asset path
 // prefix ("" for the root-level /guides index, "../" for /guides/<slug>).
-const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main }) => `<!DOCTYPE html>
+const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -926,7 +935,7 @@ const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", m
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="${rel}assets/style.css?v=642f1e91">
+<link rel="stylesheet" href="${rel}assets/style.css?v=c3b2af1e">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -954,7 +963,7 @@ ${main}
 <footer>
   <div class="wrap">
     <div class="foot-links">
-      ${timerLinks(null)}
+      ${footLinks ?? timerLinks(null)}
     </div>
     <div class="foot-in">
       <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
@@ -965,6 +974,68 @@ ${main}
 </body>
 </html>
 `;
+
+// ---- Topical clusters (hub-and-spoke) ----------------------------------
+//
+// One source of truth pairing each guide with the timers it's actually about.
+// Before this, every guide footer linked to all 29 timers and every timer
+// page linked to no guide at all — so the site had 29 flat siblings and 7
+// orphaned articles, with no signal about which belonged together.
+//
+// Deliberately NOT solved by adding /timers/for-teachers-style hub pages:
+// the guides already are those hubs (750–950 words each, on exactly these
+// topics), so a hub page would have duplicated an existing article and added
+// a thin page for no gain. Wiring the existing content is the same structure
+// without the new URLs.
+//
+// Keys are guide slugs; values are timer slugs, most relevant first.
+const TOPIC_LINKS = {
+  "using-timers-in-the-classroom": ["classroom-timer", "exam-timer", "group-study-timer", "10-minute-timer"],
+  "how-to-run-a-timed-exam": ["exam-timer", "classroom-timer", "60-minute-timer", "30-minute-timer"],
+  "the-pomodoro-technique": ["pomodoro-timer", "25-minute-timer", "5-minute-timer", "group-study-timer"],
+  "running-short-standups": ["standup-timer", "10-minute-timer", "15-minute-timer", "agenda-timer"],
+  "timeboxing-meetings": ["zoom-meeting-timer", "google-meet-timer", "agenda-timer", "30-minute-timer", "45-minute-timer"],
+  "facilitating-workshops-to-time": ["workshop-timer", "agenda-timer", "multiple-timers-at-once", "15-minute-timer"],
+  "interval-training-timing": ["tabata-timer", "interval-timer", "boxing-round-timer", "5-minute-timer"],
+};
+
+// Reverse index: timer slug -> guide slugs that reference it. Built rather
+// than hand-maintained so the two directions can't drift apart.
+const GUIDES_FOR_TIMER = (() => {
+  const m = {};
+  for (const [guideSlug, timerSlugs] of Object.entries(TOPIC_LINKS)) {
+    for (const t of timerSlugs) (m[t] ||= []).push(guideSlug);
+  }
+  return m;
+})();
+
+const pageBySlug = (slug) => PAGES.find((p) => p.slug === slug);
+const articleBySlug = (slug) => ARTICLES.find((a) => a.slug === slug);
+
+// Rendered on a timer page: the guide(s) that cover using this timer well.
+const relatedGuides = (timerSlug) => {
+  const slugs = (GUIDES_FOR_TIMER[timerSlug] || []).slice(0, 2);
+  const items = slugs.map(articleBySlug).filter(Boolean);
+  if (!items.length) return "";
+  return `
+  <nav class="related-guides" aria-label="Further reading">
+    <h2>Further reading</h2>
+    <ul>
+      ${items.map((a) => `<li><a href="/guides/${a.slug}">${a.title}</a> — ${a.excerpt}</li>`).join("\n      ")}
+    </ul>
+  </nav>`;
+};
+
+// Rendered on a guide page: the timers that guide is actually about, instead
+// of the previous undifferentiated dump of all 29.
+const timersForGuide = (guideSlug) => {
+  const items = (TOPIC_LINKS[guideSlug] || []).map(pageBySlug).filter(Boolean);
+  if (!items.length) return timerLinks(null);
+  return items
+    .map((p) => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`)
+    .concat(`<a href="/">Browse all ${PAGES.length} timers →</a>`)
+    .join("\n      ");
+};
 
 const byline = (a) => `<p class="byline">By <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a> · <time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.read} min read</p>`;
 
@@ -1010,7 +1081,7 @@ const guidePage = (a) => {
          data-ad-format="auto" data-full-width-responsive="true"></ins>
     <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
-  return guideShell({ rel: "../", title: a.title, description: a.description, canonicalPath: `/guides/${a.slug}`, headJsonLd: jsonLd, main });
+  return guideShell({ rel: "../", title: a.title, description: a.description, canonicalPath: `/guides/${a.slug}`, headJsonLd: jsonLd, main, footLinks: timersForGuide(a.slug) });
 };
 
 const guidesIndexPage = () => {
@@ -1177,6 +1248,9 @@ async function main() {
   const llmsPath = join(ROOT, "llms.txt");
   await writeFile(llmsPath, llmsTxt(), "utf-8");
   console.log(`Wrote ${relative(ROOT, llmsPath)}`);
+
+  const d = dates.save();
+  console.log(`dateModified: ${d.total} pages tracked, ${d.changed.length} changed this build.`);
 
   await syncIndexFootLinks();
   console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");

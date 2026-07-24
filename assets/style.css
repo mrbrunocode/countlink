@@ -527,6 +527,15 @@ footer{border-top:1px solid var(--panel-line);padding:24px 0 28px;margin-top:34p
 .author-box a:hover{text-decoration:underline}
 .article-back{margin-top:28px}
 .article-back a{color:var(--amber);text-decoration:none}
+/* "Further reading" on a timer page — links to the guide(s) about that
+   timer's actual use case, the spoke->hub half of the topical cluster. */
+.related-guides{margin:34px 0 0;padding-top:22px;border-top:1px solid var(--panel-line)}
+.related-guides h2{font-family:var(--display);font-weight:800;font-size:1.15rem;color:var(--paper-text);margin:0 0 12px;letter-spacing:-.01em}
+.related-guides ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.related-guides li{color:var(--paper-dim);font-size:.9rem;line-height:1.6}
+.related-guides a{color:var(--amber);text-decoration:none;font-weight:600}
+.related-guides a:hover{text-decoration:underline}
+
 .guide-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:8px 0 40px}
 .guide-card{display:block;padding:20px;border:1px solid var(--panel-line);border-radius:8px;background:var(--panel);text-decoration:none;transition:border-color .15s ease}
 .guide-card:hover{border-color:var(--amber)}
