@@ -552,9 +552,39 @@ export const PAGES = [
 
 const BRAND = NAME; // imported from ./site-config.mjs — the one place these values live
 
-const timerLinks = PAGES.map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`).join("\n          ");
+// How many sibling timers a single timer page links to. Dumping all 29 on
+// every page made each page ~45% boilerplate and is the doorway-page pattern
+// Google calls out explicitly; a rotating window keeps every timer reachable
+// (each page links to 12 others, so the whole set stays crawlable) while
+// leaving the page's own content the dominant part of it.
+const RELATED_WINDOW = 12;
+
+// currentSlug === null → every timer (used by the homepage, where a full
+// index is the point). Otherwise a wrapping window centred on the current
+// page, so neighbouring timers differ from page to page.
+function timerLinks(currentSlug, indent = "          ") {
+  let chosen;
+  if (currentSlug == null) {
+    chosen = PAGES;
+  } else {
+    const i = PAGES.findIndex(p => p.slug === currentSlug);
+    chosen = [];
+    for (let off = 1; chosen.length < RELATED_WINDOW && off < PAGES.length; off++) {
+      const after = PAGES[(i + off) % PAGES.length];
+      const before = PAGES[(i - off + PAGES.length) % PAGES.length];
+      if (after.slug !== currentSlug && !chosen.includes(after)) chosen.push(after);
+      if (chosen.length < RELATED_WINDOW && before.slug !== currentSlug && !chosen.includes(before)) chosen.push(before);
+    }
+  }
+  const links = chosen
+    .filter(p => p.slug !== currentSlug)
+    .map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`);
+  if (currentSlug != null) links.push(`<a href="/">Browse all ${PAGES.length} timers →</a>`);
+  return links.join(`\n${indent}`);
+}
+
 // Same links, but rooted for index.html (one directory up from /timers/).
-const rootTimerLinks = PAGES.map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`).join("\n      ");
+const rootTimerLinks = timerLinks(null, "      ");
 
 // FAQPage JSON-LD generated from each page's own `faq` array — never shared
 // verbatim between pages, per docs findings that repeated FAQ text across
@@ -792,6 +822,11 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any (web browser)",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  // Named maintainer on every timer page, not just the guide articles.
+  // Google's "Who created it?" test is applied per page, and the timer pages
+  // are the overwhelming majority of the site — leaving them anonymous made
+  // the whole domain read as unattributed.
+  author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
   datePublished: CONTENT_DATE,
   dateModified: CONTENT_DATE,
 })}</script>
@@ -844,11 +879,12 @@ ${faqSchema(p.faq)}
 <footer>
   <div class="wrap">
     <div class="foot-links">
-      ${timerLinks}
+      ${timerLinks(p.slug)}
     </div>
     <div class="foot-in">
       <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
-      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.</div>
+      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.<br>
+      Built and maintained by <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a>, an independent developer in Edinburgh.</div>
     </div>
   </div>
 </footer>
@@ -918,7 +954,7 @@ ${main}
 <footer>
   <div class="wrap">
     <div class="foot-links">
-      ${timerLinks}
+      ${timerLinks(null)}
     </div>
     <div class="foot-in">
       <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
@@ -1006,6 +1042,29 @@ const guidesIndexPage = () => {
 };
 
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
+
+// Cloudflare Pages serves a root 404.html with a real 404 status for any
+// unmatched path. Without one it fell back to index.html at HTTP 200, so every
+// typo'd or stale URL returned a full page — a soft 404, which inflates the
+// index with near-duplicates and reads as auto-generated content to a reviewer.
+// noindex is belt-and-braces: the 404 status alone keeps it out of the index.
+const notFoundPage = () => guideShell({
+  rel: "",
+  title: `Page not found — ${NAME}`,
+  description: "That page doesn't exist. Browse the timers or start a new countdown.",
+  canonicalPath: "/404",
+  headJsonLd: `<meta name="robots" content="noindex">`,
+  main: `
+<article class="article">
+  <h1>Page not found</h1>
+  <p>There's nothing at that address — it may have been renamed, or the link
+  that brought you here may have a typo in it.</p>
+  <p>If you were opening a shared countdown, ask whoever sent it for a fresh
+  link: the timer lives entirely in the URL, so a truncated or edited link
+  can't be recovered from this end.</p>
+  <p><a href="/">Start a countdown</a> · <a href="/guides">Read the guides</a> · <a href="/contact">Report a broken link</a></p>
+</article>`,
+});
 
 // Sitemap lastmod reflects when the pages were actually (re)generated, not
 // the hand-bumped CONTENT_DATE used for JSON-LD datePublished/dateModified —
@@ -1106,6 +1165,10 @@ async function main() {
     await writeFile(join(guidesDir, `${a.slug}.html`), guidePage(a), "utf-8");
   }
   console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
+
+  const notFoundPath = join(ROOT, "404.html");
+  await writeFile(notFoundPath, notFoundPage(), "utf-8");
+  console.log(`Wrote ${relative(ROOT, notFoundPath)}`);
 
   const sitemapPath = join(ROOT, "sitemap.xml");
   await writeFile(sitemapPath, sitemap(), "utf-8");
