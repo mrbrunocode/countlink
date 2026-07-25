@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { fmt2, charsFor, numOr } = loadDuration();
+const { fmt2, charsFor, numOr, validTimestamp } = loadDuration();
 
 test("fmt2 zero-pads single digits, leaves two-digit numbers alone", () => {
   assert.equal(fmt2(0), "00");
@@ -96,4 +96,25 @@ test("numOr falls back on non-numeric strings", () => {
 test("numOr passes through ordinary positive and negative numbers unchanged", () => {
   assert.equal(numOr("5", 10), 5);
   assert.equal(numOr("-5", 10), -5);
+});
+
+// Regression: readHash() used to do `end=+m.get("t")` with only a truthy
+// check, so a corrupted/truncated shared link (chat clients truncate long
+// URLs; a hand-edited or malformed #t= is also plausible) set end=NaN, which
+// every downstream duration calculation propagated silently into literal
+// "Na:Na" tiles on the board rather than any indication the link was broken.
+test("validTimestamp accepts a real epoch ms value", () => {
+  assert.equal(validTimestamp("1735689600000"), 1735689600000);
+  assert.equal(validTimestamp("0"), 0); // epoch itself must not be treated as falsy/missing
+});
+
+test("validTimestamp rejects missing, empty, and non-numeric input instead of returning NaN", () => {
+  assert.equal(validTimestamp(null), null);
+  assert.equal(validTimestamp(""), null);
+  assert.equal(validTimestamp("abc"), null);
+  assert.equal(validTimestamp("12abc"), null);
+});
+
+test("validTimestamp rejects Infinity (finite check, not just NaN check)", () => {
+  assert.equal(validTimestamp("Infinity"), null);
 });

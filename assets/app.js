@@ -35,7 +35,7 @@ let state="ready";
 // so this early-return trick works, exactly like diffhero/textbench do.
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
-    fmt2: fmt2, charsFor: charsFor, numOr: numOr,
+    fmt2: fmt2, charsFor: charsFor, numOr: numOr, validTimestamp: validTimestamp,
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
     alarmTones: alarmTones,
@@ -80,10 +80,21 @@ function makeLink(){
   u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}`;
   return u.toString();
 }
+// A link that's been truncated by a chat client, hand-edited, or just
+// corrupted in transit can leave #t= empty or non-numeric. Pulled out as a
+// pure function so it's unit-testable without stubbing `location` — the bug
+// this guards against (end=NaN silently propagating into "Na:Na" tiles on
+// the board) was found by testing charsFor(NaN,...) directly, not by any
+// interaction a normal test would think to try.
+function validTimestamp(raw){
+  const t=+raw;
+  return raw!==null&&raw!==""&&Number.isFinite(t)?t:null;
+}
 function readHash(){
   const m=new URLSearchParams(location.hash.slice(1));
-  if(m.get("t")){
-    end=+m.get("t");label=decodeURIComponent(m.get("l")||"");
+  const t=validTimestamp(m.get("t"));
+  if(t!==null){
+    end=t;label=decodeURIComponent(m.get("l")||"");
     if(m.get("d")==="up")direction="up";
     else if(m.get("d")==="iv"){
       direction="interval";
