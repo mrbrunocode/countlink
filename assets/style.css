@@ -1,32 +1,67 @@
 /* ===================================================================
-   samesecond — "departure board" aesthetic.
-   A shared countdown clock deserves to look like the boards that have
-   run every airport and station clock for the last 60 years: split-flap
-   tiles, riveted steel chassis, amber signal, mechanical everything.
+   CountLink — Swiss Instrument.
+
+   The thing on this page is a device you point a room at, so the page is
+   built like the panel a device is mounted in: a mathematical grid of
+   ruled cells, hard corners everywhere, tiny functional labels in mono,
+   and exactly ONE signal colour that means "live" rather than decorating.
+   Nothing is centred — the grid decides where things sit.
+
+   Lineage: Müller-Brockmann's grid as "a system of order that makes the
+   message more easily understood"; Rams at Braun; the Ulm School.
+
+   The one thing NOT flattened is the split-flap board. A departure board
+   is dark with light flaps, and that board is the most distinctive asset
+   across all three of these sites — so it stays exactly what it is, and
+   the page around it turns light. That inversion is the whole idea: the
+   panel is light and quiet, the instrument mounted on it is dark and is
+   the only thing competing for your eye.
    =================================================================== */
 :root{
-  --board:oklch(0.14 0.012 75);         /* app background */
-  --board-deep:oklch(0.10 0.01 75);
-  --panel:oklch(0.23 0.014 75);         /* elevated surface / card */
-  --panel-line:oklch(0.36 0.015 75);    /* border, strong */
-  --flap:oklch(0.94 0.004 75);          /* split-flap tile face */
+  /* The panel — light, warm, matte. */
+  --panel-0:oklch(0.925 0.004 85);      /* page ground */
+  --panel-1:oklch(0.965 0.003 85);      /* cell fill, one step up */
+  --rule:oklch(0.20 0.008 85);          /* structural rule — near-black, hard */
+  --rule-fine:oklch(0.80 0.006 85);     /* hairline between cells */
+  --ink:oklch(0.20 0.008 85);
+  --ink-2:oklch(0.44 0.008 85);         /* secondary copy */
+  --ink-3:oklch(0.50 0.008 85);         /* micro-labels — dark enough to clear AA at 10-11px */
+
+  --flap:oklch(0.94 0.004 75);
   --flap-ink:oklch(0.14 0.012 75);
-  --amber:oklch(0.72 0.16 70);          /* accent — link-blue */
-  --amber-deep:oklch(0.62 0.18 70);
-  --paper-text:oklch(0.94 0.004 75);    /* body copy on dark chassis */
-  --paper-dim:oklch(0.62 0.012 75);
-  --ok:oklch(0.72 0.16 152);
+
+  /* The surface names the rest of this file was written against, when the
+     whole page was a dark chassis. They now resolve to panel values, so every
+     surface OUTSIDE the board picks up the light ground without sixty rules
+     needing to be rewritten. The board re-declares them for its own subtree
+     below, which is the only place the dark palette still applies. */
+  --board:var(--panel-0);
+  --board-deep:oklch(1 0 0);
+  --panel:var(--panel-1);
+  --panel-line:var(--rule-fine);
+  --paper-text:var(--ink);
+  --paper-dim:var(--ink-2);
+
+  /* One signal. Used for live/running state and nothing else — if it is on
+     the page it means something is counting. */
+  --signal:oklch(0.55 0.20 33);
+  --signal-deep:oklch(0.47 0.20 33);
+  --amber:var(--signal);                /* legacy alias, board internals */
+  --amber-deep:var(--signal-deep);
+  --ok:oklch(0.48 0.14 152);
+
   --display:"Big Shoulders Display","Oswald",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
   --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
   --sans:"Work Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --bleed:clamp(16px,3vw,32px);
+  --idx-w:14.5rem;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
-  font-family:var(--sans);background:var(--board);color:var(--paper-text);
+  font-family:var(--sans);background:var(--panel-0);color:var(--ink);
   min-height:100vh;font-size:16px;line-height:1.55;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px);
+  display:flex;flex-direction:column;
 }
 ::selection{background:var(--amber);color:var(--board)}
 a{color:inherit}
@@ -50,47 +85,78 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 }
 .skip-link:focus{left:0}
 
-.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
-@media(min-width:640px){.wrap{padding:0 32px}}
+/* ============ CHASSIS — the panel's top plate ============
+   A spec strip, not an app bar: identity, navigation and the standing claim
+   all set in the same small mono, on one ruled line. The heavy rule under it
+   is structural — it is the edge of the panel. */
+.chassis{
+  display:flex;align-items:center;gap:24px;flex-wrap:wrap;
+  padding:12px var(--bleed);border-bottom:2px solid var(--rule);
+  background:var(--panel-1);
+}
+.chassis-id{
+  font-family:var(--display);font-weight:800;font-size:1.25rem;letter-spacing:-.01em;
+  text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:9px;line-height:1;
+  margin-right:auto;
+}
+.pip{width:9px;height:9px;background:var(--signal);flex:none}
+.chassis-nav{display:flex;gap:22px;flex-wrap:wrap}
+.chassis-nav a,.chassis-spec{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink-2);
+}
+.chassis-nav a:hover{color:var(--signal)}
+.chassis-nav a[aria-current="page"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--signal)}
+.chassis-spec{color:var(--ink-3);white-space:nowrap}
 
-/* ============ HEADER ============ */
-header{
-  padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+/* ============ RIG — the mounting grid ============
+   Two tracks, full bleed: a fixed index rail and the working area. Every page
+   here used to be `main.wrap` at 1000px centred, with a hero stacked on top of
+   the board — one skeleton across all 38 pages, which is what read as
+   templated. Nothing is centred now; the grid places things. */
+.rig{
+  flex:1;display:grid;grid-template-columns:var(--idx-w) minmax(0,1fr);
+  align-items:start;
 }
-@media(min-width:640px){header{padding:18px 32px}}
-/* the tagline is desktop garnish — on a phone it costs a header row that
-   pushes the actual timer further from the fold */
-.head-meta{display:none}
-@media(min-width:640px){.head-meta{display:block}}
-.logo{
-  font-family:var(--display);font-weight:800;font-size:1.4rem;letter-spacing:-.01em;text-decoration:none;color:var(--paper-text);
-  display:flex;align-items:center;gap:10px;line-height:1;
-}
-.logo::before{
-  content:"";width:9px;height:9px;background:var(--amber);border-radius:0;flex:none;
-  box-shadow:0 0 8px 1px oklch(0.72 0.16 70 / .7);
-}
-.head-meta{font-family:var(--mono);font-size:.66rem;color:var(--paper-dim);letter-spacing:.02em;line-height:1.6}
-.head-meta b{color:var(--amber);font-weight:500}
+.rig-main{min-width:0;padding:0 var(--bleed) 64px;}
+/* Prose is held to a measure even though the board is not — a countdown wants
+   the width, a paragraph does not. */
+.measure{max-width:70ch}
 
-/* Site-wide nav — a second, thin row below the header so every page (not
-   just the footer) links to the legal/trust pages AdSense review looks for:
-   How It Works, Compare, About, Privacy, Terms, Contact. Deliberately quiet
-   (small, muted, no border until hover) so it reads as utility chrome, not
-   a competing content block above the fold. */
-.main-nav{
-  display:flex;flex-wrap:nowrap;gap:18px;padding:0 20px;border-bottom:1px solid var(--panel-line);
-  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none; /* one swipeable row on mobile, never two */
+/* ---- Index rail ---- */
+.rig-index{
+  align-self:stretch;border-right:1px solid var(--rule);
+  padding:20px var(--bleed) 40px;background:var(--panel-1);
 }
-.main-nav::-webkit-scrollbar{display:none}
-@media(min-width:640px){.main-nav{gap:28px;padding:0 32px}}
-.main-nav a{
-  font-family:var(--mono);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;
-  color:var(--paper-dim);text-decoration:none;
-  padding:6px 0;border:0;white-space:nowrap;
+.idx-in{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+.idx-title{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:16px;
 }
-.main-nav a:hover{color:var(--amber)}
-.main-nav a.active{color:var(--paper-text);box-shadow:inset 0 -1px 0 var(--amber)}
+.idx-title a{color:inherit;text-decoration:none}
+.idx-group+.idx-group{margin-top:18px}
+.idx-head{
+  font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:6px;
+}
+.idx-list{list-style:none;display:grid;gap:1px}
+.idx-list a{
+  display:block;padding:3px 0 3px 10px;font-size:.82rem;line-height:1.3;
+  color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;
+}
+.idx-list a:hover{color:var(--ink);border-left-color:var(--rule-fine)}
+.idx-list a[aria-current="page"]{color:var(--signal);font-weight:600;border-left-color:var(--signal)}
+
+/* ---- Name plate (the page opening) ---- */
+.plate{padding:26px 0 22px;border-bottom:1px solid var(--rule-fine);margin-bottom:26px}
+.plate-ref{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:12px;
+}
+/* Tight on a phone. This site's one hard layout rule is that the board sits in
+   the first viewport — you open it to hand a room a clock — so the name plate
+   gets the minimum it needs and no decorative rule below it. */
+@media(max-width:900px){.plate{padding:12px 0 8px;margin-bottom:12px;border-bottom:0}}
 
 /* ============ HERO ============ */
 /* Mobile: deliberately shallow — a title strip, not a landing-page hero.
@@ -142,6 +208,15 @@ body.viewing .stage-section{padding-top:18px}
      by assets/app.js). Without this, the board has zero height until JS runs,
      then snaps to full size — a real, measured CLS hit on every page load. */
   --tw:34px;--th:48px;--fs:1.7rem;
+  /* The instrument restores the dark chassis palette for everything inside
+     it. This is the one dark object on a light panel, and that contrast is
+     deliberate — it is what makes the board read as a device mounted on the
+     page rather than as another section of it. */
+  --board-deep:oklch(0.10 0.01 75);
+  --panel:oklch(0.23 0.014 75);
+  --panel-line:oklch(0.36 0.015 75);
+  --paper-text:oklch(0.94 0.004 75);
+  --paper-dim:oklch(0.62 0.012 75);
   background:linear-gradient(180deg,var(--panel),var(--board-deep));
   border:1px solid var(--panel-line);border-radius:0;
   padding:24px 8px 22px;text-align:center;position:relative;
@@ -304,8 +379,12 @@ body.viewing .stage-section{padding-top:18px}
 .btn:hover{border-color:var(--amber);color:var(--amber)}
 /* fixed dark ink, not board-deep/board — amber stays a mid-tone accent in
    every theme, so dark text reads correctly on it regardless of dark/light. */
-.btn.primary{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:700}
-.btn.primary:hover{background:var(--amber-deep);color:var(--flap-ink);border-color:var(--amber-deep)}
+/* Filled signal surfaces carry white, not near-black. Dark ink on the signal
+   red measured 3.7:1 — under AA for anything this size. White on the deeper
+   signal clears it comfortably and reads as a lit control, which is what a
+   start button on an instrument should look like. */
+.btn.primary{background:var(--signal-deep);color:#fff;border-color:var(--signal-deep);font-weight:700}
+.btn.primary:hover{background:var(--signal);color:#fff;border-color:var(--signal)}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
 .alarm-tone-picker{display:inline-flex;align-items:center}
 .alarm-tone-picker select{
@@ -432,7 +511,9 @@ input,select{
 input:focus,select:focus{outline:none;border-color:var(--amber)}
 .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
 .dir-toggle{grid-template-columns:repeat(2,1fr)}
-.dir-toggle .q.active{background:var(--amber);color:var(--flap-ink);border-color:var(--amber-deep);font-weight:600}
+/* Same rule as .btn.primary: white on the deeper signal, not near-black on
+   the bright one, which measured 3.7:1 at this size. */
+.dir-toggle .q.active{background:var(--signal-deep);color:#fff;border-color:var(--signal-deep);font-weight:600}
 .q{
   font-family:var(--mono);font-size:.72rem;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-dim);
   padding:11px 6px;transition:all .15s;border-radius:0;min-height:44px;
@@ -596,3 +677,36 @@ body.overlay-mode .board::before,body.overlay-mode .board::after,
 body.overlay-mode .style-toggle,body.overlay-mode .sync-note,
 body.overlay-mode .bar,body.overlay-mode .stage-btns{display:none}
 body.overlay-mode .tiles{gap:8px}
+
+/* ============ REFLOW ============
+   One break, set where the index rail stops paying for the width it costs.
+   Below it the rail moves BELOW the working area via flex order, so the board
+   is still the first thing on the page on a tablet or a phone — which is the
+   whole point of this site: you open it to hand a room a clock. */
+@media(max-width:900px){
+  .rig{display:flex;flex-direction:column}
+  .rig-main{order:1}
+  .rig-index{
+    order:2;border-right:0;border-top:2px solid var(--rule);
+    padding:20px var(--bleed) 32px;margin-top:8px;
+  }
+  .idx-in{position:static;max-height:none;overflow:visible;columns:2;column-gap:28px}
+  .idx-group{break-inside:avoid}
+  .idx-title{column-span:all}
+}
+@media(max-width:560px){
+  .chassis{gap:10px 16px;padding:10px var(--bleed)}
+  .chassis-spec{display:none}       /* the claim repeats in the lede and footer */
+  .chassis-nav{gap:16px}
+  .idx-in{columns:1}
+}
+
+/* Print: the board is the only thing worth putting on paper. */
+@media print{
+  .rig-index,.chassis-nav,.chassis-spec,.ad-slot,.affiliate-card,
+  .skip-link,.style-toggle,.stage-btns{display:none!important}
+  .rig{display:block}
+  .rig-main{padding:0}
+  .board{background:#fff!important;border:1px solid #000}
+  a{text-decoration:none;color:#000}
+}

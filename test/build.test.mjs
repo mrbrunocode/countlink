@@ -38,3 +38,68 @@ test("generated page contains its own h1 and canonical URL", () => {
   assert.ok(html.includes(p.h1), "generated page missing its own <h1>/title text");
   assert.ok(html.includes(`${SITE_URL}/timers/${p.slug}`), "generated page missing its own canonical URL");
 });
+
+// ── Layout architecture ────────────────────────────────────────────────────
+// The July 2026 redesign replaced `main.wrap` at 1000px centred — the same
+// skeleton on all 38 pages — with the Swiss instrument panel: a chassis strip,
+// a fixed index rail, and the board as the one object on it. CountLink is
+// hand-built, so seven of those pages are real files that receive their chrome
+// by marker sync rather than by being generated; these tests are what catch a
+// hand-written page drifting out of the system.
+
+test("every timer slug is filed under exactly one index heading", async () => {
+  const { GROUPS } = await import("../scripts/build-timer-pages.mjs");
+  const filed = GROUPS.flatMap(([, slugs]) => slugs);
+  assert.deepEqual(filed.filter((s, i) => filed.indexOf(s) !== i), [],
+    "a slug appears under more than one heading");
+  for (const p of PAGES) {
+    assert.ok(filed.includes(p.slug), `${p.slug} is not filed in GROUPS — it would vanish from navigation`);
+  }
+  for (const s of filed) {
+    assert.ok(PAGES.some((p) => p.slug === s), `GROUPS lists "${s}", which is not a real page`);
+  }
+});
+
+test("every page — generated and hand-written — uses the rig, not the old centred column", () => {
+  const files = [
+    "index.html", "about.html", "how-it-works.html", "compare.html",
+    "privacy.html", "terms.html", "contact.html",
+    join("timers", "pomodoro-timer.html"), join("guides", "index.html"),
+  ];
+  for (const f of files) {
+    const html = readFileSync(join(ROOT, f), "utf8");
+    assert.doesNotMatch(html, /<main class="wrap"/, `${f} still uses the old centred main.wrap`);
+    assert.doesNotMatch(html, /class="main-nav"/, `${f} still carries the old nav row`);
+    assert.match(html, /<div class="rig">/, `${f} is not mounted in the rig grid`);
+    assert.match(html, /<header class="chassis">/, `${f} is missing the chassis`);
+  }
+});
+
+test("the index rail links every timer, from a generated page and a hand-written one", () => {
+  for (const f of [join("timers", "exam-timer.html"), "about.html"]) {
+    const html = readFileSync(join(ROOT, f), "utf8");
+    const start = html.indexOf('<nav class="rig-index"');
+    const rail = html.slice(start, html.indexOf("</nav>", start));
+    assert.ok(start > -1, `${f} has no index rail`);
+    for (const p of PAGES) {
+      assert.ok(rail.includes(`/timers/${p.slug}"`), `${f}'s rail is missing ${p.slug}`);
+    }
+  }
+  const exam = readFileSync(join(ROOT, "timers", "exam-timer.html"), "utf8");
+  assert.match(exam, /href="\/timers\/exam-timer" aria-current="page"/,
+    "a timer page should mark itself as current in its own rail");
+});
+
+test("the chassis is identical everywhere, so a hand-written page cannot drift", () => {
+  const chassisOf = (f) => {
+    const html = readFileSync(join(ROOT, f), "utf8");
+    const s = html.indexOf('<header class="chassis">');
+    return html.slice(s, html.indexOf("</header>", s));
+  };
+  const reference = chassisOf(join("timers", "stopwatch.html"));
+  for (const f of ["privacy.html", "terms.html", "contact.html"]) {
+    // Hand-written pages mark their own nav item; compare with that stripped.
+    const strip = (s) => s.replace(/ aria-current="page"/g, "");
+    assert.equal(strip(chassisOf(f)), strip(reference), `${f}'s chassis has drifted from the generated one`);
+  }
+});

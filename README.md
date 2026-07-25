@@ -78,6 +78,9 @@ funnelling into the same tool.
    **unique** (title, meta description, intro paragraph). Duplicate content
    across pages is the most common reason these get filtered out of Google's
    index instead of ranked.
+   **Also file the slug in `GROUPS`**, just above `PAGES`. The index rail
+   renders from `GROUPS`, so an unfiled page would never appear in site
+   navigation — the build refuses to run rather than let that ship silently.
 3. Run:
    ```bash
    node scripts/build-timer-pages.mjs
@@ -85,6 +88,41 @@ funnelling into the same tool.
    This regenerates every file in `/timers/` plus `sitemap.xml` from the
    template, so editing shared structure only ever happens in one place.
 4. Commit the new `/timers/<slug>.html` file and the updated `sitemap.xml`.
+
+## Layout
+
+Redesigned July 2026. Until then every page was `main.wrap` at 1000px centred,
+with the board stacked under a hero — one skeleton across all 38 pages, which
+is what made the site read as templated.
+
+The page is now an **instrument panel**: a `.chassis` spec strip across the
+top, then a `.rig` grid of two tracks — a fixed index rail listing all 29
+timers under their `GROUPS` headings, and the working area. Nothing is centred;
+the grid places things. Hard corners throughout, hairline rules between cells,
+micro-labels in mono, and exactly **one signal colour** which means *live* —
+if the red is on the page, something is counting.
+
+The one thing deliberately **not** flattened is the split-flap board. A
+departure board is dark with light flaps, and it is the most distinctive asset
+across all three of these sites, so it keeps its dark chassis while the page
+around it turns light. That inversion is the whole idea: the panel is quiet,
+the instrument mounted on it is the only thing competing for your eye. In CSS
+this is done by token scoping — `:root` aliases the old dark-surface names
+(`--paper-text`, `--panel`, `--board-deep`…) to panel values, and `.board`
+re-declares them dark for its own subtree.
+
+**Chrome sync.** CountLink pre-dates the template engine, so `index.html`,
+`about`, `how-it-works`, `compare` and the three legal pages are real files
+rather than generated ones. Rather than retrofit them to a generator, the two
+blocks that must be identical everywhere — the chassis and the timer index —
+are generated in `build-timer-pages.mjs` and written into those files between
+`CHROME_START`/`CHROME_END` and `INDEX_START`/`INDEX_END` markers on every
+build. Don't hand-edit between the markers; a test compares each hand-written
+page's chassis against a generated one and fails if they drift.
+
+Below 900px the index rail moves *below* the working area via flex `order`, so
+the board is still the first thing on the page on a phone. That is this site's
+one hard layout rule — you open it to hand a room a clock.
 
 ## Deployment (once you have a domain — see domain shortlist below)
 

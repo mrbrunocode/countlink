@@ -284,6 +284,33 @@ const EXTRA_BY_SLUG = {
         </div>`,
 };
 
+/**
+ * The instrument index — every timer filed under a panel heading, in the order
+ * a user would scan for one. The index rail renders from this, so a slug that
+ * isn't filed here would simply not exist in site navigation. Keep it in sync
+ * with PAGES below (build-timer-pages.mjs checks this on every run and refuses
+ * to write a site with an unfiled or phantom slug).
+ */
+export const GROUPS = [
+  ["Fixed durations", [
+    "5-minute-timer", "10-minute-timer", "15-minute-timer", "20-minute-timer",
+    "25-minute-timer", "30-minute-timer", "45-minute-timer", "60-minute-timer",
+  ]],
+  ["Classroom & exams", ["exam-timer", "classroom-timer", "group-study-timer"]],
+  ["Meetings", [
+    "webinar-countdown", "standup-timer", "zoom-meeting-timer",
+    "google-meet-timer", "workshop-timer",
+  ]],
+  ["Streaming", ["obs-countdown-timer", "twitch-stream-timer"]],
+  ["Focus & intervals", [
+    "pomodoro-timer", "tabata-timer", "interval-timer", "boxing-round-timer",
+  ]],
+  ["Multi-stage", ["multiple-timers-at-once", "agenda-timer"]],
+  ["Play & events", ["game-night-timer", "auction-countdown"]],
+  ["Count up", ["stopwatch"]],
+  ["Seasonal", ["new-year-countdown", "christmas-countdown"]],
+];
+
 export const PAGES = [
   { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
     h1: "5 Minute Timer — Free, Shareable, In Sync",
@@ -884,38 +911,25 @@ ${growScript()}
 <body${p.theme ? ` class="theme-${p.theme}"` : ""}>
 <a class="skip-link" href="#boardEl">Skip to timer</a>
 
-<header>
-  <a class="logo" href="/">${BRAND}</a>
-  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
-</header>
-<nav class="main-nav" aria-label="Site">
-  <a href="/guides">Guides</a>
-  <a href="/how-it-works">How It Works</a>
-  <a href="/compare">Compare</a>
-  <a href="/about">About</a>
-  <a href="/privacy">Privacy</a>
-  <a href="/terms">Terms</a>
-  <a href="/contact">Contact</a>
-</nav>
-
-<main class="wrap">
-  <section class="hero">
-    <div class="hero-inner">
-      <span class="eyebrow">${p.eyebrow}</span>
-      <h1>${p.h1}</h1>
-      <p class="lede">${p.intro}</p>
-    </div>
-    <div class="hero-fact">
-      <span class="n">00</span>servers to run this
-    </div>
-  </section>
+${chassis(null)}
+<div class="rig">
+${instrumentIndex(p.slug)}
+<main class="rig-main" id="main">
+  <header class="plate">
+    <p class="plate-ref">Timer / ${p.eyebrow}</p>
+    <h1>${p.h1}</h1>
+    <p class="lede">${p.intro}</p>
+  </header>
 
   ${stageBlock}
-  ${p.extra || EXTRA_BY_SLUG[p.slug] || ""}
-  ${faqHtml(p.faq)}
-  ${relatedGuides(p.slug)}
-  ${affiliateCard(p)}
+  <div class="measure">
+    ${p.extra || EXTRA_BY_SLUG[p.slug] || ""}
+    ${faqHtml(p.faq)}
+    ${relatedGuides(p.slug)}
+    ${affiliateCard(p)}
+  </div>
 </main>
+</div>
 
 <footer>
   <div class="wrap">
@@ -977,22 +991,13 @@ ${growScript()}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header>
-  <a class="logo" href="/">${NAME}</a>
-  <div class="head-meta">NO SIGNUP · NO SERVER<br><b>THE LINK IS THE SYNC</b></div>
-</header>
-<nav class="main-nav" aria-label="Site">
-  <a href="/guides" class="active">Guides</a>
-  <a href="/how-it-works">How It Works</a>
-  <a href="/compare">Compare</a>
-  <a href="/about">About</a>
-  <a href="/privacy">Privacy</a>
-  <a href="/terms">Terms</a>
-  <a href="/contact">Contact</a>
-</nav>
-<main class="wrap" id="main">
+${chassis("/guides")}
+<div class="rig">
+${instrumentIndex(null)}
+<main class="rig-main" id="main">
 ${main}
 </main>
+</div>
 <footer>
   <div class="wrap">
     <div class="foot-links">
@@ -1228,6 +1233,116 @@ ${useCaseLines}
 `;
 };
 
+/* ── Swiss chassis ─────────────────────────────────────────────────────────
+   The page is an instrument panel: a spec strip across the top, a fixed index
+   rail, and the board as the one object on it. Everything is set on a grid of
+   ruled cells — nothing centred, nothing floating, no soft corners. Both of
+   these blocks are generated here and synced into the hand-written root pages
+   (see syncChrome), so all 38 pages carry identical chrome from one source.
+   ─────────────────────────────────────────────────────────────────────── */
+const CHROME_START = "<!-- CHROME_START — auto-synced from scripts/build-timer-pages.mjs, do not hand-edit -->";
+const CHROME_END = "<!-- CHROME_END -->";
+const INDEX_START = "<!-- INDEX_START — auto-synced from scripts/build-timer-pages.mjs, do not hand-edit -->";
+const INDEX_END = "<!-- INDEX_END -->";
+
+const CHASSIS_NAV = [
+  ["/guides", "Guides"],
+  ["/how-it-works", "How it works"],
+  ["/compare", "Compare"],
+  ["/about", "About"],
+];
+
+function chassis(currentPath) {
+  const links = CHASSIS_NAV.map(([href, label]) =>
+    `<a href="${href}"${href === currentPath ? ' aria-current="page"' : ""}>${label}</a>`).join("\n    ");
+  return `<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>${BRAND}</a>
+  <nav class="chassis-nav" aria-label="Site">
+    ${links}
+  </nav>
+  <p class="chassis-spec">No server · No account · Unlimited viewers</p>
+</header>`;
+}
+
+function instrumentIndex(currentSlug) {
+  const bySlug = Object.fromEntries(PAGES.map((p) => [p.slug, p]));
+  const groups = GROUPS.map(([heading, slugs]) => {
+    const items = slugs.map((slug) => {
+      const here = slug === currentSlug;
+      return `<li><a href="/timers/${slug}"${here ? ' aria-current="page"' : ""}>${bySlug[slug].eyebrow}</a></li>`;
+    }).join("\n        ");
+    return `
+    <section class="idx-group">
+      <h2 class="idx-head">${heading}</h2>
+      <ul class="idx-list">
+        ${items}
+      </ul>
+    </section>`;
+  }).join("");
+  return `<nav class="rig-index" aria-label="All timers">
+  <div class="idx-in">
+    <p class="idx-title"><a href="/">${PAGES.length} timers</a></p>${groups}
+  </div>
+</nav>`;
+}
+
+/** Every slug filed exactly once, checked before anything is written. */
+function assertIndexCoversEveryPage() {
+  const filed = GROUPS.flatMap(([, slugs]) => slugs);
+  const dupes = filed.filter((s, i) => filed.indexOf(s) !== i);
+  if (dupes.length) throw new Error(`GROUPS lists these slugs more than once: ${dupes.join(", ")}`);
+  const slugs = PAGES.map((p) => p.slug);
+  const unfiled = slugs.filter((s) => !filed.includes(s));
+  if (unfiled.length) {
+    throw new Error(`These PAGES slugs are not filed in GROUPS and would vanish from site navigation: ${unfiled.join(", ")}`);
+  }
+  const phantom = filed.filter((s) => !slugs.includes(s));
+  if (phantom.length) throw new Error(`GROUPS lists slugs with no matching page: ${phantom.join(", ")}`);
+}
+
+/**
+ * Push the generated chrome into the hand-written root pages. CountLink
+ * pre-dates the template engine and index/about/how-it-works/compare and the
+ * legal pages are real files rather than generated ones — so rather than
+ * retrofit them to a generator, the two blocks that MUST be identical
+ * everywhere are synced into them between markers. Same approach as
+ * syncIndexFootLinks() below, which has worked here for a while.
+ */
+const CHROME_TARGETS = [
+  ["index.html", "/"],
+  ["about.html", "/about"],
+  ["how-it-works.html", "/how-it-works"],
+  ["compare.html", "/compare"],
+  ["privacy.html", "/privacy"],
+  ["terms.html", "/terms"],
+  ["contact.html", "/contact"],
+];
+
+function replaceBetween(html, start, end, replacement, file, what) {
+  const s = html.indexOf(start);
+  const e = html.indexOf(end);
+  if (s === -1 || e === -1) {
+    console.warn(`  ! ${file}: no ${what} markers — skipped (page will drift from the others)`);
+    return html;
+  }
+  return `${html.slice(0, s + start.length)}\n${replacement}\n${html.slice(e)}`;
+}
+
+async function syncChrome() {
+  let changed = 0;
+  for (const [file, path] of CHROME_TARGETS) {
+    const full = join(ROOT, file);
+    const html = await readFile(full, "utf-8");
+    let out = replaceBetween(html, CHROME_START, CHROME_END, chassis(path), file, "chrome");
+    out = replaceBetween(out, INDEX_START, INDEX_END, instrumentIndex(null), file, "index");
+    if (out !== html) {
+      await writeFile(full, out, "utf-8");
+      changed++;
+    }
+  }
+  console.log(`Synced chassis + timer index into ${changed} hand-written page(s).`);
+}
+
 async function syncIndexFootLinks() {
   const indexPath = join(ROOT, "index.html");
   const html = await readFile(indexPath, "utf-8");
@@ -1249,6 +1364,7 @@ async function syncIndexFootLinks() {
 }
 
 async function main() {
+  assertIndexCoversEveryPage();
   await mkdir(OUT_DIR, { recursive: true });
   const written = [];
   for (const p of PAGES) {
@@ -1297,6 +1413,7 @@ async function main() {
   const d = dates.save();
   console.log(`dateModified: ${d.total} pages tracked, ${d.changed.length} changed this build.`);
 
+  await syncChrome();
   await syncIndexFootLinks();
   console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");
 }
