@@ -26,7 +26,7 @@ export const CONTENT_DATE = "2026-07-08"; // ISO date used for datePublished/dat
 // Empty = renders nothing. Get the value from the Grow Publisher Portal's
 // manual / non-WordPress install (the data-grow-faves-site-id attribute), and
 // verify the generated snippet matches the portal's before relying on it.
-export const GROW_SITE_ID = "";
+export const GROW_SITE_ID = "U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=";
 
 export const DESCRIPTION =
   "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync — " +
