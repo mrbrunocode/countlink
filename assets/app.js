@@ -624,7 +624,17 @@ if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
   if(showing){$("embedWrap").style.display="none";$("embedBtn").textContent="Embed on your site →";return;}
   const u=new URL(makeLink());
   u.searchParams.set("overlay","1");
-  $("embedCode").value=`<iframe src="${u.toString()}" width="400" height="160" style="border:0" title="${label||"Countdown"} — CountLink"></iframe>`;
+  /* Serve the overlay from /embed/ rather than the site root. _headers sends
+     X-Frame-Options: DENY for the whole site — which silently made every
+     embed of this widget fail on other people's pages — and that header can
+     only be lifted per-path, not per-query-string. /embed/ is the same
+     document with the framing exemption applied. */
+  u.pathname = "/embed/";
+  /* The <a> deliberately sits OUTSIDE the iframe: a link inside a frame is
+     attributed to the frame's own document (countlink.app), not to the host
+     page, so an iframe on its own earns no link back. This line is the only
+     part of the snippet that does. */
+  $("embedCode").value=`<iframe src="${u.toString()}" width="400" height="160" style="border:0" title="${label||"Countdown"} — CountLink" loading="lazy"></iframe>\n<p style="font-size:13px"><a href="https://countlink.app/">Shared countdown by CountLink</a></p>`;
   $("embedWrap").style.display="block";$("embedBtn").textContent="Hide embed code";
 });
 if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{

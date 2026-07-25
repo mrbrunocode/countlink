@@ -1237,6 +1237,17 @@ async function main() {
   }
   console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
 
+  // /embed/ serves the same document as the root, but from a path that
+  // _headers exempts from X-Frame-Options: DENY. Without it, every embed of
+  // the overlay silently failed on third-party sites (the header applies to
+  // the whole origin and can't be scoped to ?overlay=1).
+  const embedDir = join(ROOT, "embed");
+  await mkdir(embedDir, { recursive: true });
+  const rootHtml = await readFile(join(ROOT, "index.html"), "utf-8");
+  await writeFile(join(embedDir, "index.html"),
+    rootHtml.replace("<head>", '<head>\n<meta name="robots" content="noindex,follow">'), "utf-8");
+  console.log("Wrote embed/index.html (framable overlay host, noindex)");
+
   const notFoundPath = join(ROOT, "404.html");
   await writeFile(notFoundPath, notFoundPage(), "utf-8");
   console.log(`Wrote ${relative(ROOT, notFoundPath)}`);
