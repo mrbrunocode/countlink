@@ -8,6 +8,11 @@ account, no server, no database.
 Live at [countlink.app](https://countlink.app). For local dev, open `index.html`
 directly or serve the folder — see below.
 
+**License:** source-available, not open source. No LICENSE file means all
+rights reserved by default — this repo is public so the "nothing you paste is
+uploaded" claim is checkable, not an invitation to redistribute or relaunch it
+as your own product.
+
 ## Why this exists
 
 Full research and reasoning is in the project memory (see `/Users/bruno/.claude/projects/-Users-bruno-Code-boring-apps/memory/`),
