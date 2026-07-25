@@ -17,6 +17,54 @@ export const AUTHOR_BIO =
 
 export const ARTICLES = [
   {
+    slug: "put-a-timer-on-your-classroom-screen",
+    title: "How to put a timer on your classroom screen",
+    description:
+      "Getting a countdown onto the interactive whiteboard, a smart TV, a projector, a Chromebook or an iPad — what actually works on each, and what to do when the screen keeps sleeping.",
+    date: "2026-07-25",
+    read: 7,
+    excerpt:
+      "The practical, device-by-device version: whiteboard, smart TV, projector, Chromebook, iPad — plus why the screen goes to sleep mid-lesson and how to stop it.",
+    bodyHtml: `
+    <p>Most advice about classroom timers assumes the hard part is choosing one. In practice the hard part is the ten minutes before the lesson, standing in front of a screen that won't cast, or an interactive whiteboard running a browser three versions out of date, or an iPad that dims to black the moment you stop touching it. This is the device-by-device version.</p>
+    <p>The general principle first, because it makes every specific case easier: a countdown that lives entirely in a web link has nothing to install, nothing to log into, and nothing to pair. If a device has a browser and can open a URL, it can show the timer. That rules out almost none of the hardware in a school.</p>
+
+    <h2>An interactive whiteboard or smart display</h2>
+    <p>These usually run an embedded browser that's older than you'd like. Open the timer's link directly in it and use fullscreen — avoid anything that depends on newer browser features. If typing a long URL on a whiteboard is painful (it usually is), open the timer on your own laptop or phone first, then use the QR code: the board's browser won't help you there, but a pupil's device or your phone camera will, and you can email or AirDrop the link to yourself in a second.</p>
+    <p>If the board's browser struggles, the fallback that always works is to display it from the teaching laptop that's already connected to the board, rather than from the board itself.</p>
+
+    <h2>A smart TV</h2>
+    <p>Two routes. If the TV has a usable browser (most Samsung and LG sets do), open the link and go fullscreen — this is the most reliable option because nothing depends on the network staying up afterwards. If the browser is unusable, cast or mirror from a laptop instead.</p>
+    <p>Casting has one gotcha worth knowing: mirroring a tab shares whatever the laptop renders, so if the laptop sleeps or you switch tabs, the room loses the timer. Opening the link on the TV itself avoids that entirely.</p>
+
+    <h2>A projector</h2>
+    <p>A projector is showing whatever the connected computer shows, so the real question is what's driving it. Open the timer in a browser on that machine, press fullscreen, and — this is the part people skip — check the contrast from the back of the room. Projectors wash out pale colours badly. The board and minimal styles are both high-contrast for exactly this reason; the light style is the one to avoid on a dim projector.</p>
+
+    <h2>Chromebooks</h2>
+    <p>The easiest case. Open the link, press the fullscreen key. If you want every pupil to see their own copy — useful for individual tasks or exam conditions at separate desks — share the link through Classroom or your usual channel and they each open it. Because the end time is carried in the link itself, thirty Chromebooks opening it show the same countdown without any of them talking to each other or to a server.</p>
+
+    <h2>iPads and tablets</h2>
+    <p>Open in Safari and use the timer fullscreen. On iPads the thing that bites is auto-lock: the screen dims and sleeps partway through a task, which is maddening when it's the class clock. Two fixes — either add the timer to the home screen so it runs as an installed app, or set Auto-Lock to Never in Display &amp; Brightness for lessons where a tablet is acting as the display. The site also requests a screen wake lock where the browser supports it, which handles this automatically on most modern devices.</p>
+
+    <h2>When the screen keeps going to sleep</h2>
+    <p>This is the single most common complaint about any web-based classroom timer, and it isn't the timer's fault: operating systems dim and sleep displays to save power, and a page that isn't being touched looks idle to them. Modern browsers expose a wake lock that a page can request to prevent exactly this, which is what this timer does while a countdown is running. Where that isn't supported — older whiteboard browsers, mostly — set the device's own sleep timeout longer for the lesson, or keep the display awake by other means.</p>
+    <p>Worth knowing: even if a screen does sleep, nothing is lost. The countdown's end time is fixed in the link rather than tracked by a running process, so waking the screen shows the correct remaining time immediately. It cannot drift or lose its place while the display is off.</p>
+
+    <h2>Getting the same countdown onto several screens</h2>
+    <p>This is where the shared link earns its keep. Whether it's the board plus every pupil's Chromebook, two classrooms doing the same assessment, or a hall where three displays face different directions, opening the same link on each shows the same countdown reaching zero at the same moment. There's no pairing step, no host device that everything else depends on, and no limit on how many screens can join — a fixed end time is just a fact that every device can read for itself.</p>
+    <p>The trade-off is worth stating plainly: because there's no live connection, you can't push a pause or add two minutes to screens that already have the link open. For a lesson or an exam where the length is known in advance that rarely matters. If you need live mid-session control from your phone, a server-based timer does something this design deliberately doesn't — <a href="/compare">the comparison page</a> covers where each one fits.</p>
+
+    <h2>A short pre-lesson checklist</h2>
+    <ul>
+      <li>Open the link on the display itself where possible, rather than casting.</li>
+      <li>Go fullscreen, then check legibility from the back row.</li>
+      <li>On a projector, avoid the light style.</li>
+      <li>On an iPad acting as the display, install it to the home screen or disable auto-lock.</li>
+      <li>If several screens need it, send the link — don't try to mirror one device to many.</li>
+    </ul>`,
+  },
+
+  {
     slug: "timeboxing-meetings",
     title: "Timeboxing: how to run meetings that actually end on time",
     description:

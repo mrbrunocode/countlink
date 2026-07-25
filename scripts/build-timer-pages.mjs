@@ -181,7 +181,11 @@ const EXTRA_BY_SLUG = {
             <li>At zero, switch attendees to the actual session — this page is the countdown, not the meeting room.</li>
           </ol>
           <p>Because the link encodes one exact instant rather than a wall-clock time, attendees in every timezone see a correct countdown to the same real moment automatically — there's nothing for anyone to convert, and no chance of the classic "wait, was that your 3pm or mine?" mix-up.</p>
-        </div>`,
+        </div>
+          <h3>The "starting soon" screen, and why it earns its keep</h3>
+          <p>The five minutes before a webinar starts are the ones that lose people. Attendees arrive early, see a static slide or a frozen frame, can't tell whether they're in the right session or whether it's already running late, and quietly go and do something else. A live countdown answers all three questions without anyone speaking: yes, this is the right place; no, it hasn't started; here's exactly how long you have.</p>
+          <p>Practically, put it up as soon as the room opens rather than at the scheduled minute. Set it to end at the real start time and leave it running as your holding screen — the transparent overlay mode works as a browser source in OBS or StreamYard if you want it over a title card, and the plain link works if you're simply sharing a tab.</p>
+          <p>For an audience across time zones, sharing the link is more reliable than announcing a time. The countdown resolves to the same instant everywhere, so nobody has to work out what 3pm GMT means where they are — a surprisingly common reason people miss the first ten minutes.</p>`,
   "standup-timer": `
         <div class="obs-extra">
           <h3>How to actually keep a standup short</h3>
@@ -198,7 +202,11 @@ const EXTRA_BY_SLUG = {
             <li>Or keep it open yourself on a second monitor or your phone, so you can pace the meeting without it being on the shared screen.</li>
           </ol>
           <p>There's no extension to install and nothing specific to Google about it — it's just a link that happens to work well pasted into Meet's chat, so everyone who opens it counts down to the same second on their own device.</p>
-        </div>`,
+        </div>
+          <h3>Why Meet has no timer of its own</h3>
+          <p>Google Meet deliberately doesn't ship a shared countdown. The closest built-in options are a Q&amp;A queue or breakout-room auto-close, neither of which shows the room how long is left on the current item. So the usual workaround is one person watching their phone and announcing the time — which is exactly the thing that makes a meeting feel policed rather than paced.</p>
+          <p>The practical fix in Meet is a second tab. Start the countdown here, then share that tab (Present a tab, not your whole screen) so the timer appears as its own presented source, or simply paste the link into the Meet chat so everyone opens it on their own device. The second option scales better for hybrid calls: the people in the room watch the projector, the remote attendees watch their own screen, and both are counting to the same instant rather than to two different phones.</p>
+          <p>One habit worth adopting: paste the link at the <em>start</em> of the call, before the discussion warms up. Dropping a countdown into chat twenty minutes in reads as a rebuke; having it there from the beginning reads as the agenda.</p>`,
   "workshop-timer": `
         <div class="obs-extra">
           <h3>Timing breakouts without herding</h3>
@@ -221,13 +229,21 @@ const EXTRA_BY_SLUG = {
             <li><b>Strategy / worker-placement</b> turns: 2–3 minutes is usually enough to plan a move without derailing into full analysis paralysis.</li>
           </ul>
           <p>Put it fullscreen on a central phone or tablet the whole table can see, or share the link so each player can watch it on their own screen — then just tap the same quick-timer button to reset it for the next player.</p>
-        </div>`,
+        </div>
+          <h3>Turn timers, and the etiquette of using one</h3>
+          <p>The reason a turn timer improves a game night has little to do with speed and everything to do with fairness. Analysis paralysis is uneven — one player takes four minutes deciding while everyone else took forty seconds, and the resentment builds quietly rather than being raised. A visible clock moves that from a social problem to a rule, which is far easier for a group to accept.</p>
+          <p>Pick the duration from the game, not from impatience. Thirty to sixty seconds suits a party or word game where hesitation is the whole tension. Two to three minutes fits a mid-weight strategy game where a turn genuinely involves planning. Anything heavier is usually better with a soft timer — start it, but treat the alarm as a nudge to decide rather than a hard forfeit.</p>
+          <p>Introduce it at the start of the game, agreed by everyone, not mid-session aimed at whoever is currently slow. A shared link on the table works better than one person holding a phone, for the obvious reason: nobody is the timekeeper, so nobody is the villain.</p>`,
   "auction-countdown": `
         <div class="obs-extra">
           <h3>A closing time nobody can dispute</h3>
           <p>Whether it's a charity auction, a fundraiser paddle-raise, or a limited online drop, the whole thing hinges on everyone agreeing on when bidding closes. If people are watching their own clocks, the final seconds turn into an argument. Share this link and every bidder's screen counts down to the identical instant, because the closing time is encoded in the link itself, not read off each device's own clock.</p>
           <p>Share it before bidding opens so nobody can claim they didn't know the deadline, and put it fullscreen on the room screen at a live event so the last minute is visible to everyone at once. Treat the moment every screen hits zero as your hard cutoff — anyone can reopen the link and confirm they were seeing the same countdown, which is exactly the kind of transparency a bidding deadline needs.</p>
-        </div>`,
+        </div>
+          <h3>Why a shared clock matters when money is involved</h3>
+          <p>Bidding disputes almost always come down to whose clock was authoritative. If the auctioneer's phone said eight seconds and a bidder's said two, there is no way to settle it afterwards — and in a charity auction or a club sale, that argument sours the whole evening. Putting one countdown on a screen everyone can see removes the ambiguity before it happens rather than adjudicating it after.</p>
+          <p>Share the link rather than just projecting it if remote or phone bidders are involved: they then count to the identical instant instead of to whatever their connection lag suggests. Announce the rule out loud at the start — "the screen is the clock" — so it's understood as the agreed reference and not just decoration.</p>
+          <p>One honest caveat for anything with real money attached: accuracy depends on each device's own clock, typically within a second. That's ample for a room auction or a raffle, but this is not a certified timing system and shouldn't be treated as one where a legally binding cutoff is at stake.</p>`,
   "stopwatch": `
         <div class="obs-extra">
           <h3>A stopwatch several people can watch at once</h3>
@@ -239,13 +255,21 @@ const EXTRA_BY_SLUG = {
           <h3>When one countdown isn't enough</h3>
           <p>Some situations need several clocks at once, each independent: a multi-dish meal where the potatoes, the roast and the sauce all finish at different times; an event with parallel stations each on its own schedule; exam sections with different lengths; or a kitchen, workshop or lab running a few processes side by side.</p>
           <p>Add a named timer for each — they're shown together on one board and each counts down on its own, so finishing or removing one never disturbs the others. Then copy the link: whoever opens it sees the identical set of timers, each picking up from wherever it currently is, so a co-host or the rest of the kitchen can watch the same dashboard without you calling out times. There's no hard limit on how many you add, though a handful stays far easier to scan at a glance than a wall of twenty.</p>
-        </div>`,
+        </div>
+          <h3>Naming and scanning several clocks at once</h3>
+          <p>The limit on running many timers isn't technical, it's visual. Four or five countdowns can be read at a glance; a dozen becomes a wall of numbers that nobody parses under pressure, which defeats the point. If you find yourself past about six, it's usually a sign that some of them are really one sequence — a set of stages that happen in order — and would be clearer as a single chained agenda than as parallel clocks.</p>
+          <p>Names matter more here than anywhere else on this site. "Timer 3" tells you nothing when three things are about to finish; "Sauce", "Roast" and "Potatoes" can be read from across a kitchen. Put the thing you'll act on in the label, not the duration — you can already see the duration.</p>
+          <p>Because each timer's end time is encoded in the shared link along with the others, a co-host opening that link sees the same set at the same offsets. They don't need to be told what's already running, which is what makes this useful for a handover mid-session.</p>`,
   "agenda-timer": `
         <div class="obs-extra">
           <h3>Build the running order once, let it drive itself</h3>
           <p>A single countdown times one thing. An agenda times a <i>sequence</i> — intro, then a talk, then a break, then Q&A — and advances from one segment to the next on its own, so you're facilitating instead of fumbling for the next timer. Add your segments in order, reorder them with the arrows if you change your mind, then start.</p>
           <p>The useful part is what the shared link carries: only the start instant and the list of segment lengths. Every device works out which segment is "now" from the time that's elapsed since the start, so once you've shared the link there's nothing left to synchronise — no server tells anyone to advance, and every screen reaches the end together. Once an agenda is running its order is locked in; to change it, start a fresh one. That constraint is deliberate — it means one link is always one unambiguous running order that everyone can trust.</p>
-        </div>`,
+        </div>
+          <h3>Building an agenda that survives contact with the meeting</h3>
+          <p>The mistake most agendas make is budgeting to the total rather than to the items. Six items in an hour becomes "about ten minutes each", which in practice means the first two take thirty-five minutes and the last two get cut. Assigning each item its own countdown up front forces the harder conversation — which of these is actually worth fifteen minutes? — while it's still cheap to have.</p>
+          <p>Two things make chained timers work better than one long one. First, name each segment: a countdown labelled "Budget review" tells a room what's ending, where a bare number just applies pressure. Second, leave a deliberate gap — a five-minute buffer near the end absorbs the one item that always overruns without stealing from whatever is last on the list, which is usually the thing nobody wanted to discuss.</p>
+          <p>If an item genuinely needs more time, the honest move is to stop and re-share a fresh countdown rather than quietly letting it run. That keeps the shared clock truthful, which is the only reason anyone pays attention to it.</p>`,
   "new-year-countdown": `
         <div class="obs-extra">
           <h3>Setting it up for the party</h3>
@@ -1000,6 +1024,7 @@ ${main}
 // Keys are guide slugs; values are timer slugs, most relevant first.
 const TOPIC_LINKS = {
   "using-timers-in-the-classroom": ["classroom-timer", "exam-timer", "group-study-timer", "10-minute-timer"],
+  "put-a-timer-on-your-classroom-screen": ["classroom-timer", "exam-timer", "workshop-timer", "group-study-timer"],
   "how-to-run-a-timed-exam": ["exam-timer", "classroom-timer", "60-minute-timer", "30-minute-timer"],
   "the-pomodoro-technique": ["pomodoro-timer", "25-minute-timer", "5-minute-timer", "group-study-timer"],
   "running-short-standups": ["standup-timer", "10-minute-timer", "15-minute-timer", "agenda-timer"],

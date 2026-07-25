@@ -14,6 +14,7 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 - [Contact](https://countlink.app/contact)
 
 ## Guides
+- [How to put a timer on your classroom screen](https://countlink.app/guides/put-a-timer-on-your-classroom-screen): Getting a countdown onto the interactive whiteboard, a smart TV, a projector, a Chromebook or an iPad — what actually works on each, and what to do when the screen keeps sleeping.
 - [Timeboxing: how to run meetings that actually end on time](https://countlink.app/guides/timeboxing-meetings): Meetings overrun because time is invisible. Timeboxing — giving each part of a meeting a fixed, visible limit — is the simple fix. Here's how to do it well.
 - [How to run a fair timed exam or test](https://countlink.app/guides/how-to-run-a-timed-exam): Timing an exam sounds simple until you're doing it for a room. A practical guide to running a fair, unambiguous timed test — the clock, the announcements, the edge cases.
 - [The Pomodoro Technique, explained — and how to do it as a group](https://countlink.app/guides/the-pomodoro-technique): The Pomodoro Technique in practice: why 25-minute focus blocks work, how to run them, common mistakes, and how to keep a whole study group or team in sync.
