@@ -40,17 +40,21 @@ async function hashOf(relPath) {
 const cssHash = await hashOf("assets/style.css");
 const jsHash = await hashOf("assets/app.js");
 
-// Matches the plain reference or one already carrying a (possibly stale)
-// ?v=... — so re-runs update in place instead of accumulating query strings.
-const CSS_RE = /((?:\.\.\/)?assets\/style\.css)(\?v=[0-9a-f]+)?/g;
-const JS_RE = /((?:\.\.\/)?assets\/app\.js)(\?v=[0-9a-f]+)?/g;
+// Anchored to href="…"/src="…" so only real asset references are touched.
+// Unanchored, these matched the filename ANYWHERE in a file — which quietly
+// rewrote prose in code comments that happened to mention assets/style.css,
+// and (2026-07-25) corrupted a string literal in build-timer-pages.mjs into a
+// path that could not be opened. Matching the plain reference or one already
+// carrying a stale ?v= keeps re-runs idempotent rather than accumulating.
+const CSS_RE = /((?:href|src)="(?:\.\.\/)?assets\/style\.css)(\?v=[0-9a-f]+)?"/g;
+const JS_RE = /((?:href|src)="(?:\.\.\/)?assets\/app\.js)(\?v=[0-9a-f]+)?"/g;
 
 async function patch(relPath) {
   const path = join(ROOT, relPath);
   const before = await readFile(path, "utf8");
   const after = before
-    .replace(CSS_RE, (_, base) => `${base}?v=${cssHash}`)
-    .replace(JS_RE, (_, base) => `${base}?v=${jsHash}`);
+    .replace(CSS_RE, (_, base) => `${base}?v=${cssHash}"`)
+    .replace(JS_RE, (_, base) => `${base}?v=${jsHash}"`);
   if (after !== before) {
     await writeFile(path, after);
     console.log(`patched ${relPath}`);

@@ -17,6 +17,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, GROW_SITE_ID, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
 import { makeDateTracker } from "./content-dates.mjs";
@@ -93,7 +94,7 @@ const CLASSROOM_EXTRA = `
 // deadline countdown/stopwatch: repeating work/rest phases derived from one
 // cycle-start instant. Its own panel + defaults per page (a boxing round
 // timer defaults to 3min/1min/12; a Tabata timer to 20s/10s/8), wired to
-// assets/app.js?v=6911eadc's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
+// assets/app.js's startInterval() via ivStartBtn/ivWorkSec/ivRestSec/ivRounds.
 const ivExtra = (workSec, restSec, rounds) => `
         <div class="obs-extra">
           <h3>Set your rounds</h3>
@@ -673,7 +674,7 @@ const faqHtml = (faq) => faq ? `
   </section>` : "";
 
 // Seasonal page themes — body class drives a CSS-variable palette swap in
-// assets/style.css?v=c3b2af1e (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
+// assets/style.css (search "SEASONAL PAGE THEMES"). THEME_COLORS keeps the
 // browser-chrome theme-color meta in step with each palette's chassis tone.
 const THEME_COLORS = { christmas: "#182219", newyear: "#141826" };
 
@@ -709,7 +710,7 @@ const multiDashboardSection = `
 // this is one continuous run. It reuses the exact "the link is the timer"
 // mechanic as the interval/Tabata timer (one start instant, every viewer's
 // device derives the current phase from elapsed time — see startInterval()
-// in assets/app.js?v=6911eadc), just with a list of different-length segments instead
+// in assets/app.js), just with a list of different-length segments instead
 // of one repeating work/rest pair, so it genuinely auto-advances with no
 // server involved.
 const agendaDashboardSection = `
@@ -872,7 +873,7 @@ return `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=c3b2af1e">
+<link rel="stylesheet" href="../assets/style.css?v=a1f41e11">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -945,7 +946,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=6911eadc" defer></script>
+<script src="../assets/app.js?v=b350d675" defer></script>
 </body>
 </html>
 `; };
@@ -981,7 +982,7 @@ const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", m
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="${rel}assets/style.css?v=c3b2af1e">
+<link rel="stylesheet" href="${rel}assets/style.css?v=79ba9849">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1264,6 +1265,8 @@ function chassis(currentPath) {
 </header>`;
 }
 
+const idFor = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 function instrumentIndex(currentSlug) {
   const bySlug = Object.fromEntries(PAGES.map((p) => [p.slug, p]));
   const groups = GROUPS.map(([heading, slugs]) => {
@@ -1273,8 +1276,8 @@ function instrumentIndex(currentSlug) {
     }).join("\n        ");
     return `
     <section class="idx-group">
-      <h2 class="idx-head">${heading}</h2>
-      <ul class="idx-list">
+      <p class="idx-head" id="idx-${idFor(heading)}">${heading}</p>
+      <ul class="idx-list" aria-labelledby="idx-${idFor(heading)}">
         ${items}
       </ul>
     </section>`;
@@ -1284,6 +1287,47 @@ function instrumentIndex(currentSlug) {
     <p class="idx-title"><a href="/">${PAGES.length} timers</a></p>${groups}
   </div>
 </nav>`;
+}
+
+/**
+ * Refuse to build with a stale ?v= on the assets.
+ *
+ * This bit us on 2026-07-25: the whole site was restyled and pushed, but
+ * scripts/bump-asset-version.mjs was never run, so every page still pointed at
+ * the previous style.css hash. Origin and edge were correct; returning
+ * visitors would have got the OLD stylesheet out of their disk cache against
+ * the NEW markup for up to the _headers cache window — which is not "slightly
+ * stale styling", it is a page with no rules for any of its classes. The
+ * failure is completely invisible locally, because a fresh browser has nothing
+ * cached and requests whatever the query string says.
+ *
+ * bump-asset-version.mjs patches the files and *then* runs this build, so by
+ * the time this check runs under it the hashes always agree. Throwing here
+ * only ever catches the case where someone edited an asset and ran the build
+ * directly.
+ */
+async function assertAssetVersionsAreCurrent() {
+  const stamped = (await readFile(join(ROOT, "index.html"), "utf8"));
+  // Filename kept in two pieces on purpose: bump-asset-version.mjs rewrites the
+  // literal "assets/<name>" wherever it appears, and a plain string here would
+  // be rewritten into a path that does not exist. The regexes below are safe
+  // because their slashes are escaped, so they don't contain that literal.
+  for (const [name, re] of [
+    ["style.css", /assets\/style\.css\?v=([0-9a-f]{8})/],
+    ["app.js", /assets\/app\.js\?v=([0-9a-f]{8})/],
+  ]) {
+    const referenced = stamped.match(re)?.[1];
+    if (!referenced) continue;
+    const actual = createHash("sha256").update(await readFile(join(ROOT, "assets", name))).digest("hex").slice(0, 8);
+    if (referenced !== actual) {
+      throw new Error(
+        `assets/${name} has changed (${referenced} -> ${actual}) but the ?v= stamp was not updated.\n` +
+        `Run:  node scripts/bump-asset-version.mjs\n` +
+        `That patches every page and re-runs this build. Shipping without it serves ` +
+        `returning visitors a cached stylesheet against new markup.`,
+      );
+    }
+  }
 }
 
 /** Every slug filed exactly once, checked before anything is written. */
@@ -1365,6 +1409,7 @@ async function syncIndexFootLinks() {
 
 async function main() {
   assertIndexCoversEveryPage();
+  await assertAssetVersionsAreCurrent();
   await mkdir(OUT_DIR, { recursive: true });
   const written = [];
   for (const p of PAGES) {

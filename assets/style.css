@@ -44,8 +44,8 @@
 
   /* One signal. Used for live/running state and nothing else — if it is on
      the page it means something is counting. */
-  --signal:oklch(0.55 0.20 33);
-  --signal-deep:oklch(0.47 0.20 33);
+  --signal:oklch(0.50 0.19 33);
+  --signal-deep:oklch(0.44 0.19 33);
   --amber:var(--signal);                /* legacy alias, board internals */
   --amber-deep:var(--signal-deep);
   --ok:oklch(0.48 0.14 152);
@@ -80,7 +80,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 /* keyboard users jump straight to the tool; invisible until focused */
 .skip-link{
   position:absolute;left:-9999px;top:0;z-index:100;
-  font-family:var(--mono);font-size:.75rem;color:var(--flap-ink);background:var(--amber);
+  font-family:var(--mono);font-size:.75rem;color:#fff;background:var(--signal-deep);
   padding:10px 16px;border-radius:0;text-decoration:none;
 }
 .skip-link:focus{left:0}
@@ -216,7 +216,11 @@ body.viewing .stage-section{padding-top:18px}
   --panel:oklch(0.23 0.014 75);
   --panel-line:oklch(0.36 0.015 75);
   --paper-text:oklch(0.94 0.004 75);
-  --paper-dim:oklch(0.62 0.012 75);
+  --paper-dim:oklch(0.72 0.010 75);
+  /* The same signal is text on a DARK ground in here, which pulls the opposite
+     way from the light panel outside. --amber resolves per element, so this one
+     re-declaration reaches everything the board draws. */
+  --signal:oklch(0.68 0.17 33);
   background:linear-gradient(180deg,var(--panel),var(--board-deep));
   border:1px solid var(--panel-line);border-radius:0;
   padding:24px 8px 22px;text-align:center;position:relative;
@@ -525,6 +529,10 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   margin-top:16px;background:var(--board-deep);border:1px solid var(--panel-line);padding:12px 14px;border-radius:0;
   font-size:.72rem;color:var(--amber);word-break:break-all;font-family:var(--mono);
 }
+/* app.js fills this only once a timer is running, so before that it is an
+   empty bordered box. That was invisible on the old near-black ground and
+   became a visible artefact the moment the panel went light. */
+.share-box:empty{display:none}
 
 .pro-link{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.03em;color:var(--amber);text-decoration:underline;text-underline-offset:3px;
