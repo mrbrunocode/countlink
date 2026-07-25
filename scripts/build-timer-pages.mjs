@@ -17,7 +17,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
+import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, GROW_SITE_ID, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
 import { makeDateTracker } from "./content-dates.mjs";
 
@@ -555,6 +555,13 @@ export const PAGES = [
     ] },
 ];
 
+// Mediavine Grow loader — renders nothing until GROW_SITE_ID is set, matching
+// the same off-by-default contract as the GA/AdSense tags. Reproduces Grow's
+// documented non-WordPress loader; the Publisher Portal is the source of truth.
+const growScript = () => GROW_SITE_ID ? `<script data-grow-initializer="">
+!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","${GROW_SITE_ID}");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
+</script>` : "";
+
 const BRAND = NAME; // imported from ./site-config.mjs — the one place these values live
 
 // How many sibling timers a single timer page links to. Dumping all 29 on
@@ -848,6 +855,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 })}</script>
 ${faqSchema(p.faq)}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+${growScript()}
 </head>
 <body${p.theme ? ` class="theme-${p.theme}"` : ""}>
 <a class="skip-link" href="#boardEl">Skip to timer</a>
@@ -941,6 +949,7 @@ const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", m
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 ${headJsonLd}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+${growScript()}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>

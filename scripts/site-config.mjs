@@ -17,6 +17,17 @@ export const SITE_URL = "https://countlink.app"; // update once the real domain 
 export const CONTACT_EMAIL = "hello@countlink.app"; // update alongside SITE_URL — privacy.html and every footer reference this
 export const LAST_UPDATED = "July 8, 2026"; // bump by hand whenever privacy.html's actual policy text changes — never auto-generate this from the current date
 export const CONTENT_DATE = "2026-07-08"; // ISO date used for datePublished/dateModified JSON-LD across pages — bump when page copy actually changes
+
+// Mediavine Grow — prerequisite for Journey by Mediavine (see
+// ../boring-app-factory/docs/monetization.md). Journey requires Grow to have
+// run for 30+ DAYS before a site is evaluated, and that clock is independent
+// of traffic — so installing at zero traffic costs nothing and means the 30
+// days are already served when the 1,000-session threshold is reached.
+// Empty = renders nothing. Get the value from the Grow Publisher Portal's
+// manual / non-WordPress install (the data-grow-faves-site-id attribute), and
+// verify the generated snippet matches the portal's before relying on it.
+export const GROW_SITE_ID = "";
+
 export const DESCRIPTION =
   "Set a countdown, share the link. Everyone who opens it sees the identical timer, perfectly in sync — " +
   "no account, no server, no app. Built for classrooms, exams, webinars, workshops and standups.";
