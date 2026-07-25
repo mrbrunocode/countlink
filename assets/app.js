@@ -105,9 +105,22 @@ function readHash(){
   return false;
 }
 
+/* ---------- final-10-seconds urgency ----------
+   A running countdown gets a visible escalation once it's down to its last
+   10 seconds — same signal red already used for "live", just intensified and
+   pulsing, so it's an escalation of the one existing signal rather than a
+   second colour. Toggled off on every reset path (stop/new timer/restart)
+   and the instant a countdown actually hits zero, so it never keeps pulsing
+   over a finished board. */
+function setUrgent(on){
+  const b=$("boardEl");
+  if(b)b.classList.toggle("urgent-final",!!on);
+}
+
 function setState(s){
   state=s;
   setWakeLockActive(s==="running"||s==="finished");
+  if(s!=="running")setUrgent(false);
   const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?"":"none"};
   show("boardStartBtn",s!=="running");
   show("shareBtn",s==="running");
@@ -448,6 +461,7 @@ function draw(){
     else updateTiles(c.tiles);
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
     lastSecond=curSecond;
+    setUrgent(phaseLeftMs<=10000);
     if(ivPhaseEl)ivPhaseEl.textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`;
     $("evtLabel").textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`+(label?" · "+label:"");
     announceLeft(phaseLeftMs);
@@ -482,6 +496,7 @@ function draw(){
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
   }
   lastSecond=curSecond;
+  setUrgent(left<=10000);
   announceLeft(left);
   $("subLine").innerHTML=`ends at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";
@@ -609,11 +624,15 @@ if($("shareBtn"))$("shareBtn").addEventListener("click",async e=>{
    (goqr.me) — only fires when the viewer explicitly asks for it, and only
    ever sends the already-public share link, never anything else. */
 if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
+  // Sets the label SPAN's text, not the button's, so the icon svg markup
+  // (see index.html) survives every toggle instead of being wiped by a
+  // plain textContent assignment on the whole button.
+  const label=$("qrBtnLabel")||$("qrBtn");
   const showing=$("qrWrap").style.display!=="none";
-  if(showing){$("qrWrap").style.display="none";$("qrBtn").textContent="Show QR code →";return;}
+  if(showing){$("qrWrap").style.display="none";label.textContent="Show QR code";return;}
   const data=encodeURIComponent(makeLink());
   $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
-  $("qrWrap").style.display="block";$("qrBtn").textContent="Hide QR code";
+  $("qrWrap").style.display="block";label.textContent="Hide QR code";
 });
 /* OBS/Twitch pages only: same link, plus ?overlay=1 so whoever pastes it into
    a Browser Source gets the transparent, chrome-stripped view automatically —

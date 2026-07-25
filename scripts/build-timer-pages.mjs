@@ -22,6 +22,16 @@ import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, GROW_SITE_ID, AFFILIATE_NA
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
 import { makeDateTracker } from "./content-dates.mjs";
 
+// Inline QR icon for the "Show QR code" board button (design review,
+// 2026-07-25: it was a bare underlined text link with no visual affordance
+// for what it actually opens — the one feature on this whole site built
+// exactly for in-room sharing). Three finder-pattern corners + a scatter of
+// data squares, drawn with hard-cornered <rect>s in currentColor so it
+// inherits the button's ink/hover colour in every board style (dark/minimal/
+// light) without a second copy. Shared here so index.html's hand-written
+// copy and every generated /timers/ page render byte-identical markup.
+export const QR_ICON = `<svg class="qr-ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><rect x="0.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="2" height="2" fill="currentColor"/><rect x="10.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="12" y="2" width="2" height="2" fill="currentColor"/><rect x="0.5" y="10.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="12" width="2" height="2" fill="currentColor"/><rect x="9" y="9" width="2" height="2" fill="currentColor"/><rect x="12" y="9" width="2" height="2" fill="currentColor"/><rect x="9" y="12" width="2" height="2" fill="currentColor"/><rect x="12" y="12" width="2" height="2" fill="currentColor"/></svg>`;
+
 // A single, clearly-labeled affiliate recommendation card. Renders nothing
 // until AFFILIATE_NAME/URL/BLURB are set in site-config.mjs (same
 // off-by-default pattern as the ad slot) and only on pages tagged
@@ -828,7 +838,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
       <div class="share-box" id="shareUrl"></div>
-      <button class="pro-link" id="qrBtn" style="margin-top:10px">Show QR code →</button>
+      <button class="btn icon-btn" id="qrBtn" style="margin-top:10px">${QR_ICON}<span id="qrBtnLabel">Show QR code</span></button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
@@ -873,7 +883,7 @@ return `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=a1f41e11">
+<link rel="stylesheet" href="../assets/style.css?v=9b539a86">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -946,7 +956,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=b350d675" defer></script>
+<script src="../assets/app.js?v=f5578446" defer></script>
 </body>
 </html>
 `; };

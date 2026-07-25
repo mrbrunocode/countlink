@@ -256,8 +256,21 @@ body.viewing .stage-section{padding-top:18px}
 .style-toggle button{
   font-family:var(--mono);font-size:.64rem;letter-spacing:.03em;color:var(--paper-dim);
   border:none;background:none;padding:5px 9px;border-radius:0;min-height:0;width:auto;
+  display:inline-flex;align-items:center;gap:5px;
 }
 .style-toggle button.active{background:var(--panel-line);color:var(--paper-text)}
+/* Tiny swatch per button so the label isn't the only cue for what each style
+   looks like — a stripped-down echo of the tile it produces, not a live
+   thumbnail (too much for a corner control): a hairline-bordered square,
+   split like a real flap tile for "Board", hollow for "Minimal" (no card
+   chrome), solid for "Light" (bright, lit-up look). Pure CSS, no image
+   assets, no markup change needed on any of the 29+ pages this renders on. */
+.style-toggle button::before{
+  content:"";width:8px;height:8px;flex:none;border:1px solid currentColor;display:inline-block;
+}
+.style-toggle button[data-style="board"]::before{background:linear-gradient(180deg,currentColor 50%,transparent 50%)}
+.style-toggle button[data-style="minimal"]::before{background:none}
+.style-toggle button[data-style="light"]::before{background:currentColor}
 @media(min-width:640px){
   .style-toggle{position:absolute;top:28px;right:26px;margin:0}
   .style-toggle button{padding:6px 12px;font-size:.64rem}
@@ -292,7 +305,12 @@ body.viewing .stage-section{padding-top:18px}
   border-radius:2px 2px 0 0;transform-origin:bottom;backface-visibility:hidden;z-index:4;
   box-shadow:0 1px 2px rgba(0,0,0,.3);
 }
-.tile .flap.flipping{animation:flipDown .34s cubic-bezier(.55,0,.75,1) forwards}
+/* Kept short and CSS-driven (not JS-animated) on purpose: this board updates
+   every second forever, so the flip has to read as instant feedback, never
+   as something the digit is waiting on. ~150ms lands in the "genuine flip,
+   still snappy" zone — long enough to read as a mechanical fold, short
+   enough that a 1s tick never feels like it's catching up. */
+.tile .flap.flipping{animation:flipDown .15s cubic-bezier(.55,0,.75,1) forwards}
 @keyframes flipDown{
   0%{transform:rotateX(0);filter:brightness(1)}
   100%{transform:rotateX(-92deg);filter:brightness(.75)}
@@ -359,6 +377,25 @@ body.viewing .stage-section{padding-top:18px}
 .bar{height:2px;background:var(--panel-line);margin:20px auto 0;max-width:420px;position:relative;border-radius:0;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber);width:0%}
 
+/* ---- Final-10-seconds urgency ----
+   An escalation of the one signal colour, not a second one: toggled by
+   app.js (setUrgent()) once a running countdown/interval-phase has 10s or
+   less left. Digits pulse to the signal red and a hairline outline breathes
+   around the board — outline rather than a bigger box-shadow so it never
+   changes the board's box size or competes with .board's own drop shadow.
+   No new colour, no rounded corners, no layout shift. */
+.board.urgent-final .tile .num{animation:urgentInk 1s ease-in-out infinite}
+@keyframes urgentInk{0%,100%{color:var(--flap-ink)}50%{color:var(--signal-deep)}}
+.board.urgent-final{animation:urgentOutline 1s ease-in-out infinite}
+@keyframes urgentOutline{
+  0%,100%{outline:2px solid transparent;outline-offset:3px}
+  50%{outline:2px solid var(--signal-deep);outline-offset:3px}
+}
+@media(prefers-reduced-motion:reduce){
+  .board.urgent-final .tile .num,.board.urgent-final{animation:none}
+  .board.urgent-final{outline:2px solid var(--signal-deep);outline-offset:3px}
+}
+
 /* Mobile: primary action full-width, secondaries share one compact row —
    a stack of 4+ full-width buttons was most of a screen by itself.
    auto-fit means hidden (display:none) buttons don't leave an empty track
@@ -389,6 +426,16 @@ body.viewing .stage-section{padding-top:18px}
    start button on an instrument should look like. */
 .btn.primary{background:var(--signal-deep);color:#fff;border-color:var(--signal-deep);font-weight:700}
 .btn.primary:hover{background:var(--signal);color:#fff;border-color:var(--signal)}
+/* QR share button: was a bare underlined text link with no visual cue for
+   what it opens, on the one site whose whole premise is "hand this to a
+   room" — exactly the in-person-sharing case a QR code exists for. Reuses
+   .btn rather than inventing a new control so it sits at the same visual
+   weight as Start/Share/Fullscreen instead of reading as a lesser, decorative
+   link. The icon is inline SVG (see QR_ICON in scripts/build-timer-pages.mjs
+   and index.html) so it needs no new asset request and recolors for free
+   with currentColor. */
+.icon-btn{width:auto}
+.icon-btn .qr-ico{flex:none}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
 .alarm-tone-picker{display:inline-flex;align-items:center}
 .alarm-tone-picker select{
@@ -651,10 +698,20 @@ body.theme-newyear{
   --paper-dim:oklch(0.66 0.02 40); --amber:oklch(0.72 0.16 40); --amber-deep:oklch(0.62 0.18 40);
 }
 
-/* fullscreen projector mode */
-body.fs .wrap>*:not(.stage-section),body.fs header,body.fs footer,body.fs .ad-slot{display:none}
+/* fullscreen projector mode
+   Design review 2026-07-25: this rule predates the Swiss Instrument redesign
+   and still targeted `.wrap`, a class the centred-column layout used to wrap
+   the whole page — the `.rig`/`.rig-index`/`.rig-main` grid replaced it, so
+   `.wrap>*:not(.stage-section)` was matching nothing and fullscreen only ever
+   hid header/footer/.ad-slot, leaving the hero, setup form and the full
+   timer-index rail on screen. The core use case here is "hand this to a
+   room," so fullscreen needs to actually declutter down to the board, not
+   just zoom it inside the untouched page. */
+body.fs .rig-index,body.fs .rig-main>*:not(.stage-section),
+body.fs header,body.fs footer,body.fs .ad-slot{display:none}
+body.fs .rig{display:block}
+body.fs .rig-main{padding:0}
 body.fs .stage-section{padding:0}
-body.fs .wrap{max-width:none;padding:0}
 body.fs{display:grid;place-items:center;min-height:100vh}
 body.fs .board{border:none;border-radius:0;width:100vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--board);--tw:42px;--th:60px;--fs:2.1rem}
 @media(min-width:420px){body.fs .board{--tw:56px;--th:80px;--fs:2.9rem}}
@@ -669,11 +726,16 @@ body.fs .tiles{gap:4px}
    on top of the video capture underneath. See docs/battle-plan-sharemytimer.md
    §2 — this closes the OBS-integration gap without needing a native app. */
 body.overlay-mode{background:transparent;background-image:none}
-body.overlay-mode .wrap>*:not(.stage-section),
+/* Same stale `.wrap` selector bug as body.fs above (see its comment) — this
+   rule was already a no-op for the rig-index rail and rig-main sections
+   before this fix; fixed alongside since it's the identical one-line change
+   and overlay mode has the same "nothing but the board" requirement for OBS. */
+body.overlay-mode .rig-index,body.overlay-mode .rig-main>*:not(.stage-section),
 body.overlay-mode header,body.overlay-mode footer,body.overlay-mode .ad-slot,
-body.overlay-mode .main-nav{border-bottom:1px solid var(--panel-line);gap:26px;display:none}
+body.overlay-mode .main-nav{display:none}
+body.overlay-mode .rig{display:block}
+body.overlay-mode .rig-main{padding:0}
 body.overlay-mode .stage-section{padding:0}
-body.overlay-mode .wrap{max-width:none;padding:0}
 body.overlay-mode{display:grid;place-items:center;min-height:100vh}
 body.overlay-mode .board{
   border:none;background:transparent;box-shadow:none;padding:16px;width:auto;min-height:0;
