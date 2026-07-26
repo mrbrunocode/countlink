@@ -14,14 +14,26 @@ let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up) | "inter
                       // the other way; "interval" additionally derives which phase/round is
                       // current from elapsed time, rather than counting to one fixed deadline.
 let ivWork=20,ivRest=10,ivRounds=8; // interval mode: work/rest seconds per round, total rounds
-/* The board has three lifecycle states, driving which buttons show:
+/* The board has four lifecycle states, driving which buttons show:
    "ready"    — nothing running; preset duration displayed; Start lives ON the board
    "running"  — counting; Share/Stop replace Start
+   "paused"   — down-mode only, and only reachable via a phone-control command
+                (see realtime.js/control.html) — frozen tiles, Stop still works
    "finished" — hit zero; Restart (same duration) + New timer offered.
    Pages no longer auto-start on load — someone landing from a search result
    decides when their five minutes begin, instead of finding 30 seconds
    already gone by the time they've read the page. */
 let state="ready";
+/* Phone control (see realtime.js, control.html, realtime-config.js): entirely
+   optional and off by default (COUNTLINK_ABLY_KEY empty). controlSession is
+   the channel id shared between this board and its controller; null means
+   "no phone control on this countdown", and every realtime code path below
+   guards on it being set. pausedRemaining is the frozen ms-left snapshot
+   taken the instant a "pause" command lands — direction "down" only, since
+   a moving reference point (stopwatch elapsed / interval cycle position)
+   doesn't have a single clean "remaining" value to freeze the same way. */
+let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
+let unsubRealtimeState=null,unsubRealtimeCommands=null,realtimeHeartbeat=null;
 
 // Exposes the pure duration-formatting functions to Node's test runner (see
 // test/duration.test.mjs). Placed here, after every `let`/`const` above is
@@ -39,6 +51,8 @@ if (typeof module !== "undefined" && module.exports) {
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
     alarmTones: alarmTones,
+    clampAdjustedEnd: clampAdjustedEnd, clampAdjustedRemaining: clampAdjustedRemaining,
+    computeResumeEnd: computeResumeEnd, genSessionId: genSessionId,
   };
   return;
 }
@@ -77,7 +91,18 @@ function setDefaultUntil(){
 function makeLink(){
   const u=new URL(location.href);
   const dirParam=direction==="up"?"&d=up":direction==="interval"?`&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`:"";
-  u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}`;
+  const ctrlParam=controlSession?`&c=${controlSession}`:"";
+  const pauseParam=(state==="paused")?`&p=${Math.round(pausedRemaining)}`:"";
+  u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}${ctrlParam}${pauseParam}`;
+  return u.toString();
+}
+/* The controller (control.html) needs the same t/l/c — but never d/p, since
+   phone control only exists for down-mode and the controller tracks
+   paused-ness itself from live state broadcasts, not from a URL snapshot. */
+function makeControlLink(){
+  if(!controlSession)return "";
+  const u=new URL(location.origin+"/control.html");
+  u.hash=`t=${end}&l=${encodeURIComponent(label)}&c=${controlSession}`;
   return u.toString();
 }
 // A link that's been truncated by a chat client, hand-edited, or just
@@ -100,9 +125,35 @@ function readHash(){
       direction="interval";
       ivWork=Math.max(1,numOr(m.get("w"),20));ivRest=Math.max(0,numOr(m.get("r"),10));ivRounds=Math.max(1,numOr(m.get("n"),8));
     }else direction="down";
+    controlSession=m.get("c")||null;
+    // Only down-mode countdowns support pause — see the state-list comment
+    // near `let state="ready"` above for why.
+    const p=m.get("p");
+    hashPausedRemaining=(p!=null&&direction==="down")?Math.max(0,+p):null;
     return true;
   }
   return false;
+}
+
+/* ---------- phone-control pure helpers (see realtime.js, control.html) ----------
+   Kept separate from the Ably wiring itself so the actual arithmetic — the
+   part a bug would be embarrassing in, like a pause that leaks negative
+   time — is unit-testable without a network or a fake pub/sub client. */
+function clampAdjustedEnd(end,now,deltaMs){
+  return Math.max(now+1000,end+deltaMs);
+}
+function clampAdjustedRemaining(remaining,deltaMs){
+  return Math.max(1000,remaining+deltaMs);
+}
+function computeResumeEnd(now,remaining){
+  return now+remaining;
+}
+// Not a security token — just a channel name unlikely enough to guess that
+// a stranger can't join someone else's classroom timer by chance. Good
+// enough for "control this specific link", not meant to resist a targeted
+// attacker (there's nothing sensitive on the other end of it regardless).
+function genSessionId(){
+  return Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
 }
 
 /* ---------- final-10-seconds urgency ----------
@@ -122,17 +173,21 @@ function setState(s){
   setWakeLockActive(s==="running"||s==="finished");
   if(s!=="running")setUrgent(false);
   const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?"":"none"};
-  show("boardStartBtn",s!=="running");
-  show("shareBtn",s==="running");
+  const live=s==="running"||s==="paused"; // "paused" is still a live, shareable session — see the state-list comment above
+  show("boardStartBtn",!live);
+  show("shareBtn",live);
   show("stopBtn",s!=="ready");
-  show("syncDot",s==="running");
+  show("syncDot",live);
+  const dot=$("syncDot");if(dot)dot.classList.toggle("is-paused",s==="paused");
   const bs=$("boardStartBtn");
   if(bs)bs.textContent = s==="finished" ? "Restart — same duration"
     : (formDirection==="up" ? "Start counting up" : "Start countdown");
   const st=$("stopBtn");
   if(st)st.textContent = s==="finished" ? "New timer" : "Stop";
   const note=$("syncMsg");
-  if(note)note.textContent = s==="running"
+  if(note)note.textContent = s==="paused"
+    ? "Paused from the controller's phone — anyone with this link sees it frozen too."
+    : s==="running"
     ? "Anyone opening your link right now sees exactly this."
     : "Press start, then share the link — every screen counts down together.";
 }
@@ -145,16 +200,24 @@ function start(ms,lab){
      would silently drop from 6 tiles to 4 the moment it crosses under 60
      minutes remaining, breaking the board mid-countdown. */
   mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
-  location.hash=`t=${end}&l=${encodeURIComponent(label)}`;
+  // Opt-in only (see realtime-config.js) — a new session id every time
+  // Start is pressed, never reused across separate countdowns.
+  const wantsControl=$("phoneControlToggle")&&$("phoneControlToggle").checked;
+  controlSession=(wantsControl&&window.CountlinkRealtime&&window.CountlinkRealtime.enabled)?genSessionId():null;
+  pausedRemaining=0;
+  location.hash=`t=${end}&l=${encodeURIComponent(label)}${controlSession?`&c=${controlSession}`:""}`;
   lastAnnouncedMin=null;announcedFinal=false;
   announce(`Countdown started: ${Math.round(ms/60e3)} minutes${label?", "+label:""}`);
   saveRecent();
   setState("running");
   render();
+  connectRealtimeIfNeeded();
+  updateControlLinkUI();
 }
 function startUp(lab){
   direction="up";
   end=Date.now();label=lab;fired=false;total=0;prevValues=null;
+  controlSession=null;pausedRemaining=0; // phone control is down-mode only
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
   lastAnnouncedMin=null;announcedFinal=false;
@@ -171,6 +234,7 @@ function startUp(lab){
 function startInterval(workSec,restSec,rounds,lab){
   direction="interval";
   end=Date.now();label=lab;fired=false;prevValues=null;
+  controlSession=null;pausedRemaining=0; // phone control is down-mode only
   ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
   mode="ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`;
@@ -182,14 +246,120 @@ function startInterval(workSec,restSec,rounds,lab){
 }
 /* Stop is honest about what it can do: with no server, there is no way to
    halt a countdown on screens that already have the link — the link IS the
-   timer. Stopping resets THIS screen back to ready. */
+   timer. Stopping resets THIS screen back to ready. If phone control was on,
+   this also tells every other connected screen (and the controller) to stop
+   too — the one exception to "stop only affects this screen", since it's an
+   explicit broadcast rather than the passive link-timestamp mechanic. */
 function stopTimer(){
+  const hadControl=!!controlSession;
   clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;
   history.replaceState(null,"",location.pathname+location.search);
   document.body.classList.remove("viewing");
   renderReady(+($("customMin")&&$("customMin").value)||10,$("evtName")?$("evtName").value:"");
   const heads=$("subLine");
   if(heads)heads.innerHTML="Stopped on this screen. A link you already shared keeps counting on other screens — the link itself is the timer.";
+  if(hadControl)broadcastState("ready");
+  disconnectRealtime();
+  controlSession=null;pausedRemaining=0;
+  updateControlLinkUI();
+}
+
+/* ---------- phone control: realtime wiring (see realtime.js, control.html) ----------
+   Deliberately symmetric rather than "board is authoritative, viewers are
+   passive": every tab open on the same controlled link — the classroom
+   projector, a student's own device, doesn't matter which — applies an
+   incoming command itself and rebroadcasts the result. Any of them
+   converges the others; there's no special tab whose disconnection breaks
+   the session. A periodic heartbeat state broadcast is what lets a
+   late-arriving tab (or one that missed a message) catch up without needing
+   Ably's paid history/rewind features. */
+function renderPausedTiles(){
+  clearInterval(tick);tick=null;
+  $("evtLabel").textContent=label||"";
+  const bar=document.querySelector(".bar");if(bar)bar.style.display="";
+  const c=charsFor(pausedRemaining);
+  if(c.plain)$("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
+  else{
+    if(!document.querySelector(".tile")||prevValues===null)buildTiles(c.tiles);
+    else updateTiles(c.tiles);
+  }
+  prevValues=prevValues===null?true:prevValues;
+  if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-pausedRemaining/total)*100))+"%";
+  if($("shareUrl"))$("shareUrl").textContent=makeLink();
+  const sub=$("subLine");
+  if(sub)sub.innerHTML="<b>Paused</b> from the controller's phone — waiting to resume.";
+}
+function broadcastState(overrideState){
+  if(!controlSession||!window.CountlinkRealtime)return;
+  window.CountlinkRealtime.publishState(controlSession,{
+    end:end,label:label,state:overrideState||state,pausedRemaining:pausedRemaining,
+  });
+}
+/* The only thing that ever mutates the countdown in response to a command —
+   pause/resume/adjust/stop all funnel through here, whether the command came
+   from this device's own controller or arrived over the wire from another
+   tab's. Guarded to down-mode/an active session; a stopwatch or interval
+   timer with a stray `c` in its URL (shouldn't happen — start()/startUp()/
+   startInterval() only ever set one in down-mode) just ignores commands. */
+function applyRemoteCommand(cmd){
+  if(direction!=="down"||!controlSession||!cmd)return;
+  const now=Date.now();
+  if(cmd.type==="pause"&&state==="running"){
+    pausedRemaining=Math.max(0,end-now);
+    setState("paused");
+    renderPausedTiles();
+    broadcastState();
+  }else if(cmd.type==="resume"&&state==="paused"){
+    end=computeResumeEnd(now,pausedRemaining);
+    setState("running");
+    render();
+    broadcastState();
+  }else if(cmd.type==="adjust"&&(state==="running"||state==="paused")){
+    if(state==="paused"){pausedRemaining=clampAdjustedRemaining(pausedRemaining,cmd.deltaMs);renderPausedTiles();}
+    else end=clampAdjustedEnd(end,now,cmd.deltaMs);
+    broadcastState();
+  }else if(cmd.type==="stop"&&state!=="ready"){
+    stopTimer();
+  }
+}
+/* A hard-sync from another tab's broadcast — used to catch this tab up
+   (initial load, or one that missed a live command) rather than to drive
+   its own state changes moment-to-moment; see connectRealtimeIfNeeded(). */
+function applyRemoteState(s){
+  if(direction!=="down"||!controlSession||!s)return;
+  if(s.label!=null)label=s.label;
+  if(s.state==="paused"){
+    pausedRemaining=s.pausedRemaining||0;
+    if(state!=="paused")setState("paused");
+    renderPausedTiles();
+  }else if(s.state==="running"){
+    if(s.end)end=s.end;
+    if(state!=="running"){setState("running");render();}
+  }else if((s.state==="ready"||s.state==="finished")&&state!=="ready"){
+    stopTimer();
+  }
+}
+function connectRealtimeIfNeeded(){
+  disconnectRealtime();
+  if(direction!=="down"||!controlSession||!window.CountlinkRealtime||!window.CountlinkRealtime.enabled)return;
+  unsubRealtimeState=window.CountlinkRealtime.subscribeState(controlSession,applyRemoteState);
+  unsubRealtimeCommands=window.CountlinkRealtime.subscribeCommands(controlSession,applyRemoteCommand);
+  realtimeHeartbeat=setInterval(()=>broadcastState(),4000);
+}
+function disconnectRealtime(){
+  if(unsubRealtimeState){unsubRealtimeState();unsubRealtimeState=null;}
+  if(unsubRealtimeCommands){unsubRealtimeCommands();unsubRealtimeCommands=null;}
+  if(realtimeHeartbeat){clearInterval(realtimeHeartbeat);realtimeHeartbeat=null;}
+}
+/* Setup-panel-only (see index.html): shows the "Copy control link" action
+   next to the normal share link whenever this countdown actually has a
+   phone-control session, and hides it otherwise — including on a page
+   (like every /timers/* page) that doesn't have the checkbox/button at all,
+   where every $() below is just null and this whole function no-ops. */
+function updateControlLinkUI(){
+  const wrap=$("controlLinkWrap");
+  if(!wrap)return;
+  wrap.style.display=controlSession?"":"none";
 }
 /* Ready state: show the preset duration as static tiles so the board is never
    an empty box, without pretending anything is running. msOverride is for
@@ -634,6 +804,33 @@ if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
   $("qrWrap").style.display="block";label.textContent="Hide QR code";
 });
+/* Phone control (see realtime-config.js/realtime.js): the checkbox and the
+   "Copy control link" row both stay hidden — not just unused — on any site
+   that hasn't configured an Ably key, so there's nothing half-finished for
+   a visitor to notice. */
+if(window.CountlinkRealtime&&window.CountlinkRealtime.enabled&&$("phoneControlRow")){
+  $("phoneControlRow").style.display="";
+}
+if($("controlLinkBtn"))$("controlLinkBtn").addEventListener("click",async e=>{
+  const link=makeControlLink();
+  if(!link)return;
+  if(navigator.share&&matchMedia("(pointer:coarse)").matches){
+    try{await navigator.share({title:"Control "+(label||"this countdown"),url:link});return}
+    catch(err){if(err&&err.name==="AbortError")return}
+  }
+  await navigator.clipboard.writeText(link);
+  e.target.textContent="Control link copied — open it on your phone";
+  setTimeout(()=>{e.target.textContent="Copy control link";},2200);
+});
+if($("controlQrBtn"))$("controlQrBtn").addEventListener("click",()=>{
+  const lbl=$("controlQrBtnLabel")||$("controlQrBtn");
+  const showing=$("controlQrWrap").style.display!=="none";
+  if(showing){$("controlQrWrap").style.display="none";lbl.textContent="Show QR code";return;}
+  const link=makeControlLink();
+  if(!link)return;
+  $("controlQrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(link)}`;
+  $("controlQrWrap").style.display="block";lbl.textContent="Hide QR code";
+});
 /* OBS/Twitch pages only: same link, plus ?overlay=1 so whoever pastes it into
    a Browser Source gets the transparent, chrome-stripped view automatically —
    see docs/battle-plan-sharemytimer.md §2 and the SXO audit finding that this
@@ -729,8 +926,19 @@ function bootFromHash(){
   // so the board is the first thing on their screen.
   document.body.classList.add("viewing");
   saveRecent();
-  setState("running");
-  render();
+  // A link opened while its countdown is paused carries &p=<remaining> (see
+  // makeLink()/readHash()) — boot straight into the frozen state instead of
+  // running, so a late viewer doesn't see it ticking for one frame first.
+  if(direction==="down"&&hashPausedRemaining!=null){
+    pausedRemaining=hashPausedRemaining;
+    setState("paused");
+    renderPausedTiles();
+  }else{
+    setState("running");
+    render();
+  }
+  connectRealtimeIfNeeded();
+  updateControlLinkUI();
 }
 
 // ---------- Multi-timer dashboard ----------

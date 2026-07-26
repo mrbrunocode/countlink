@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control this countdown — CountLink</title>
+<meta name="theme-color" content="#1c1c1a">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=178eb3ea">
+</head>
+<body>
+<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
+  <p class="chassis-spec">Phone control</p>
+</header>
+<div class="rig">
+<main class="rig-main" id="main" style="max-width:480px;margin:0 auto;grid-column:1/-1">
+  <section class="stage-section" style="padding-top:28px">
+    <div class="panel">
+      <h2 id="ctrlLabel">Countdown</h2>
+      <div class="hint" id="ctrlStatus">Connecting…</div>
+      <div class="share-box" id="ctrlReadout" style="font-size:2.4rem;text-align:center;padding:28px;font-family:var(--mono)">--:--</div>
+      <div class="stage-btns" style="margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary" id="pauseResumeBtn">Pause</button>
+        <button class="btn" id="minusBtn">−1 min</button>
+        <button class="btn" id="plusBtn">+1 min</button>
+        <button class="btn" id="ctrlStopBtn">Stop</button>
+      </div>
+      <div class="hint" style="margin-top:16px">This updates the countdown on every screen that has it open — the classroom display, and anyone else's copy of the link.</div>
+    </div>
+  </section>
+</main>
+</div>
+<script src="assets/realtime-config.js" defer></script>
+<script src="assets/realtime.js" defer></script>
+<script src="assets/control.js" defer></script>
+</body>
+</html>

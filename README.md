@@ -28,9 +28,13 @@ synced-by-link countdowns.
 
 ```
 index.html              the tool — home page, canonical version of the UI
+control.html            phone-control remote (opt-in, off by default — see docs/phone-control-setup.md)
 assets/
   style.css             all styling, shared by index.html and every /timers/ page
   app.js                all timer logic, shared the same way
+  control.js             control.html's logic — separate file, different DOM shape
+  realtime.js            thin Ably pub/sub wrapper for phone control, inert with no key configured
+  realtime-config.js     the on/off switch — window.COUNTLINK_ABLY_KEY, empty by default
 timers/                 programmatic SEO landing pages (see docs/monetization.md)
   5-minute-timer.html
   ...
@@ -38,6 +42,7 @@ scripts/
   build-timer-pages.mjs  regenerates everything in /timers/ + sitemap.xml from one data list
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
+  phone-control-setup.md how to turn on pause/adjust/stop from a phone (currently dark — needs an Ably key)
 ads.txt                 AdSense seller-verification file (fill in once approved)
 robots.txt              allows crawling, points to sitemap.xml
 sitemap.xml             generated — do not hand-edit, re-run the build script instead
@@ -66,6 +71,17 @@ hash on start, e.g. `#t=1783378107213&l=Workshop%20resumes`. Opening that same
 URL on any other device reads the same timestamp and counts down to it using
 the device's own clock — so there's nothing to host, nothing to keep running,
 and no possibility of the "server" going down.
+
+## Phone control (opt-in, currently dark)
+
+`assets/realtime.js` + `control.html` add an optional layer on top of the
+sync mechanic above: pause, ±1 min, and stop, pushed from a phone to
+whatever screen has the countdown open. It's entirely separate from (and
+never a dependency of) the link-is-the-timer mechanic — with no Ably key
+configured, `window.COUNTLINK_ABLY_KEY` is empty, the checkbox that turns
+it on never appears, and every code path in `realtime.js` no-ops. See
+`docs/phone-control-setup.md` for what it does and the one manual signup
+step needed to turn it on.
 
 ## Adding a new programmatic landing page
 

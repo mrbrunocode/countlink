@@ -61,7 +61,7 @@ async function patch(relPath) {
   }
 }
 
-const STATIC_PAGES = ["index.html", "about.html", "compare.html", "contact.html", "how-it-works.html", "privacy.html", "terms.html"];
+const STATIC_PAGES = ["index.html", "about.html", "compare.html", "contact.html", "how-it-works.html", "privacy.html", "terms.html", "control.html"];
 for (const page of STATIC_PAGES) await patch(page);
 await patch("scripts/build-timer-pages.mjs");
 

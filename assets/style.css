@@ -468,6 +468,11 @@ body.viewing .stage-section{padding-top:18px}
   animation:hardblink 1.6s steps(2,jump-none) infinite;
 }
 @keyframes hardblink{0%{opacity:1}100%{opacity:.2}}
+/* Paused (phone control only — see app.js setState()): same lamp, held
+   steady and dimmed rather than blinking, so "live but not moving" reads
+   differently from both the normal blinking-live and the fully-off states,
+   without introducing a second colour to the one-signal panel. */
+.sync-note .dot.is-paused{animation:none;opacity:.45}
 
 /* ============ AD SLOT — placed exactly where vClock places theirs: ============ */
 /* directly below the timer stage/controls, above supporting content.        */
@@ -575,6 +580,16 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
   padding:11px 6px;transition:all .15s;border-radius:0;min-height:44px;
 }
 .q:hover{border-color:var(--amber);color:var(--amber)}
+/* Phone-control opt-in checkbox (see index.html #phoneControlRow) — the only
+   checkbox on the site, so styled from scratch rather than reusing `label`
+   (that rule is for the uppercase mono field captions above every input,
+   wrong register for a sentence-case description sitting next to a box). */
+.check{
+  display:flex;align-items:flex-start;gap:10px;font-family:var(--sans);
+  font-size:.86rem;font-weight:400;text-transform:none;letter-spacing:normal;
+  color:var(--paper-text);cursor:pointer;
+}
+.check input[type="checkbox"]{width:auto;min-height:auto;margin-top:2px;accent-color:var(--amber)}
 .stack2{display:flex;flex-direction:column}
 @media(min-width:520px){.stack2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}}
 .share-box{

@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=692fb48d">
+<link rel="stylesheet" href="assets/style.css?v=178eb3ea">
 
 <script type="application/ld+json">
 {
@@ -278,6 +278,14 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <div id="countUpHint" class="hint" style="display:none">Count-up starts from zero the moment you press start — like a shared stopwatch. No duration to set.</div>
       <label for="evtName">What's it for? (shown on every screen)</label>
       <input id="evtName" placeholder="Break ends · Quiz round 2 · Doors open">
+      <!-- Only ever shown when assets/realtime-config.js has a real Ably key
+           (see realtime.js) — display:none by default via inline style, and
+           app.js never flips it on otherwise. Unconfigured sites (the
+           default) show nothing here at all. -->
+      <label class="check" id="phoneControlRow" style="display:none;margin-top:14px">
+        <input type="checkbox" id="phoneControlToggle">
+        Let me pause, adjust, or stop this from my phone once it's running
+      </label>
       <div class="stage-btns" style="margin-top:20px">
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
@@ -286,6 +294,16 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
+      </div>
+      <!-- updateControlLinkUI() in app.js toggles this — only visible once a
+           countdown with phone control actually has a live session. -->
+      <div id="controlLinkWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--panel-line)">
+        <div class="hint">Open this on your phone to pause, adjust, or stop the countdown above — it updates on every screen that has the timer open.</div>
+        <button class="btn icon-btn" id="controlLinkBtn" style="margin-top:8px">Copy control link</button>
+        <button class="btn icon-btn" id="controlQrBtn" style="margin-top:8px"><svg class="qr-ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><rect x="0.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="2" height="2" fill="currentColor"/><rect x="10.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="12" y="2" width="2" height="2" fill="currentColor"/><rect x="0.5" y="10.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="12" width="2" height="2" fill="currentColor"/><rect x="9" y="9" width="2" height="2" fill="currentColor"/><rect x="12" y="9" width="2" height="2" fill="currentColor"/><rect x="9" y="12" width="2" height="2" fill="currentColor"/><rect x="12" y="12" width="2" height="2" fill="currentColor"/></svg><span id="controlQrBtnLabel">Show QR code</span></button>
+        <div id="controlQrWrap" style="display:none;margin-top:10px">
+          <img id="controlQrImg" width="160" height="160" alt="QR code for the control link" style="background:#fff;padding:8px;border-radius:6px">
+        </div>
       </div>
     </div>
   </section>
@@ -384,6 +402,8 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   </div>
 </footer>
 
-<script src="assets/app.js?v=f5578446" defer></script>
+<script src="assets/realtime-config.js" defer></script>
+<script src="assets/realtime.js" defer></script>
+<script src="assets/app.js?v=fd231dfc" defer></script>
 </body>
 </html>
