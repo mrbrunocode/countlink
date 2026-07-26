@@ -1,11 +1,17 @@
-# Phone control — turning it on
+# Phone control — status: LIVE (2026-07-26)
 
 Closes the sharpest gap `/compare` names against Leaderboarded: "you display
-the countdown on the class board and drive it from your phone." Built
-2026-07-26, **off by default and not yet live** — the code ships inert
-until you do the one manual step below, because there's no server to hide
-an API key behind and this can't be provisioned by an assistant (creating
-third-party accounts is outside what it will do on its own).
+the countdown on the class board and drive it from your phone." Built and
+turned on 2026-07-26 — Bruno created the Ably account and a scoped API key
+himself (account creation isn't something the assistant does on its own),
+and the key is now live in `assets/realtime-config.js`. Verified end-to-end
+against the real Ably network: pause, resume, ±1 min, and stop all confirmed
+propagating live from a control-page tab to a board tab. `about.html`,
+`compare.html`, and `index.html`'s FAQ/JSON-LD have all been updated to
+describe it accurately.
+
+The rest of this doc is kept for reference — regenerating the key, rotating
+it, or understanding the design.
 
 ## What it is
 
@@ -55,23 +61,15 @@ uses maybe a few dozen messages total.
    checkbox on, open the control link on the second device, confirm
    Pause/Resume/±1 min/Stop all show up on the first.
 
-## Once it's actually live
+## Copy updated (2026-07-26)
 
-Update the marketing copy to match reality — it deliberately hasn't been
-touched yet:
-- `compare.html`: the "Control display from your phone" row currently
-  says CountLink can't do this (`No`) — flip it once the key is live, and
-  reconsider the surrounding paragraph that explains this as the one thing
-  Leaderboarded does that CountLink doesn't.
-- `about.html`: the "Beyond the link" paragraph lists what runs on the
-  no-server mechanism (OBS overlay, QR, install-as-app) — phone control
-  belongs there too once it's real.
-- `index.html`'s "Beyond the link" FAQ section, similarly.
-
-Don't update any of the above before the key is configured — this app's
-entire voice is built on not overclaiming, and a described-but-dark
-feature is exactly the kind of thing it calls out competitors for
-elsewhere on this site.
+`compare.html`, `about.html`, and `index.html` (both the visible FAQ and its
+JSON-LD twin) all describe phone control accurately now — opt-in, not
+default, scoped to plain countdowns. If you rotate the key or the feature
+changes shape, keep those three in sync; this app's whole voice is built on
+not overclaiming, and a described-but-dark or described-but-wrong feature
+is exactly the kind of thing it calls out competitors for elsewhere on this
+site.
 
 ## Known limitations (v1, worth stating plainly rather than fixing)
 

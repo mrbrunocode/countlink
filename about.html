@@ -27,7 +27,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   "url": "https://countlink.app/about",
   "isPartOf": { "@type": "WebSite", "name": "CountLink", "url": "https://countlink.app/" },
   "datePublished": "2026-07-08",
-  "dateModified": "2026-07-08"
+  "dateModified": "2026-07-26"
 }
 </script>
 </head>
@@ -139,7 +139,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 
     <p style="margin-bottom:16px"><b>The mechanism.</b> CountLink writes the countdown's end time directly into the shared link, as a timestamp, instead of running a server that keeps every viewer in sync — which is how most shared-timer products work, and why they cap free-tier viewers. Every device that opens the link just checks its own clock against that timestamp. No server is involved after the link is generated, so there's nothing to keep running and no reason to charge more as more people open it. See <a href="/how-it-works" style="text-decoration:underline">How It Works</a> for the technical walkthrough.</p>
 
-    <p style="margin-bottom:16px"><b>The trade-off.</b> Because there's no ongoing connection, nobody can push a live pause or an extra two minutes to everyone who already has the link open — the fix is starting a fresh countdown and re-sharing it. That rarely matters for a fixed-duration exam or class, since the length was already known. It matters more for live, mid-session control, which a real-time tool handles better — see the <a href="/compare" style="text-decoration:underline">comparison page</a> for where CountLink is and isn't the right fit.</p>
+    <p style="margin-bottom:16px"><b>The trade-off, and the one exception to it.</b> By default there's no ongoing connection, so nobody can push a live pause or an extra two minutes to everyone who already has the link open — the fix is starting a fresh countdown and re-sharing it. That rarely matters for a fixed-duration exam or class, since the length was already known. For the case where it does matter — a teacher running the board from the front of the room and wanting to adjust it without walking back to the laptop — there's now an opt-in <b>phone control</b>: check "Let me pause, adjust, or stop this from my phone" before starting, and you get a second link that does exactly that, live, on every screen that has the countdown open. It's the one place this site uses a small pub/sub relay rather than pure link-timestamp math — see the checkbox's own explanation on the setup panel, and the <a href="/compare" style="text-decoration:underline">comparison page</a> for how this compares to real-time competitors.</p>
 
     <p style="margin-bottom:16px"><b>Why it's free.</b> Showing the countdown to one extra viewer costs nothing, so there's no viewer cap, device cap, or paid tier gating basic features. That's a structural consequence of how the tool works, not a promotional discount.</p>
 

@@ -11,4 +11,4 @@
    That scoping matters because this key ships in public page source (there
    is no server to hide it behind) — restrict it so a copy of the key is
    only ever good for countdown pub/sub, never account admin. */
-window.COUNTLINK_ABLY_KEY = "";
+window.COUNTLINK_ABLY_KEY = "FxZdIQ.RZbDhg:p33VhtJrZoHQuTl6JQJHGKV2s6kplQWtGNy_4hOQs0o";
