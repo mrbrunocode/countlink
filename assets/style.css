@@ -57,7 +57,12 @@
   --idx-w:14.5rem;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+/* AdSense's full-width-responsive ins tag sizes itself against the viewport
+   with a negative margin-left, assuming no ancestor has horizontal padding.
+   .ad-slot sits inside .rig-main's padding, so that negative margin pushes
+   past .ad-slot's own overflow:hidden and inflates .rig-main's cross-axis
+   min-content in the mobile flex-column layout, widening the whole page. */
 body{
   font-family:var(--sans);background:var(--panel-0);color:var(--ink);
   min-height:100vh;font-size:16px;line-height:1.55;
