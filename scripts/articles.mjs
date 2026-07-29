@@ -81,7 +81,7 @@ export const ARTICLES = [
 
     <h2>Why a visible, shared clock changes behaviour</h2>
     <p>Here's the part people underestimate. A timebox that lives only in the organiser's head, or on their screen, does almost nothing — everyone else assumes there's slack, because they can't see otherwise. The moment the countdown is visible to the whole room, behaviour changes on its own. People wrap up their point as the number drops. Tangents get self-policed. Nobody has to be the villain who says "we need to move on", because the clock said it, neutrally, to everyone at once.</p>
-    <p>That's the difference between a timer app on one laptop and a countdown the whole room can see. Put a <a href="/timers/30-minute-timer">shared countdown</a> on the projector, or share the link so every attendee has it on their own screen, and the timebox becomes a fact everyone is looking at rather than a rule one person is enforcing.</p>
+    <p>That's the difference between a timer app on one laptop and a countdown the whole room can see. Put a <a href="/timers/">shared countdown</a> on the projector, or share the link so every attendee has it on their own screen, and the timebox becomes a fact everyone is looking at rather than a rule one person is enforcing.</p>
 
     <h2>A simple structure that works</h2>
     <p>You don't need a rigid framework. A workable timeboxed meeting looks like this:</p>
@@ -293,9 +293,9 @@ export const ARTICLES = [
 
     <h2>The classic formats</h2>
     <ul>
-      <li><strong>Tabata.</strong> The famous one: <strong>20 seconds of maximum effort, 10 seconds of rest, 8 rounds</strong> — about 4 minutes total. It comes from Dr. Izumi Tabata's 1996 research, and the short, brutal ratio is the whole point; the near-2:1 work-to-rest is what makes those four minutes so hard. A <a href="/timers/tabata-timer">Tabata timer</a> defaults to exactly this protocol.</li>
+      <li><strong>Tabata.</strong> The famous one: <strong>20 seconds of maximum effort, 10 seconds of rest, 8 rounds</strong> — about 4 minutes total. It comes from Dr. Izumi Tabata's 1996 research, and the short, brutal ratio is the whole point; the near-2:1 work-to-rest is what makes those four minutes so hard. The <a href="/timers/interval-timer">interval timer</a> lists this protocol as a preset.</li>
       <li><strong>General HIIT.</strong> "High-intensity interval training" is a broad family, not one protocol — common splits include 30/30, 40/20, or 1 minute on / 1 minute off, for anywhere from 10 to 30 minutes. A flexible <a href="/timers/interval-timer">interval timer</a> where you set your own work, rest and round count fits this, since there's no fixed formula.</li>
-      <li><strong>Boxing / combat rounds.</strong> Standard boxing is <strong>3-minute rounds with 1-minute rests</strong>, typically 12 rounds for a full session; other combat sports and amateur bouts use shorter rounds. A <a href="/timers/boxing-round-timer">round timer</a> handles the longer work periods and the between-round rest.</li>
+      <li><strong>Boxing / combat rounds.</strong> Standard boxing is <strong>3-minute rounds with 1-minute rests</strong>, typically 12 rounds for a full session; other combat sports and amateur bouts use shorter rounds. The same <a href="/timers/interval-timer">interval timer</a> handles the longer work periods and the between-round rest.</li>
       <li><strong>EMOM ("every minute on the minute").</strong> A different structure: at the top of each minute you do a set amount of work, and whatever time is left is your rest, so working faster earns more recovery.</li>
     </ul>
 

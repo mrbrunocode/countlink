@@ -23,35 +23,37 @@ CountLink is a static web app: no signup, no backend, no per-viewer cost. The sy
 - [Facilitating a workshop to time without herding people](https://countlink.app/guides/facilitating-workshops-to-time): Keeping a workshop on schedule is a facilitator's hardest job. How to plan realistic timings, run breakout groups that finish together, and stay on track.
 - [Interval training timing explained: Tabata, HIIT and boxing rounds](https://countlink.app/guides/interval-training-timing): Work, rest, repeat — but the exact numbers define the workout. A guide to interval training timing, from Tabata to boxing rounds, and why a shared clock helps.
 
-## Duration timers
-- [5 Minute Timer](https://countlink.app/timers/5-minute-timer)
-- [10 Minute Timer](https://countlink.app/timers/10-minute-timer)
-- [15 Minute Timer](https://countlink.app/timers/15-minute-timer)
-- [20 Minute Timer](https://countlink.app/timers/20-minute-timer)
-- [25 Minute Timer](https://countlink.app/timers/25-minute-timer)
-- [30 Minute Timer](https://countlink.app/timers/30-minute-timer)
-- [45 Minute Timer](https://countlink.app/timers/45-minute-timer)
-- [1 Hour Timer](https://countlink.app/timers/60-minute-timer)
+## Timers
+### Durations
+- [Timer Durations](https://countlink.app/timers/): Free shared timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen counts down to the same second — no account, no viewer limit.
 
-## Use-case timers
-- [Exam Timer](https://countlink.app/timers/exam-timer)
-- [Classroom Timer](https://countlink.app/timers/classroom-timer)
-- [Webinar Countdown](https://countlink.app/timers/webinar-countdown)
-- [Standup Timer](https://countlink.app/timers/standup-timer)
-- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer)
-- [Google Meet Timer](https://countlink.app/timers/google-meet-timer)
-- [OBS Countdown Timer](https://countlink.app/timers/obs-countdown-timer)
-- [Twitch Stream Timer](https://countlink.app/timers/twitch-stream-timer)
-- [Workshop Timer](https://countlink.app/timers/workshop-timer)
-- [Group Study Timer](https://countlink.app/timers/group-study-timer)
-- [Game Night Timer](https://countlink.app/timers/game-night-timer)
-- [Auction Countdown](https://countlink.app/timers/auction-countdown)
-- [Online Stopwatch](https://countlink.app/timers/stopwatch)
-- [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer)
-- [Tabata Timer](https://countlink.app/timers/tabata-timer)
-- [Interval Timer](https://countlink.app/timers/interval-timer)
-- [Boxing Round Timer](https://countlink.app/timers/boxing-round-timer)
-- [Multiple Timers](https://countlink.app/timers/multiple-timers-at-once)
-- [Agenda Timer](https://countlink.app/timers/agenda-timer)
-- [New Year Countdown](https://countlink.app/timers/new-year-countdown)
-- [Christmas Countdown](https://countlink.app/timers/christmas-countdown)
+### Classroom & exams
+- [Exam Timer](https://countlink.app/timers/exam-timer): A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.
+- [Classroom Timer](https://countlink.app/timers/classroom-timer): A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.
+- [Group Study Timer](https://countlink.app/timers/group-study-timer): A free shared study timer for study groups and study-with-me sessions. Set a focus block, share the link, and everyone's break lands at the same moment.
+
+### Meetings
+- [Webinar Countdown](https://countlink.app/timers/webinar-countdown): A shareable pre-webinar countdown. Put the link in your registration email or waiting room so every attendee's screen counts down to the same start time.
+- [Standup Timer](https://countlink.app/timers/standup-timer): A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.
+- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer): A free shared timer for Zoom calls that doesn't need screen-sharing — copy the link into the chat and everyone's own screen counts down together.
+- [Google Meet Timer](https://countlink.app/timers/google-meet-timer): A free shared timer for Google Meet. Copy the link into the meeting chat and everyone's own screen counts down in sync — no extension, no screen share.
+- [Workshop Timer](https://countlink.app/timers/workshop-timer): A free shared timer for workshop facilitators. Set the segment length, share the link, and every table or breakout group sees the identical countdown.
+
+### Streaming
+- [Stream Countdown (OBS)](https://countlink.app/timers/obs-countdown-timer): A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.
+
+### Focus & intervals
+- [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer): A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.
+- [Interval Timer](https://countlink.app/timers/interval-timer): A free shareable interval timer — Tabata 20/10, boxing 3-minute rounds, or any custom work/rest split and round count, with every screen on the identical round.
+
+### Multi-stage
+- [Multiple Timers](https://countlink.app/timers/multiple-timers-at-once): Run several named countdowns on one screen — cooking, multi-station events, parallel exam sections — all synced by one shareable link.
+- [Agenda Timer](https://countlink.app/timers/agenda-timer): Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.
+
+### Play & events
+- [Game Night Timer](https://countlink.app/timers/game-night-timer): A free shareable timer for board games and game night house rules. Set the turn limit, share the link, and nobody argues about how much time is left.
+- [Auction Countdown](https://countlink.app/timers/auction-countdown): A free countdown for live and online auctions. Share the link so every bidder sees the exact same time remaining before bidding closes.
+
+### Seasonal
+- [New Year Countdown](https://countlink.app/timers/new-year-countdown): A live countdown to New Year you can share: days, hours, minutes and seconds to midnight January 1st, identical on every screen that opens the link.
+- [Christmas Countdown](https://countlink.app/timers/christmas-countdown): A live Christmas countdown you can share: days, hours, minutes and seconds until December 25th, the same on every screen that opens the link.

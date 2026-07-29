@@ -1,36 +1,4 @@
 {
-  "timers/10-minute-timer": {
-    "hash": "0c3be7b817d3adf8",
-    "date": "2026-07-24"
-  },
-  "timers/15-minute-timer": {
-    "hash": "3301f58e83c0b213",
-    "date": "2026-07-24"
-  },
-  "timers/20-minute-timer": {
-    "hash": "b2ba2b8a8ea268f2",
-    "date": "2026-07-24"
-  },
-  "timers/25-minute-timer": {
-    "hash": "6fba6e0e124a134a",
-    "date": "2026-07-24"
-  },
-  "timers/30-minute-timer": {
-    "hash": "b0632818c0ece614",
-    "date": "2026-07-24"
-  },
-  "timers/45-minute-timer": {
-    "hash": "44c2cf84bd77be63",
-    "date": "2026-07-24"
-  },
-  "timers/5-minute-timer": {
-    "hash": "df3b01ee2e1dd948",
-    "date": "2026-07-24"
-  },
-  "timers/60-minute-timer": {
-    "hash": "fac0502ec1f2fe97",
-    "date": "2026-07-24"
-  },
   "timers/agenda-timer": {
     "hash": "44ed1a3bf60c52f1",
     "date": "2026-07-25"
@@ -38,10 +6,6 @@
   "timers/auction-countdown": {
     "hash": "5f136ed7bf102731",
     "date": "2026-07-25"
-  },
-  "timers/boxing-round-timer": {
-    "hash": "c1349dffb934bfd2",
-    "date": "2026-07-24"
   },
   "timers/christmas-countdown": {
     "hash": "30cf7d089010463a",
@@ -67,9 +31,13 @@
     "hash": "29d0490bdbbdafa8",
     "date": "2026-07-24"
   },
+  "timers/index": {
+    "hash": "e98fb12df351c559",
+    "date": "2026-07-29"
+  },
   "timers/interval-timer": {
-    "hash": "67c0dbe3f0e2f44f",
-    "date": "2026-07-24"
+    "hash": "6ad47cb710ad87e0",
+    "date": "2026-07-29"
   },
   "timers/multiple-timers-at-once": {
     "hash": "f7a699b2959693b5",
@@ -80,8 +48,8 @@
     "date": "2026-07-24"
   },
   "timers/obs-countdown-timer": {
-    "hash": "7babc8370c1f78b4",
-    "date": "2026-07-24"
+    "hash": "4ffa7ab0b90a52f6",
+    "date": "2026-07-29"
   },
   "timers/pomodoro-timer": {
     "hash": "f80e13e0527f2076",
@@ -89,18 +57,6 @@
   },
   "timers/standup-timer": {
     "hash": "c735bcafa1dd8a15",
-    "date": "2026-07-24"
-  },
-  "timers/stopwatch": {
-    "hash": "2801dff62ffbb1fb",
-    "date": "2026-07-24"
-  },
-  "timers/tabata-timer": {
-    "hash": "5e21299fb8b1f501",
-    "date": "2026-07-24"
-  },
-  "timers/twitch-stream-timer": {
-    "hash": "e4d93a96c421d6c9",
     "date": "2026-07-24"
   },
   "timers/webinar-countdown": {

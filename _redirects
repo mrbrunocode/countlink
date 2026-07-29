@@ -4,3 +4,42 @@
 # alternate of the apex page's canonical tag, but the intended fix is a
 # redirect so www is never independently crawlable in the first place.
 https://www.countlink.app/* https://countlink.app/:splat 301!
+
+# ── Page consolidation, 2026-07-29 ────────────────────────────────────────
+# Search Console showed 42 of 45 URLs stuck in "Discovered – currently not
+# indexed" and the eight fixed-duration pages sharing *zero* impressions
+# between them. Twelve pages were folded into three survivors so the crawl
+# budget lands on pages that can actually win a query. Each target below is
+# the page that genuinely absorbed the source's content — never a blanket
+# redirect to the homepage, which Google treats as a soft 404.
+#
+# Every source page's prose was merged into its target before this landed;
+# see the comments beside GROUPS and the interval/OBS entries in
+# scripts/build-timer-pages.mjs for the reasoning per group.
+
+# Eight fixed durations → the /timers/ durations hub, which carries the same
+# board plus a section on what each length is used for.
+/timers/5-minute-timer   /timers/ 301
+/timers/10-minute-timer  /timers/ 301
+/timers/15-minute-timer  /timers/ 301
+/timers/20-minute-timer  /timers/ 301
+/timers/30-minute-timer  /timers/ 301
+/timers/45-minute-timer  /timers/ 301
+/timers/60-minute-timer  /timers/ 301
+
+# 25 minutes goes to the Pomodoro page instead of the hub: it IS the Pomodoro
+# length, so that page is the closer intent match and the stronger target.
+/timers/25-minute-timer  /timers/pomodoro-timer 301
+
+# "Online stopwatch" is online-stopwatch.com's brand term; count-up is a
+# Direction toggle on every page, so this was a preset with an unwinnable
+# title. Its prose is the hub's "Counting up instead" section.
+/timers/stopwatch        /timers/ 301
+
+# Same OBS browser-source workflow described twice (51% unique prose each).
+/timers/twitch-stream-timer /timers/obs-countdown-timer 301
+
+# One work/rest engine, three sports' names on it. The protocols survive as a
+# preset table on the interval page.
+/timers/tabata-timer       /timers/interval-timer 301
+/timers/boxing-round-timer /timers/interval-timer 301

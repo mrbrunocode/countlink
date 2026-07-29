@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { PAGES } from "../scripts/build-timer-pages.mjs";
+import { PAGES, hrefFor } from "../scripts/build-timer-pages.mjs";
 import { SITE_URL } from "../scripts/site-config.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -27,7 +27,7 @@ test("every page slug has a generated HTML file", () => {
 test("sitemap.xml lists every timer page exactly once", () => {
   const sitemap = readFileSync(join(ROOT, "sitemap.xml"), "utf8");
   for (const p of PAGES) {
-    const matches = sitemap.match(new RegExp(`/timers/${p.slug}<`, "g")) || [];
+    const matches = sitemap.match(new RegExp(`${hrefFor(p.slug)}<`, "g")) || [];
     assert.equal(matches.length, 1, `expected exactly one sitemap entry for ${p.slug}, found ${matches.length}`);
   }
 });
@@ -36,7 +36,7 @@ test("generated page contains its own h1 and canonical URL", () => {
   const p = PAGES[0];
   const html = readFileSync(join(ROOT, "timers", `${p.slug}.html`), "utf8");
   assert.ok(html.includes(p.h1), "generated page missing its own <h1>/title text");
-  assert.ok(html.includes(`${SITE_URL}/timers/${p.slug}`), "generated page missing its own canonical URL");
+  assert.ok(html.includes(`${SITE_URL}${hrefFor(p.slug)}`), "generated page missing its own canonical URL");
 });
 
 // ── Layout architecture ────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ test("the index rail links every timer, from a generated page and a hand-written
     const rail = html.slice(start, html.indexOf("</nav>", start));
     assert.ok(start > -1, `${f} has no index rail`);
     for (const p of PAGES) {
-      assert.ok(rail.includes(`/timers/${p.slug}"`), `${f}'s rail is missing ${p.slug}`);
+      assert.ok(rail.includes(`"${hrefFor(p.slug)}"`), `${f}'s rail is missing ${p.slug}`);
     }
   }
   const exam = readFileSync(join(ROOT, "timers", "exam-timer.html"), "utf8");
@@ -96,7 +96,7 @@ test("the chassis is identical everywhere, so a hand-written page cannot drift",
     const s = html.indexOf('<header class="chassis">');
     return html.slice(s, html.indexOf("</header>", s));
   };
-  const reference = chassisOf(join("timers", "stopwatch.html"));
+  const reference = chassisOf(join("timers", "pomodoro-timer.html"));
   for (const f of ["privacy.html", "terms.html", "contact.html"]) {
     // Hand-written pages mark their own nav item; compare with that stripped.
     const strip = (s) => s.replace(/ aria-current="page"/g, "");

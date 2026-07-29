@@ -303,97 +303,76 @@ const EXTRA_BY_SLUG = {
  * to write a site with an unfiled or phantom slug).
  */
 export const GROUPS = [
-  ["Fixed durations", [
-    "5-minute-timer", "10-minute-timer", "15-minute-timer", "20-minute-timer",
-    "25-minute-timer", "30-minute-timer", "45-minute-timer", "60-minute-timer",
-  ]],
+  ["Durations", ["index"]],
   ["Classroom & exams", ["exam-timer", "classroom-timer", "group-study-timer"]],
   ["Meetings", [
     "webinar-countdown", "standup-timer", "zoom-meeting-timer",
     "google-meet-timer", "workshop-timer",
   ]],
-  ["Streaming", ["obs-countdown-timer", "twitch-stream-timer"]],
-  ["Focus & intervals", [
-    "pomodoro-timer", "tabata-timer", "interval-timer", "boxing-round-timer",
-  ]],
+  ["Streaming", ["obs-countdown-timer"]],
+  ["Focus & intervals", ["pomodoro-timer", "interval-timer"]],
   ["Multi-stage", ["multiple-timers-at-once", "agenda-timer"]],
   ["Play & events", ["game-night-timer", "auction-countdown"]],
-  ["Count up", ["stopwatch"]],
   ["Seasonal", ["new-year-countdown", "christmas-countdown"]],
 ];
 
+/*
+ * `/timers/` is the durations hub — the consolidation target for the eight
+ * fixed-duration pages and the stopwatch page, all removed 2026-07-29.
+ *
+ * Why they went: Search Console showed 42 of 45 URLs sitting in "Discovered –
+ * currently not indexed", and the eight duration pages had *zero* impressions
+ * between them — they weren't ranking badly, they were absent. That SERP
+ * ("5 minute timer") belongs to vclock and online-stopwatch.com, who have
+ * years of authority on it. Meanwhile the queries countlink actually surfaces
+ * for are all one cluster: "shared timer", "synced timer", "sync timer",
+ * "count sync", plus the competitor brand "sharemytimer". So the eight pages
+ * were spending crawl budget competing for terms we cannot win, on a domain
+ * whose whole budget is roughly two pages.
+ *
+ * Note this was NOT a thin-content cull — those pages measured ~63% unique
+ * prose, mid-pack for the site. They were consolidated because the intent was
+ * identical eight times over and the target queries were unwinnable, and their
+ * prose is preserved here rather than deleted.
+ *
+ * Special-cased slug: "index" writes timers/index.html so the URL is a clean
+ * `/timers/` directory index rather than `/timers/index`. Everything that
+ * builds a timer href goes through hrefFor() for that reason — don't
+ * interpolate `/timers/${slug}` directly or the hub gets a broken link.
+ */
+export const hrefFor = (slug) => (slug === "index" ? "/timers/" : `/timers/${slug}`);
+const fileFor = (slug) => `${slug}.html`; // slug "index" → index.html, which is what we want
+
 export const PAGES = [
-  { slug: "5-minute-timer", minutes: 5, label: "Time's up", eyebrow: "5 Minute Timer",
-    h1: "5 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 5 minute timer for quick breaks, lightning talks and board-game turns — share the link and everyone's countdown ends together.",
-    intro: "Five minutes is long enough for a quick break, a lightning talk, or the last leg of a board game turn — and short enough that everyone actually watches it end. Press start, then send the link to anyone else who needs to see the same five minutes tick down.",
+  { slug: "index", minutes: 10, label: "Time's up", eyebrow: "Timer Durations",
+    h1: "Shared Timer — Pick A Duration, Share The Link",
+    meta: "Free shared timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen counts down to the same second — no account, no viewer limit.",
+    intro: "Every duration below runs the same board you see here, and every one of them is shareable: set the length, copy the link, and anyone who opens it counts down to the identical second. Pick a quick timer in the panel below, or type any custom length.",
+    setupHint: "The board above is ready at 10 minutes — use the quick buttons for a different length, or type a custom one.",
+    extra: `
+        <div class="obs-extra">
+          <h3>Common durations, and what people use them for</h3>
+          <p>All of these are the same shared board at a different length — the quick buttons below set them in one click.</p>
+          <ul>
+            <li><b>1–5 minutes</b> — a quick break, a lightning talk, a board-game turn, or the last leg of someone's turn. Short enough that everyone actually watches it end.</li>
+            <li><b>10 minutes</b> — a coffee break, a daily standup, or a timed writing sprint. Drop the link in your team chat and nobody installs anything.</li>
+            <li><b>15 minutes</b> — a classic break length, and a common quiz-round or lightning-talk limit. Share it once and every team's device shows the identical time remaining, so nobody can dispute the cutoff.</li>
+            <li><b>20–30 minutes</b> — a workshop segment, a timed exercise, a half-length meeting, or a timed test section.</li>
+            <li><b>25 minutes</b> — the classic Pomodoro focus block. There's a <a href="/timers/pomodoro-timer">dedicated Pomodoro page</a> if you want the full work/break rhythm written out.</li>
+            <li><b>45 minutes</b> — one of the most common school class-period lengths, and a typical workshop session. Put it on the projector; every phone in the room can pull up the same link.</li>
+            <li><b>1 hour</b> — a full class, a standard exam block, or a meeting you'd like to actually end on time. Once a countdown includes hours the board switches to HH:MM:SS, and that format stays fixed for the whole hour so the display never jumps partway through.</li>
+          </ul>
+          <h3>Counting up instead: the shared stopwatch</h3>
+          <p>Most online stopwatches live and die on one screen. Switch <b>Direction</b> to “Count up” below and this one becomes shareable: press start, send the link, and everyone who opens it sees the same elapsed time ticking up, because the start instant travels inside the link itself.</p>
+          <p>Nothing is actually “running” anywhere, which is why closing the tab doesn't lose it — the link records when the stopwatch started, so reopening it later shows the correct elapsed time as if it had been running the whole while. There's deliberately no lap or split function; for lap timing you want a single-device sports stopwatch. This tool's job is showing one agreed elapsed time on many screens.</p>
+        </div>`,
     faq: [
-      { q: "How accurate is a 5 minute shared timer?", a: "Accurate to about a second. Each device counts down independently against the same shared deadline using its own clock, so there's no server lag to introduce drift between screens." },
-      { q: "Can more than one person use the link at once?", a: "Yes — any number of people can open the same link at the same time. There's no viewer limit, because nothing is streamed to them; each device just does its own math against the timestamp in the URL." },
+      { q: "How accurate is a shared timer across devices?", a: "Accurate to about a second. Each device counts down independently against the same shared deadline using its own clock, so there's no server lag to introduce drift between screens." },
+      { q: "Is there a limit to how many people can open the link?", a: "No limit. Since there's no server tracking viewers, showing the countdown to one person or a thousand costs exactly the same — nothing. Each device just does its own math against the timestamp in the URL." },
       { q: "Does it still work if I close the tab and reopen it?", a: "Yes. Reopening the link re-reads the same deadline from the URL and picks up exactly where the countdown should be — nothing resets." },
-    ] },
-  { slug: "10-minute-timer", minutes: 10, label: "Time's up", eyebrow: "10 Minute Timer",
-    h1: "10 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 10 minute timer built for coffee breaks, standups and timed writing sprints — no app, no signup, just a link everyone can open.",
-    intro: "Ten minutes covers a coffee break, a standup, or a timed writing sprint. Start the countdown here and share the link — no app to install, no account for anyone else to make.",
-    faq: [
-      { q: "Can I use this for a daily standup instead of a dedicated app?", a: "Yes — set 10 minutes, drop the link in your team chat, and everyone's own screen counts down without installing anything or creating an account." },
-      { q: "What happens when the 10 minutes run out?", a: "Every open screen hits zero at the same instant and plays a short chime if sound is on. Nothing else happens automatically, so it's safe to leave running in the background." },
-      { q: "Can I change 10 minutes to a different length later?", a: "Yes — set a new duration and copy the new link. The mechanic is identical; only the timestamp inside the URL changes." },
-    ] },
-  { slug: "15-minute-timer", minutes: 15, label: "Time's up", eyebrow: "15 Minute Timer",
-    h1: "15 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 15 minute timer for quiz rounds and lightning-talk slots — share the link and the whole room counts down together.",
-    intro: "Fifteen minutes is a classic break length and a common quiz-round or lightning-talk limit. Set it once, share the link, and every screen in the room counts down together.",
-    faq: [
-      { q: "Is this good for timing quiz rounds?", a: "Yes — set 15 minutes per round, share the link once, and every team's device shows the identical time remaining, so nobody can dispute the cutoff." },
-      { q: "Can I project this on a screen instead of sharing the link?", a: "Yes — use Fullscreen mode for a clean, large display, or share the link too so people can check it on their own phones as well." },
-      { q: "Will everyone's countdown reach zero at exactly the same moment?", a: "Yes, within about a second — every device counts down against the same shared timestamp using its own clock, with no server round-trip to introduce lag." },
-    ] },
-  { slug: "20-minute-timer", minutes: 20, label: "Time's up", eyebrow: "20 Minute Timer",
-    h1: "20 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 20 minute timer for workshop segments and timed exercises — start it here and hand the link to the room.",
-    intro: "Twenty minutes works well for a workshop segment or a timed exercise. Start it here, copy the sync link, and hand it to the room.",
-    faq: [
-      { q: "Can I reuse this link for a recurring 20-minute segment?", a: "Each link is tied to one specific end time, so for a repeating segment it's easiest to hit a quick-timer button again each time and share the fresh link — it takes one click." },
-      { q: "Does everyone need to be in the same room?", a: "No — the link works the same whether people are sitting together or joining remotely; each device just counts down to the same shared deadline." },
-      { q: "Is there a limit to how many people can open the link?", a: "No limit. Since there's no server tracking viewers, showing the countdown to one person or a thousand costs exactly the same — nothing." },
-    ] },
-  { slug: "25-minute-timer", minutes: 25, label: "Pomodoro break", eyebrow: "25 Minute Timer",
-    h1: "25 Minute Timer — The Pomodoro Length, Shareable",
-    meta: "A free 25 minute Pomodoro timer you can share with a study group or coworking room — everyone's screen counts down in sync.",
-    intro: "Twenty-five minutes is the classic Pomodoro focus block. Start it solo, or share the link with a study group or co-working session so everyone's break lands at the same moment.",
-    faq: [
-      { q: "Is this a real Pomodoro timer with work/break cycles?", a: "It's a single 25-minute countdown, not an automated cycling timer — start it again for your next Pomodoro, or use the count-up/stopwatch mode if you'd rather track elapsed focus time instead." },
-      { q: "Can my whole study group use the same 25-minute block?", a: "Yes — share the link once and everyone's focus block, and everyone's break, starts and ends at the exact same moment, since it's all counting down to one shared timestamp." },
-      { q: "Does the timer make a sound at the end?", a: "Yes, a short chime plays when it hits zero (toggle it off with the Sound button if you'd rather work in silence)." },
-    ] },
-  { slug: "30-minute-timer", minutes: 30, label: "Time's up", eyebrow: "30 Minute Timer",
-    h1: "30 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 30 minute timer for workshop exercises, half-length meetings and timed test sections — share the link with anyone who needs the same clock.",
-    intro: "Half an hour is enough for a workshop exercise, a half-length meeting, or a timed test section. Start the countdown and share the link with anyone who needs to see the same clock.",
-    faq: [
-      { q: "Can I use this for a timed test or quiz section?", a: "Yes — set 30 minutes, share the link, and every device shows the identical time remaining, which is the whole point of a fair shared clock." },
-      { q: "What if I need to stop early?", a: "There's no live pause pushed to other viewers yet — if plans change, the simplest fix is to start a new countdown and re-share the fresh link." },
-      { q: "Does this work on a projector as well as phones?", a: "Yes — use Fullscreen mode for a large, high-contrast display, or the Light style specifically if the room is brightly lit." },
-    ] },
-  { slug: "45-minute-timer", minutes: 45, label: "Time's up", eyebrow: "45 Minute Timer",
-    h1: "45 Minute Timer — Free, Shareable, In Sync",
-    meta: "A free 45 minute timer for class periods and workshop sessions — put it on the projector and every phone in the room can follow along.",
-    intro: "Forty-five minutes is a common class period and workshop-session length. Start it here and put it on the projector — every phone in the room can pull up the same link.",
-    faq: [
-      { q: "Is 45 minutes a common class-period length this suits?", a: "Yes — it's one of the most common school class-period lengths, which is why it's offered as a quick-timer preset alongside custom durations." },
-      { q: "Can students follow the countdown on their own phones too?", a: "Yes — share the link and any device can open it; the projector and every phone will show the identical time remaining." },
-      { q: "Does the timer keep going if the projector or Wi-Fi drops?", a: "Yes, on any device that already has the page open — since the countdown is calculated locally against a timestamp in the URL, it doesn't need an ongoing connection to keep counting." },
-    ] },
-  { slug: "60-minute-timer", minutes: 60, label: "Time's up", eyebrow: "1 Hour Timer",
-    h1: "1 Hour Timer — Free, Shareable, In Sync",
-    meta: "A free 1 hour timer for full classes, exam blocks and meetings you'd like to actually end on time — share the link so nobody has to ask how long is left.",
-    intro: "One hour covers a full class, a standard exam block, or a meeting you'd like to actually end on time. Start the countdown and share the link so nobody has to ask how long is left.",
-    faq: [
-      { q: "Is an hour timer displayed differently from a shorter one?", a: "Yes — once a countdown includes hours, the board shows HH:MM:SS instead of just MM:SS, and that format is fixed for the whole hour so the display never jumps or changes shape partway through." },
-      { q: "Can I use this for a one-hour meeting to help it end on time?", a: "Yes — share the link at the start and leave it visible on a shared screen or everyone's own device; watching the same clock count down is a simple, effective way to keep a meeting on schedule." },
-      { q: "What happens after the hour runs out?", a: "The board reads zero and every screen with the link chimes together (if sound is on) — it doesn't restart or do anything else automatically." },
+      { q: "Does the timer keep going if the Wi-Fi drops?", a: "Yes, on any device that already has the page open. The countdown is calculated locally against a timestamp in the URL, so it doesn't need an ongoing connection to keep counting." },
+      { q: "Can I use a duration that isn't one of the presets?", a: "Yes — the custom-minutes field takes any length, and the date & time field counts down to a specific moment instead of a duration." },
+      { q: "What happens when a shared countdown runs out?", a: "Every open screen hits zero at the same instant and plays a short chime if sound is on. Nothing else happens automatically, so it's safe to leave running in the background." },
     ] },
   { slug: "exam-timer", minutes: 60, label: "Time is up — pens down", eyebrow: "Exam Timer", affiliate: true,
     h1: "Exam Timer — One Countdown For The Whole Room",
@@ -452,22 +431,19 @@ export const PAGES = [
       { q: "Can I run this on a second screen while presenting?", a: "Yes — that's a common setup: keep the timer open on a second monitor or phone while your main screen is shared, so you can glance at the time without interrupting your presentation." },
       { q: "Will it work the same in Google Meet as it does elsewhere?", a: "Yes — the timer isn't specific to any video platform; it's just a link that happens to work well pasted into Meet's chat." },
     ] },
-  { slug: "obs-countdown-timer", minutes: 5, label: "Starting soon", eyebrow: "OBS Countdown Timer",
-    h1: "OBS Countdown Timer — Free Browser Source",
-    meta: "A free countdown timer built to drop straight into OBS as a browser source — transparent background, no signup, no watermark.",
-    intro: "Add the overlay version of this page as an OBS Browser Source and it drops onto your scene with a transparent background — no green screen, no chroma key setup. Set your stream-start countdown, copy the link into OBS, and it's live.",
+  // Absorbed twitch-stream-timer 2026-07-29. The two pages measured 51% unique
+  // prose each — the most duplicative pair on the site — because they described
+  // the same OBS browser-source workflow twice, once with the word "Twitch" in
+  // it. Twitch-specific answers are kept below rather than dropped.
+  { slug: "obs-countdown-timer", minutes: 5, label: "Starting soon", eyebrow: "Stream Countdown (OBS)",
+    h1: "OBS & Twitch Countdown Timer — Free Browser Source",
+    meta: "A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.",
+    intro: "Add the overlay version of this page as an OBS Browser Source and it drops onto your scene with a transparent background — no green screen, no chroma key setup. Set your stream-start countdown, copy the link into OBS, and it's live. Share the regular link with mods or co-streamers and their screens match yours exactly.",
     extra: OBS_OVERLAY_EXTRA,
     faq: [
       { q: "Will the background really be transparent in OBS?", a: "Yes — the overlay link removes the page background entirely (not just visually dark, genuinely transparent), so only the countdown digits appear on your scene, with no chroma key or green screen needed." },
       { q: "Does the countdown keep running if I switch OBS scenes?", a: "Yes, as long as the Browser Source stays loaded — if you enable \"Shutdown source when not visible,\" OBS will reload it when the scene becomes active again and it will recalculate against the same shared deadline correctly." },
       { q: "Can I resize the overlay without it looking blurry?", a: "Yes — the digits are rendered as live text (not an image), so resizing the Browser Source in OBS stays sharp at any size." },
-    ] },
-  { slug: "twitch-stream-timer", minutes: 5, label: "Starting soon", eyebrow: "Twitch Stream Timer",
-    h1: "Twitch Stream Timer — Countdown Overlay",
-    meta: "A free stream-starting countdown for Twitch — a transparent browser-source overlay, or a link to share with mods and co-streamers so everyone's in sync.",
-    intro: "Streamers use this the same way as a \"starting soon\" screen — set the countdown, add the overlay version as a transparent browser source, and it counts down on stream. Share the same link with mods or co-streamers and their screens match exactly.",
-    extra: OBS_OVERLAY_EXTRA,
-    faq: [
       { q: "Will viewers on Twitch see the same countdown as my screen?", a: "Yes — whatever is on your OBS scene is what viewers see, and the overlay's countdown is calculated from the same shared deadline, so there's nothing separate to keep in sync." },
       { q: "Can my co-streamer or mod use the same countdown on their own screen?", a: "Yes — share the regular (non-overlay) link with them and their device shows the identical time remaining, useful for coordinating a multi-person stream start." },
       { q: "Does this cost anything or add a watermark to my stream?", a: "No — it's free with no watermark. The one exception is if you use the QR-code button, which calls a third-party API only when clicked; the overlay/timer itself never does." },
@@ -508,16 +484,11 @@ export const PAGES = [
       { q: "Is there a limit on how many bidders can watch the countdown?", a: "No — any number of people can open the same link at once, since each device just does its own math rather than connecting to a server." },
       { q: "What happens the instant bidding closes?", a: "Every open screen reaches zero at the same instant and shows the countdown has ended — treat that as your hard cutoff for accepting further bids." },
     ] },
-  { slug: "stopwatch", minutes: 10, direction: "up", label: "", eyebrow: "Online Stopwatch",
-    h1: "Online Stopwatch — Shared, Synced by Link",
-    meta: "A free online stopwatch you can share: press start, send the link, and every screen shows the identical elapsed time. No app, no signup.",
-    intro: "Most online stopwatches live and die on one screen. This one is shareable: press start, send the link, and everyone who opens it sees the same elapsed time ticking up — the start instant travels inside the link itself.",
-    setupHint: "The board above is in stopwatch (count-up) mode — switch direction here if you wanted a countdown instead.",
-    faq: [
-      { q: "How is a shared stopwatch different from the one on my phone?", a: "Your phone's stopwatch exists only on your phone. This one encodes its start instant in a link, so any device that opens the link shows the identical elapsed time — useful for timing anything a group is watching together." },
-      { q: "Does the stopwatch keep running if I close the tab?", a: "Effectively yes — nothing is actually \"running\" anywhere. The link records when the stopwatch started, so reopening it later shows the correct elapsed time, as if it had been running the whole time." },
-      { q: "Is there a lap or split function?", a: "No — this is deliberately a simple shared stopwatch. For lap timing you'd want a single-device sports stopwatch; this tool's job is showing one agreed elapsed time on many screens." },
-    ] },
+  // stopwatch consolidated into the /timers/ hub 2026-07-29 — "online stopwatch"
+  // is online-stopwatch.com's own brand term and was never a winnable SERP for a
+  // three-month-old domain. Count-up is a Direction toggle on every page anyway,
+  // so the page was a preset with an unwinnable title. Prose lives in the hub's
+  // "Counting up instead" section.
   { slug: "pomodoro-timer", minutes: 25, label: "Pomodoro — focus", eyebrow: "Pomodoro Timer", affiliate: true,
     h1: "Pomodoro Timer — 25 Minutes, Shareable",
     meta: "A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.",
@@ -539,38 +510,33 @@ export const PAGES = [
       { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
       { q: "Does it auto-start the break when the 25 minutes end?", a: "No — at zero every screen chimes together, then whoever runs the session starts the 5-minute break and shares that link. The one-click Restart button makes the next focus round instant." },
     ] },
-  { slug: "tabata-timer", minutes: 4, label: "Tabata complete", eyebrow: "Tabata Timer",
-    h1: "Tabata Timer — 20s Work / 10s Rest, Shareable",
-    meta: "A free Tabata timer — 20 seconds work, 10 seconds rest, 8 rounds by default, and every screen with the link stays on the identical round.",
-    intro: "Classic Tabata is 20 seconds of maximum effort, 10 seconds of rest, repeated 8 times — about 4 minutes total. Set your rounds below, press start, and share the link so a whole class or gym floor follows the identical work/rest cycle from the same board.",
-    setupHint: "Defaults to the classic Tabata protocol (20s work, 10s rest, 8 rounds) — change any of the three below before you start.",
-    extra: ivExtra(20, 10, 8),
-    faq: [
-      { q: "Why 20 seconds work and 10 seconds rest?", a: "That's Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training — short enough to sustain near-maximal effort, with just enough rest to repeat it eight times." },
-      { q: "Can I change the work/rest lengths or round count?", a: "Yes — all three (work seconds, rest seconds, rounds) are editable before you start. It stops being strictly \"Tabata\" once you change the classic 20/10 ratio, but the same shared-link mechanic works for any interval ratio." },
-      { q: "Does everyone see the same round at the same time?", a: "Yes — like every timer here, the cycle's start instant is encoded in the link itself, so every device computes the current round and phase independently from the same starting point, with no server keeping them in sync." },
-    ] },
+  // Absorbed tabata-timer and boxing-round-timer 2026-07-29. All three were the
+  // same work/rest engine with a different preset and a different sport's name
+  // on it (59–61% unique prose each). The protocols themselves are the useful
+  // part, so they survive as a table of presets plus their own FAQ answers.
   { slug: "interval-timer", minutes: 10, label: "Rounds complete", eyebrow: "Interval Timer",
-    h1: "Interval Timer — Work/Rest Rounds, Shareable",
-    meta: "A free interval timer — set your own work and rest lengths and round count, and share the link so a whole group follows the identical cycle.",
-    intro: "Set a work length, a rest length, and how many rounds — press start, and share the link so everyone doing the same workout, drill, or exercise sees the identical round and phase, on their own device.",
-    setupHint: "Set any work/rest split and round count below — there's no fixed protocol here, unlike the Tabata-specific timer.",
-    extra: ivExtra(30, 15, 10),
+    h1: "Interval Timer — Tabata, Boxing Rounds & Custom Work/Rest",
+    meta: "A free shareable interval timer — Tabata 20/10, boxing 3-minute rounds, or any custom work/rest split and round count, with every screen on the identical round.",
+    intro: "Set a work length, a rest length, and how many rounds — press start, and share the link so everyone doing the same workout, drill, or exercise sees the identical round and phase on their own device. The classic protocols are one click below.",
+    setupHint: "Defaults to a general 30s work / 15s rest / 10 rounds split — set any work/rest lengths and round count you need.",
+    extra: ivExtra(30, 15, 10) + `
+        <div class="obs-extra">
+          <h3>Standard protocols</h3>
+          <p>Set any of these in the work/rest/rounds fields above — the shared-link mechanic is identical whichever you pick.</p>
+          <ul>
+            <li><b>Tabata — 20s work, 10s rest, 8 rounds</b> (about 4 minutes). Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training: short enough to sustain near-maximal effort, with just enough rest to repeat it eight times. Change the 20/10 ratio and it stops being strictly Tabata, but it still works.</li>
+            <li><b>Boxing — 3 min work, 1 min rest, 12 rounds.</b> The standard professional format. Amateur bouts and other combat sports often use shorter rounds — set work to 120 seconds for 2-minute rounds.</li>
+            <li><b>Muay Thai — 3 min work, 2 min rest.</b> Longer rests than boxing; set the round count to however many the bout runs.</li>
+            <li><b>Back-to-back sets — rest 0.</b> Each round runs straight into the next work phase with no pause, for a fixed number of consecutive timed sets.</li>
+          </ul>
+        </div>`,
     faq: [
-      { q: "How is this different from the Tabata timer?", a: "Tabata is this same mechanic locked to its classic 20-seconds-work/10-seconds-rest protocol. This page defaults to a more general 30/15 split, but both pages let you set any work length, rest length, and round count you want." },
+      { q: "Can I run a classic Tabata on this?", a: "Yes — set work to 20 seconds, rest to 10, and rounds to 8. That's Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training, and it comes to about four minutes total." },
+      { q: "Does this match standard boxing round timing?", a: "Set 3 minutes work, 1 minute rest, 12 rounds and yes — that's the standard professional format. Muay Thai commonly uses 3-minute rounds with 2-minute rests; both are just numbers in the fields above." },
       { q: "Can rest be zero seconds, for back-to-back rounds?", a: "Yes — set rest to 0 and each round runs straight into the next work phase with no pause, useful for a fixed number of consecutive timed sets." },
-      { q: "What happens when all rounds finish?", a: "Every screen shows \"Done\" together and chimes if sound is on. Press Restart for the identical work/rest/rounds setup again, or adjust the numbers below and start fresh." },
-    ] },
-  { slug: "boxing-round-timer", minutes: 3, label: "Fight's over", eyebrow: "Boxing Round Timer",
-    h1: "Boxing Round Timer — 3 Min Rounds, 1 Min Rest",
-    meta: "A free boxing/kickboxing round timer — 3-minute rounds, 1-minute rest, 12 rounds by default, shareable so the whole gym stays on the same clock.",
-    intro: "Standard boxing rounds are 3 minutes with a 1-minute rest between them. Set your round count below, press start, and share the link so a coach's phone and every fighter's own screen stay on the identical round and rest period.",
-    setupHint: "Defaults to standard boxing rounds (3 min work, 1 min rest, 12 rounds) — change any of the three for kickboxing, Muay Thai, or a custom sparring format.",
-    extra: ivExtra(180, 60, 12),
-    faq: [
-      { q: "Does this match standard boxing round timing?", a: "Yes — 3 minutes per round with a 1-minute rest is the standard professional format. Amateur bouts and other combat sports often use shorter rounds; change the work-seconds field to match (e.g. 120 for 2-minute rounds)." },
-      { q: "Can I use this for Muay Thai or kickboxing instead?", a: "Yes — set the work/rest lengths to match whichever format you need (Muay Thai commonly uses 3-minute rounds with 2-minute rests, for instance) and the round count for however many rounds the bout runs." },
-      { q: "Is there a ten-second warning before the round ends?", a: "Not a distinct warning sound, but the screen-reader announcement and the visible countdown both update every second in the final stretch, so it's easy to see (or hear, with assistive tech) a round winding down." },
+      { q: "Does everyone see the same round at the same time?", a: "Yes — the cycle's start instant is encoded in the link itself, so every device computes the current round and phase independently from the same starting point, with no server keeping them in sync. A coach's phone and every fighter's screen stay on the identical round." },
+      { q: "What happens when all rounds finish?", a: "Every screen shows \"Done\" together and chimes if sound is on. Press Restart for the identical work/rest/rounds setup again, or adjust the numbers and start fresh." },
+      { q: "Is there a ten-second warning before a round ends?", a: "Not a distinct warning sound, but the screen-reader announcement and the visible countdown both update every second in the final stretch, so it's easy to see (or hear, with assistive tech) a round winding down." },
     ] },
   { slug: "multiple-timers-at-once", minutes: 5, label: "", eyebrow: "Multiple Timers",
     multiTimer: true,
@@ -652,7 +618,7 @@ function timerLinks(currentSlug, indent = "          ") {
   }
   const links = chosen
     .filter(p => p.slug !== currentSlug)
-    .map(p => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`);
+    .map(p => `<a href="${hrefFor(p.slug)}">${p.eyebrow}</a>`);
   if (currentSlug != null) links.push(`<a href="/">Browse all ${PAGES.length} timers →</a>`);
   return links.join(`\n${indent}`);
 }
@@ -869,7 +835,7 @@ return `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${p.h1} | ${BRAND}</title>
 <meta name="description" content="${p.meta}">
-<link rel="canonical" href="${SITE_URL}/timers/${p.slug}">
+<link rel="canonical" href="${SITE_URL}${hrefFor(p.slug)}">
 <meta property="og:title" content="${p.h1}">
 <meta property="og:description" content="${p.meta}">
 <meta property="og:type" content="website">
@@ -891,7 +857,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   "@context": "https://schema.org",
   "@type": "WebApplication",
   name: BRAND,
-  url: `${SITE_URL}/timers/${p.slug}`,
+  url: `${SITE_URL}${hrefFor(p.slug)}`,
   description: p.meta,
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any (web browser)",
@@ -912,7 +878,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: BRAND, item: `${SITE_URL}/` },
-    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}/timers/${p.slug}` },
+    { "@type": "ListItem", position: 2, name: p.eyebrow, item: `${SITE_URL}${hrefFor(p.slug)}` },
   ],
 })}</script>
 ${faqSchema(p.faq)}
@@ -1039,14 +1005,20 @@ ${main}
 //
 // Keys are guide slugs; values are timer slugs, most relevant first.
 const TOPIC_LINKS = {
-  "using-timers-in-the-classroom": ["classroom-timer", "exam-timer", "group-study-timer", "10-minute-timer"],
+  "using-timers-in-the-classroom": ["classroom-timer", "exam-timer", "group-study-timer", "index"],
   "put-a-timer-on-your-classroom-screen": ["classroom-timer", "exam-timer", "workshop-timer", "group-study-timer"],
-  "how-to-run-a-timed-exam": ["exam-timer", "classroom-timer", "60-minute-timer", "30-minute-timer"],
-  "the-pomodoro-technique": ["pomodoro-timer", "25-minute-timer", "5-minute-timer", "group-study-timer"],
-  "running-short-standups": ["standup-timer", "10-minute-timer", "15-minute-timer", "agenda-timer"],
-  "timeboxing-meetings": ["zoom-meeting-timer", "google-meet-timer", "agenda-timer", "30-minute-timer", "45-minute-timer"],
-  "facilitating-workshops-to-time": ["workshop-timer", "agenda-timer", "multiple-timers-at-once", "15-minute-timer"],
-  "interval-training-timing": ["tabata-timer", "interval-timer", "boxing-round-timer", "5-minute-timer"],
+  // Duration slugs here were replaced with "index" (the /timers/ hub) on
+  // 2026-07-29 when the eight fixed-duration pages were consolidated. Note
+  // timersForGuide() does `.map(pageBySlug).filter(Boolean)`, which silently
+  // drops a slug that no longer exists — so a stale entry here degrades a
+  // guide's link block without failing the build. assertTopicLinksResolve()
+  // below closes that hole.
+  "how-to-run-a-timed-exam": ["exam-timer", "classroom-timer", "index"],
+  "the-pomodoro-technique": ["pomodoro-timer", "group-study-timer", "index"],
+  "running-short-standups": ["standup-timer", "agenda-timer", "index"],
+  "timeboxing-meetings": ["zoom-meeting-timer", "google-meet-timer", "agenda-timer", "index"],
+  "facilitating-workshops-to-time": ["workshop-timer", "agenda-timer", "multiple-timers-at-once", "index"],
+  "interval-training-timing": ["interval-timer", "group-study-timer", "index"],
 };
 
 // Reverse index: timer slug -> guide slugs that reference it. Built rather
@@ -1082,7 +1054,7 @@ const timersForGuide = (guideSlug) => {
   const items = (TOPIC_LINKS[guideSlug] || []).map(pageBySlug).filter(Boolean);
   if (!items.length) return timerLinks(null);
   return items
-    .map((p) => `<a href="/timers/${p.slug}">${p.eyebrow}</a>`)
+    .map((p) => `<a href="${hrefFor(p.slug)}">${p.eyebrow}</a>`)
     .concat(`<a href="/">Browse all ${PAGES.length} timers →</a>`)
     .join("\n      ");
 };
@@ -1195,7 +1167,7 @@ const notFoundPage = () => guideShell({
 const BUILD_DATE = new Date().toISOString().split("T")[0];
 
 const sitemap = () => {
-  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}/timers/${p.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
+  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}${hrefFor(p.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const guideUrls = [`  <url><loc>${SITE_URL}/guides</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
     .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
@@ -1215,9 +1187,17 @@ ${urls}
 // hand-maintained footer-links list once did (see README/memory notes on
 // that incident) — add a PAGES row, both files update together.
 const llmsTxt = () => {
-  const durationSlugs = new Set(["5-minute-timer","10-minute-timer","15-minute-timer","20-minute-timer","25-minute-timer","30-minute-timer","45-minute-timer","60-minute-timer"]);
-  const durationLines = PAGES.filter(p => durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug})`).join("\n");
-  const useCaseLines = PAGES.filter(p => !durationSlugs.has(p.slug)).map(p => `- [${p.eyebrow}](${SITE_URL}/timers/${p.slug})`).join("\n");
+  // Grouped by the same GROUPS taxonomy the on-page index rail uses, rather
+  // than a hand-kept duration/use-case split. The old version hardcoded eight
+  // duration slugs that no longer exist (consolidated into /timers/ on
+  // 2026-07-29) and would have silently emitted an empty section.
+  const bySlug = Object.fromEntries(PAGES.map((p) => [p.slug, p]));
+  const timerSections = GROUPS.map(([heading, slugs]) => {
+    const lines = slugs
+      .map((slug) => `- [${bySlug[slug].eyebrow}](${SITE_URL}${hrefFor(slug)}): ${bySlug[slug].meta}`)
+      .join("\n");
+    return `### ${heading}\n${lines}`;
+  }).join("\n\n");
   return `# ${BRAND}
 
 > Free shared countdown timer. Set a duration, copy the link, and everyone who opens it sees the identical countdown — synced by encoding the end timestamp in the URL itself, with no account and no server round-trip.
@@ -1236,11 +1216,8 @@ ${BRAND} is a static web app: no signup, no backend, no per-viewer cost. The syn
 ## Guides
 ${ARTICLES.map(a => `- [${a.title}](${SITE_URL}/guides/${a.slug}): ${a.description}`).join("\n")}
 
-## Duration timers
-${durationLines}
-
-## Use-case timers
-${useCaseLines}
+## Timers
+${timerSections}
 `;
 };
 
@@ -1282,7 +1259,7 @@ function instrumentIndex(currentSlug) {
   const groups = GROUPS.map(([heading, slugs]) => {
     const items = slugs.map((slug) => {
       const here = slug === currentSlug;
-      return `<li><a href="/timers/${slug}"${here ? ' aria-current="page"' : ""}>${bySlug[slug].eyebrow}</a></li>`;
+      return `<li><a href="${hrefFor(slug)}"${here ? ' aria-current="page"' : ""}>${bySlug[slug].eyebrow}</a></li>`;
     }).join("\n        ");
     return `
     <section class="idx-group">
@@ -1355,6 +1332,29 @@ function assertIndexCoversEveryPage() {
 }
 
 /**
+ * Every TOPIC_LINKS target resolves to a real page, and every guide slug is a
+ * real article.
+ *
+ * Added 2026-07-29 after the page consolidation: timersForGuide() ends in
+ * `.filter(Boolean)`, so a TOPIC_LINKS entry pointing at a deleted slug just
+ * quietly disappears from that guide's link block. The build stayed green
+ * while six guides lost internal links — exactly the kind of silent decay that
+ * hub-and-spoke linking is supposed to prevent. Fail loudly instead.
+ */
+function assertTopicLinksResolve() {
+  const slugs = new Set(PAGES.map((p) => p.slug));
+  const guides = new Set(ARTICLES.map((a) => a.slug));
+  const problems = [];
+  for (const [guideSlug, timerSlugs] of Object.entries(TOPIC_LINKS)) {
+    if (!guides.has(guideSlug)) problems.push(`TOPIC_LINKS key "${guideSlug}" is not an article slug`);
+    for (const t of timerSlugs) {
+      if (!slugs.has(t)) problems.push(`TOPIC_LINKS["${guideSlug}"] points at "${t}", which is not a page`);
+    }
+  }
+  if (problems.length) throw new Error(`Broken topical cluster links:\n  - ${problems.join("\n  - ")}`);
+}
+
+/**
  * Push the generated chrome into the hand-written root pages. CountLink
  * pre-dates the template engine and index/about/how-it-works/compare and the
  * legal pages are real files rather than generated ones — so rather than
@@ -1419,6 +1419,7 @@ async function syncIndexFootLinks() {
 
 async function main() {
   assertIndexCoversEveryPage();
+  assertTopicLinksResolve();
   await assertAssetVersionsAreCurrent();
   await mkdir(OUT_DIR, { recursive: true });
   const written = [];
@@ -1442,24 +1443,17 @@ async function main() {
   }
   console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
 
-  // /embed/ serves the same document as the root, but from a path that
-  // _headers exempts from X-Frame-Options: DENY. Without it, every embed of
-  // the overlay silently failed on third-party sites (the header applies to
-  // the whole origin and can't be scoped to ?overlay=1).
-  const embedDir = join(ROOT, "embed");
-  await mkdir(embedDir, { recursive: true });
-  const rootHtml = await readFile(join(ROOT, "index.html"), "utf-8");
-  await writeFile(join(embedDir, "index.html"),
-    rootHtml.replace("<head>", '<head>\n<meta name="robots" content="noindex,follow">'), "utf-8");
-  console.log("Wrote embed/index.html (framable overlay host, noindex)");
-
   const notFoundPath = join(ROOT, "404.html");
   await writeFile(notFoundPath, notFoundPage(), "utf-8");
   console.log(`Wrote ${relative(ROOT, notFoundPath)}`);
 
   const sitemapPath = join(ROOT, "sitemap.xml");
   await writeFile(sitemapPath, sitemap(), "utf-8");
-  console.log(`Wrote ${relative(ROOT, sitemapPath)} (${PAGES.length + STATIC_PAGES.length + 1} URLs)`);
+  // Count the emitted <loc>s rather than recomputing the arithmetic — the old
+  // expression (PAGES + STATIC_PAGES + 1) silently omitted the guides index and
+  // the 8 articles, so it under-reported by 9 for as long as guides have existed.
+  const locCount = (sitemap().match(/<loc>/g) || []).length;
+  console.log(`Wrote ${relative(ROOT, sitemapPath)} (${locCount} URLs)`);
 
   const llmsPath = join(ROOT, "llms.txt");
   await writeFile(llmsPath, llmsTxt(), "utf-8");
@@ -1470,6 +1464,26 @@ async function main() {
 
   await syncChrome();
   await syncIndexFootLinks();
+
+  /*
+   * /embed/ serves the same document as the root, but from a path that
+   * _headers exempts from X-Frame-Options: DENY. Without it, every embed of
+   * the overlay silently failed on third-party sites (the header applies to
+   * the whole origin and can't be scoped to ?overlay=1).
+   *
+   * This MUST run after syncChrome() and syncIndexFootLinks(), because both of
+   * those rewrite index.html in place. It used to run before them, so
+   * embed/index.html was copied from the *previous* build's index.html and was
+   * permanently one build stale — caught 2026-07-29 when it was the only file
+   * still linking to the twelve consolidated timer pages.
+   */
+  const embedDir = join(ROOT, "embed");
+  await mkdir(embedDir, { recursive: true });
+  const rootHtml = await readFile(join(ROOT, "index.html"), "utf-8");
+  await writeFile(join(embedDir, "index.html"),
+    rootHtml.replace("<head>", '<head>\n<meta name="robots" content="noindex,follow">'), "utf-8");
+  console.log("Wrote embed/index.html (framable overlay host, noindex)");
+
   console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");
 }
 

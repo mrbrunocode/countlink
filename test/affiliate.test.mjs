@@ -55,7 +55,10 @@ test("exactly the intended productivity-context pages are tagged affiliate:true"
 });
 
 test("party/countdown pages are NOT tagged affiliate", () => {
-  const untagged = ["game-night-timer", "new-year-countdown", "christmas-countdown", "auction-countdown", "stopwatch"];
+  // "stopwatch" was in this list until 2026-07-29, when it was consolidated
+  // into the /timers/ hub ("index"). The hub is untagged for the same reason:
+  // it's a duration picker, not a productivity-context page.
+  const untagged = ["game-night-timer", "new-year-countdown", "christmas-countdown", "auction-countdown", "index"];
   for (const slug of untagged) {
     const p = PAGES.find((pg) => pg.slug === slug);
     assert.ok(p, `fixture page ${slug} not found — did it get renamed?`);
