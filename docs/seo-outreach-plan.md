@@ -120,3 +120,65 @@ are still live, tracking referring-domain growth over time) needs a paid
 data source (Ahrefs/Semrush/Moz API) to do properly — free-tier options give
 inconsistent, delayed data. Worth adding to the ledger as a new target once
 there's actual revenue to justify a ~$99+/mo subscription; not before.
+
+---
+
+## 2026-08-03: the gap, measured — and what it says about priority
+
+The "full backlink-monitoring needs a paid tool" note above is now only half
+true. **Bing Webmaster Tools' Backlinks → "Backlinks To Any Site" tab does
+competitor gap analysis for free**, and it is the tool to reach for here.
+Measured that day:
+
+| Site | Referring domains |
+|---|---|
+| countlink.app | **1** (saashub.com, anchor "Visit website") |
+| stagetimer.io | **209** |
+
+That single link is the SaaSHub submission from 2026-07-08, so the ledger is
+accurate — the process works, there just hasn't been enough of it.
+
+Stagetimer's top referring domains, which is the useful part:
+
+| Domain | Links | Read |
+|---|---|---|
+| getlatka.com | 87 | SaaS database, auto-generated — low value, not a target |
+| atlanticcouncil.org | 66 | **An organisation that uses the timer**, linking from its own event pages |
+| freeseotesting.com | 40 | SEO test/scraper site — noise |
+| ragerworks.com | 34 | scraper/directory — noise |
+| **producthunt.com** | **28** | a real launch, and already `pending` in the ledger |
+| dashmaster2k.com | 28 | scraper/directory — noise |
+| **indiehackers.com** | **24** | a real community Bruno legitimately belongs in |
+| linkedin.com | 24 | posts about the product |
+| screenshotone.com | 17 | tool-to-tool mention |
+
+**Two conclusions worth acting on.**
+
+First, this is direct evidence for the Product Hunt launch that has been
+sitting `pending` in the ledger: it produced 28 referring domains for the
+closest competitor. Of everything on the human-required list, it is the single
+highest-value item, and `docs/producthunt-draft.md` is already written.
+
+Second — and this is the one that changes strategy — **atlanticcouncil.org
+with 66 links is not marketing. It is an organisation that used the timer and
+linked to it from its own event pages.** That is the same shape as CountLink's
+embed widget, whose snippet already includes an attribution link *outside* the
+iframe (`assets/app.js`, the `embedCode` template), so it passes real equity
+rather than being trapped inside the frame where it would count for nothing.
+
+That makes the embed the only link mechanism here that compounds without Bruno
+doing outreach each time: every site that embeds a countdown leaves a link.
+The lever is therefore **making the embed easier to find and more obviously
+worth using**, not writing more submissions. Worth measuring before building
+anything: check the referring-domain count in Bing again in a month, and see
+whether any embed-sourced domains appear.
+
+### What is deliberately still not automated
+
+The six remaining `human-required` targets — Show HN, Product Hunt launch, the
+three subreddits, and blog-roundup outreach — stay human-required, and not for
+want of tooling. Posting to a community as Bruno means being Bruno: answering
+replies, having an account with a history, and standing behind the thing. An
+agent doing that is impersonation, and on Reddit and HN specifically it is also
+the fastest way to get the domain blacklisted. The drafts exist so the posting
+is quick; the posting itself is his.

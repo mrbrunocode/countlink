@@ -20,25 +20,25 @@
       "name": "Google Search Console — scripted sitemap resubmission",
       "execution": "script",
       "status": "blocked",
-      "blocked_reason": "Gated on search-console-verify (human-required, still pending) — needs a Cloud project + service account added to the verified Search Console property before this script can be built/run. Nothing to do until Bruno completes ownership verification.",
-      "last_run": "2026-07-08T16:47:59.431Z",
-      "notes": "Gated on search-console-verify (human-required, still pending) — needs a Cloud project + service account added to the verified Search Console property before this script can be built/run. Nothing to do until Bruno completes ownership verification."
+      "blocked_reason": "Stale reason corrected 2026-08-03: search-console-verify is DONE, so that is no longer the blocker. Remaining work is a Cloud project + service account added to the verified property. Low value now — sitemaps for all three sites are submitted and being read; the constraint is crawl budget, not submission.",
+      "last_run": "2026-08-03T18:28:21.882Z",
+      "notes": "Stale reason corrected 2026-08-03: search-console-verify is DONE, so that is no longer the blocker. Remaining work is a Cloud project + service account added to the verified property. Low value now — sitemaps for all three sites are submitted and being read; the constraint is crawl budget, not submission."
     },
     "bing-webmaster": {
       "name": "Bing Webmaster Tools API",
       "execution": "human-required",
-      "status": "pending",
+      "status": "done",
       "blocked_reason": null,
-      "last_run": null,
-      "notes": ""
+      "last_run": "2026-08-03T18:28:21.743Z",
+      "notes": "Verified and in active use as of 2026-08-03 — Bruno is logged in, the property is live, and Site Explorer / Backlinks / AI Performance all return data. Reprioritised upward from 'low priority': its AI Performance report is the only free dashboard for Copilot citations, and its Backlinks tool does competitor gap analysis (see seo-outreach-plan.md)."
     },
     "alternativeto": {
       "name": "AlternativeTo",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Submission requires creating an AlternativeTo account (Sign up) — no anonymous/guest submission path found. Needs Bruno to sign up himself.",
-      "last_run": "2026-07-08T16:47:38.144Z",
-      "notes": "Submission requires creating an AlternativeTo account (Sign up) — no anonymous/guest submission path found. Needs Bruno to sign up himself."
+      "status": "skipped",
+      "blocked_reason": null,
+      "last_run": "2026-08-03T18:28:21.603Z",
+      "notes": "REJECTED 2026-07-28, not merely blocked. All three boring-apps were declined — a categorical policy exclusion for this class of tool, not a fixable submission problem. Do not retry or suggest it again; see memory alternativeto-rejected-vet-before-suggesting."
     },
     "saashub": {
       "name": "SaaSHub",
@@ -99,10 +99,10 @@
     "gh-awesome-free": {
       "name": "GitHub awesome-lists (free software / self-hosted-adjacent)",
       "execution": "agent-browser",
-      "status": "blocked",
-      "blocked_reason": "Skipped per Bruno's call: best-fit list (johnjago/awesome-free-software, 2.8k stars) is scoped to 'free as in freedom' (open-source) software — CountLink is free-to-use but closed-source, so it doesn't actually fit their inclusion criteria. Not pursued.",
-      "last_run": "2026-07-08T16:47:49.588Z",
-      "notes": "Skipped per Bruno's call: best-fit list (johnjago/awesome-free-software, 2.8k stars) is scoped to 'free as in freedom' (open-source) software — CountLink is free-to-use but closed-source, so it doesn't actually fit their inclusion criteria. Not pursued."
+      "status": "skipped",
+      "blocked_reason": null,
+      "last_run": "2026-08-03T18:28:22.018Z",
+      "notes": "Skipped 2026-08-03 on evidence, not effort. A Common Crawl check proved low-star awesome-list README links carry ~zero real SEO value — one already-merged PR produced nothing measurable. See memory github-awesome-list-backlinks-low-value."
     },
     "show-hn": {
       "name": "Show HN (Hacker News)",
