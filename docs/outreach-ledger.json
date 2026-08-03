@@ -117,8 +117,8 @@
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": "2026-08-03T19:46:55.730Z",
-      "notes": "READY TO LAUNCH — everything is prepped, only the launch-day click is left, and that is deliberately Bruno's. Two things to do first: (1) tick 'I am 16 years old or older' in the onboarding banner (a personal attestation an agent must not make) — the account works without it but the banner persists; (2) optionally drag two more gallery images in from ~/Desktop/countlink-producthunt/ (01-hero.png, 02-running-board.png) — PH recommends 3+, there is currently 1. Then pick a day you can sit with it: PH launches live or die on the maker answering comments through the day. Evidence for prioritising this: stagetimer.io has 28 referring domains from producthunt.com; countlink has 1 referring domain in total."
+      "last_run": "2026-08-03T20:04:19.694Z",
+      "notes": "READY TO LAUNCH — everything prepped, only the launch-day click is left and that is deliberately Bruno's. Before launching: (1) tick 'I am 16 years old or older' in the onboarding banner (a personal attestation an agent must not make); (2) drag two more gallery images in from ~/Desktop/countlink-producthunt/ — PH recommends 3+, there is currently 1 (its auto-pulled OG card). Then pick a day you can sit with it: PH launches live or die on the maker answering comments through the day. Evidence: stagetimer.io has 28 referring domains from producthunt.com; countlink has 1 referring domain in total. NOTE on the images: captured with faves.grow.me blackholed at the DNS level, because the Grow.me floating button otherwise sits on top of the timer board. Digits verified fully turned in every frame — the split-flap animates on each tick, so a naive screenshot can catch a card mid-flip and land a garbled number in the gallery. Re-check that if these are ever re-shot."
     },
     "reddit-sideproject": {
       "name": "r/SideProject",
