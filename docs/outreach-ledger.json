@@ -85,8 +85,8 @@
       "execution": "agent-browser",
       "status": "done",
       "blocked_reason": null,
-      "last_run": "2026-07-08T17:31:20.506Z",
-      "notes": "Draft saved on producthunt.com (signed in with the subs account) — name, tagline, description, 2 tags (Productivity/Education), gallery image auto-pulled from og-image, and full maker comment. Still needs: launch day picked by Bruno + being present to reply (see producthunt-launch, separate human-required item)."
+      "last_run": "2026-08-03T19:46:55.674Z",
+      "notes": "Draft CREATED and live in PH as an unpublished draft (2026-08-03): https://www.producthunt.com/products/countlink?launch=countlink — banner reads 'This product is a draft and is not scheduled for a launch yet.' Launch checklist reports 100% complete: name, tagline, description, thumbnail, gallery, tags, first comment all filled from docs/producthunt-draft.md. Tags: Productivity, Education, Meetings. PH auto-pulled the site's OG card as the lead gallery image."
     },
     "gh-awesome-education": {
       "name": "GitHub awesome-lists (education)",
@@ -117,8 +117,8 @@
       "execution": "human-required",
       "status": "pending",
       "blocked_reason": null,
-      "last_run": "2026-07-16T00:00:00.000Z",
-      "notes": "Draft (producthunt-prep) confirmed still live on producthunt.com. Screenshots: hero, fullscreen board, and light-theme board all reviewed live on countlink.app and render correctly — ready to attach. Mobile-view shot still outstanding (a quick phone capture is easiest — automation couldn't reliably force a narrow viewport this session). Still needs Bruno: pick launch day + be present to reply."
+      "last_run": "2026-08-03T19:46:55.730Z",
+      "notes": "READY TO LAUNCH — everything is prepped, only the launch-day click is left, and that is deliberately Bruno's. Two things to do first: (1) tick 'I am 16 years old or older' in the onboarding banner (a personal attestation an agent must not make) — the account works without it but the banner persists; (2) optionally drag two more gallery images in from ~/Desktop/countlink-producthunt/ (01-hero.png, 02-running-board.png) — PH recommends 3+, there is currently 1. Then pick a day you can sit with it: PH launches live or die on the maker answering comments through the day. Evidence for prioritising this: stagetimer.io has 28 referring domains from producthunt.com; countlink has 1 referring domain in total."
     },
     "reddit-sideproject": {
       "name": "r/SideProject",
