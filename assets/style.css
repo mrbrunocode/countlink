@@ -629,6 +629,24 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
 .faq-item h3{font-family:var(--sans);font-weight:600;font-size:.9rem;color:var(--paper-text);margin-bottom:6px}
 .faq-item dd{font-size:.84rem;color:var(--paper-dim);line-height:1.6;margin:0}
 
+/* ============ How-to steps (visible copy matching the HowTo JSON-LD) ============
+   Same rule as the FAQ above: the visible list and the structured data come
+   from one `howto` array in build-timer-pages.mjs, so they cannot drift. Styled
+   in the Swiss-instrument vocabulary — hard corners, a numbered gutter set in
+   the mono face, one signal colour — rather than as a card. Native markers are
+   suppressed in favour of the counter so the number can sit in that gutter; the
+   element stays an <ol> so the sequence survives without CSS and for screen
+   readers. */
+.howto{padding:36px 0 8px;border-top:1px solid var(--panel-line);margin-top:34px}
+.howto h2{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em;margin-bottom:16px;color:var(--paper-text)}
+.howto ol{list-style:none;padding:0;margin:0;counter-reset:step;display:flex;flex-direction:column;gap:14px}
+.howto li{counter-increment:step;position:relative;padding-left:38px;font-size:.84rem;color:var(--paper-dim);line-height:1.6}
+.howto li::before{
+  content:counter(step,decimal-leading-zero);position:absolute;left:0;top:0;
+  font-family:var(--mono);font-size:.68rem;font-weight:600;color:var(--signal);
+  border-left:2px solid var(--signal);padding-left:8px;line-height:1.5;
+}
+
 /* per-page "extra" block (OBS setup steps, Zoom comparison, exam Light-style
    callout) — a distinct structural element beyond prose, per the SXO/content
    audit finding that a reworded intro alone reads as thin/templated */

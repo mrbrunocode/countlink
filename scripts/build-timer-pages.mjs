@@ -379,6 +379,12 @@ export const PAGES = [
     meta: "A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.",
     intro: "Put the countdown on the front screen and, if students have devices, on theirs too — everyone sees the identical time remaining, which is the whole point of a fair exam clock. Set it to your exam length and share the link before the paper starts.",
     extra: EXAM_EXTRA,
+    howto: [
+      "Set the exam length with Custom minutes, or count down to a fixed finish time using \"…or until a date & time\".",
+      "Put the board on the room's front screen and press Fullscreen so the countdown is readable from the back.",
+      "If your exam rules permit candidate devices, press Show QR code so students can open the identical countdown on their own screens.",
+      "Press Start countdown as you begin the paper — every screen hits zero at the same instant and plays the chime.",
+    ],
     faq: [
       { q: "Can students see the same countdown on their own devices during a test?", a: "Yes, if your exam rules permit devices — every device that opens the link shows the identical time remaining. Many exam contexts restrict student devices entirely, in which case display it on the room's front screen only." },
       { q: "What happens if a student's device clock is wrong?", a: "It doesn't matter — the countdown is calculated from the shared deadline in the link, not from the device's own clock, so display accuracy only depends on the device's clock being roughly correct (typically accurate to within a second), not on it being manually set right." },
@@ -389,6 +395,12 @@ export const PAGES = [
     meta: "A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.",
     intro: "Group work, quiz rounds, silent reading, transition time between activities — a visible shared countdown ends the “how much longer” questions on its own. Project it fullscreen or share the link to student devices.",
     extra: CLASSROOM_EXTRA,
+    howto: [
+      "Pick a length with Quick timer for the activity — short for transitions, longer for group work or silent reading.",
+      "Type the activity under \"What's it for?\" so the screen answers \"what are we doing?\" as well as \"how long left?\".",
+      "Press Fullscreen to project it, or Show QR code so students can pull the same countdown up on their own devices.",
+      "Press Start countdown, and set a fresh timer for each activity so every one gets its own clean clock.",
+    ],
     faq: [
       { q: "Is this better than just projecting a phone timer app?", a: "The advantage is sharing: instead of only the front-screen clock, students can pull up the identical countdown on their own device too, so a quick glance answers \"how much longer\" without asking." },
       { q: "Can I reuse the same setup for different activities during one lesson?", a: "Yes — set a new quick-timer duration for each activity and share the fresh link; each activity gets its own clean countdown." },
@@ -505,6 +517,12 @@ export const PAGES = [
           </ol>
           <p>Why doesn't it auto-advance from focus to break? Because the link is the timer: each countdown is one fixed end time that every screen agrees on. An auto-advancing cycle would need every viewer's browser to agree on state changes over time — that's a server, and no server is the reason this tool has no viewer limits.</p>
         </div>`,
+    howto: [
+      "Set Quick timer to 25 min — the classic focus block — or type your own length into Custom minutes.",
+      "Name it under \"What's it for?\" so every screen shows what the block is for, then press Start countdown.",
+      "Press Copy sync link and send it to whoever is working along with you; every device shows the identical time remaining.",
+      "When the chime sounds, start a fresh 5-minute timer for the break, and take a longer 15–30 minute break after four cycles.",
+    ],
     faq: [
       { q: "Why 25 minutes?", a: "That's the classic pomodoro length from Francesco Cirillo's original technique — long enough to get real work done, short enough that starting doesn't feel heavy. The custom-minutes field takes any length if your group prefers 50/10." },
       { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
@@ -543,6 +561,12 @@ export const PAGES = [
     h1: "Multiple Timers at Once — Shareable Dashboard",
     meta: "Run several named countdowns on one screen — cooking, multi-station events, parallel exam sections — all synced by one shareable link.",
     intro: "Add as many named timers as you need — each one is its own independent countdown, all shown together on one dashboard. Share the link and everyone sees the identical set of timers, all counting down together.",
+    howto: [
+      "Press Add timer for each clock you need, naming each one so they can be told apart at a glance.",
+      "Give each timer its own duration — they run independently rather than sharing a single countdown.",
+      "Press \"Copy link to this set\" to share every timer at once; the whole set travels in the one link.",
+      "Use Clear all to reset the board between rounds, sessions or groups.",
+    ],
     faq: [
       { q: "Do all the timers share one countdown, or run independently?", a: "Independently — each timer you add has its own name and its own end time. Adding, removing, or finishing one has no effect on the others." },
       { q: "How is the set of timers kept in sync across devices?", a: "The same mechanic as every other page here: each timer's end instant is encoded in the page's link. Copy the link after adding your timers, and anyone who opens it sees the identical set, each counting down from wherever it currently is." },
@@ -554,6 +578,12 @@ export const PAGES = [
     h1: "Agenda Timer — Auto-Advancing Segments, Synced",
     meta: "Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.",
     intro: "Add segments in order — Intro, Break, Q&A, whatever your session needs — then start. Unlike a single countdown, this one auto-advances from one segment to the next on its own, and everyone who opens the link sees the identical segment and time remaining, in sync.",
+    howto: [
+      "Press Add segment for each item in the running order, giving every one a name and a length.",
+      "Check the order top to bottom before you begin — segments run in sequence and each one auto-advances into the next.",
+      "Press Copy sync link and share it, so every participant's screen follows the same agenda.",
+      "Press Start agenda when the meeting begins; use New agenda to build a fresh running order without disturbing the shared link.",
+    ],
     faq: [
       { q: "Does this really auto-advance without a server?", a: "Yes — the trick is the same one the Interval/Tabata timer uses: only the start instant and the list of segment lengths are in the link. Every device computes which segment is \"now\" from elapsed time since that instant, so there's nothing to synchronize after the link is shared — no server ever tells anyone to advance." },
       { q: "Can I reorder segments before starting?", a: "Yes — use the up/down arrows next to each segment in the builder to reorder, or the × to remove one, before pressing Start agenda. Once started, the order is locked in for that run." },
@@ -637,6 +667,32 @@ const faqSchema = (faq) => faq ? `<script type="application/ld+json">${JSON.stri
     acceptedAnswer: { "@type": "Answer", text: f.a },
   })),
 })}</script>` : "";
+
+// Optional "How to" block: visible ordered steps plus HowTo JSON-LD, both
+// generated from the same `howto` array so the structured data can never drift
+// from what's on screen — same discipline as the FAQ pair above, and the same
+// mechanism diffhero uses. HowTo is well consumed by AI answer engines, and
+// AI-assistant referral is the only channel here that delivers engaged humans
+// (29% of sessions at 38s avg engagement vs 3s for direct), so it earns its
+// place. Pages without a `howto` array render nothing extra.
+const howToSchema = (howto, name) => howto && howto.length ? `<script type="application/ld+json">${JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: `How to use the ${name}`,
+  step: howto.map((s, i) => ({ "@type": "HowToStep", position: i + 1, text: s })),
+})}</script>` : "";
+
+// Steps are hand-authored trusted content and may carry inline markup, exactly
+// like the `faq` strings below — so they're interpolated as-is rather than
+// escaped. The JSON-LD above takes the same strings; JSON.stringify handles
+// its own quoting, so any markup stays literal text there.
+const howToHtml = (howto, name) => howto && howto.length ? `
+  <section class="howto">
+    <h2>How to use the ${name}</h2>
+    <ol>
+      ${howto.map(s => `<li>${s}</li>`).join("\n      ")}
+    </ol>
+  </section>` : "";
 
 // Visible FAQ HTML, matching the schema above verbatim (mismatched visible
 // vs. structured-data FAQ content is a spam signal, so these must stay in sync
@@ -849,7 +905,7 @@ return `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=178eb3ea">
+<link rel="stylesheet" href="../assets/style.css?v=e76811f5">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -882,6 +938,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   ],
 })}</script>
 ${faqSchema(p.faq)}
+${howToSchema(p.howto, p.eyebrow)}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
 ${growScript()}
 </head>
@@ -901,6 +958,7 @@ ${instrumentIndex(p.slug)}
   ${stageBlock}
   <div class="measure">
     ${p.extra || EXTRA_BY_SLUG[p.slug] || ""}
+    ${howToHtml(p.howto, p.eyebrow)}
     ${faqHtml(p.faq)}
     ${relatedGuides(p.slug)}
     ${affiliateCard(p)}

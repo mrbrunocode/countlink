@@ -19,13 +19,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=178eb3ea">
+<link rel="stylesheet" href="../assets/style.css?v=e76811f5">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/obs-countdown-timer","description":"A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Bruno FK","url":"https://brunofk.dev"},"datePublished":"2026-07-08","dateModified":"2026-07-29"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Stream Countdown (OBS)","item":"https://countlink.app/timers/obs-countdown-timer"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Will the background really be transparent in OBS?","acceptedAnswer":{"@type":"Answer","text":"Yes — the overlay link removes the page background entirely (not just visually dark, genuinely transparent), so only the countdown digits appear on your scene, with no chroma key or green screen needed."}},{"@type":"Question","name":"Does the countdown keep running if I switch OBS scenes?","acceptedAnswer":{"@type":"Answer","text":"Yes, as long as the Browser Source stays loaded — if you enable \"Shutdown source when not visible,\" OBS will reload it when the scene becomes active again and it will recalculate against the same shared deadline correctly."}},{"@type":"Question","name":"Can I resize the overlay without it looking blurry?","acceptedAnswer":{"@type":"Answer","text":"Yes — the digits are rendered as live text (not an image), so resizing the Browser Source in OBS stays sharp at any size."}},{"@type":"Question","name":"Will viewers on Twitch see the same countdown as my screen?","acceptedAnswer":{"@type":"Answer","text":"Yes — whatever is on your OBS scene is what viewers see, and the overlay's countdown is calculated from the same shared deadline, so there's nothing separate to keep in sync."}},{"@type":"Question","name":"Can my co-streamer or mod use the same countdown on their own screen?","acceptedAnswer":{"@type":"Answer","text":"Yes — share the regular (non-overlay) link with them and their device shows the identical time remaining, useful for coordinating a multi-person stream start."}},{"@type":"Question","name":"Does this cost anything or add a watermark to my stream?","acceptedAnswer":{"@type":"Answer","text":"No — it's free with no watermark. The one exception is if you use the QR-code button, which calls a third-party API only when clicked; the overlay/timer itself never does."}}]}</script>
+
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
 <script data-grow-initializer="">
 !(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
@@ -228,6 +229,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
           <button class="pro-link" id="overlayBtn" style="margin-top:6px">Copy OBS overlay link →</button>
           <div class="hint" style="margin-top:6px">The overlay link is the same countdown with the background made transparent and every button/menu stripped out — just the digits, ready to sit on top of your scene.</div>
         </div>
+    
     
   <section class="faq">
     <h2>Common questions</h2>

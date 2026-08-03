@@ -19,13 +19,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=178eb3ea">
+<link rel="stylesheet" href="../assets/style.css?v=e76811f5">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/agenda-timer","description":"Build an ordered agenda of named segments — intro, break, Q&A — and it auto-advances through them for everyone who opens the link, no server involved.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Bruno FK","url":"https://brunofk.dev"},"datePublished":"2026-07-08","dateModified":"2026-07-25"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Agenda Timer","item":"https://countlink.app/timers/agenda-timer"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does this really auto-advance without a server?","acceptedAnswer":{"@type":"Answer","text":"Yes — the trick is the same one the Interval/Tabata timer uses: only the start instant and the list of segment lengths are in the link. Every device computes which segment is \"now\" from elapsed time since that instant, so there's nothing to synchronize after the link is shared — no server ever tells anyone to advance."}},{"@type":"Question","name":"Can I reorder segments before starting?","acceptedAnswer":{"@type":"Answer","text":"Yes — use the up/down arrows next to each segment in the builder to reorder, or the × to remove one, before pressing Start agenda. Once started, the order is locked in for that run."}},{"@type":"Question","name":"What happens when the whole agenda finishes?","acceptedAnswer":{"@type":"Answer","text":"Every open screen shows \"Agenda complete\" together and chimes if sound is on — the same shared-instant mechanic means everyone's screen reaches the end at the same moment."}},{"@type":"Question","name":"Can I edit the agenda after starting?","acceptedAnswer":{"@type":"Answer","text":"Not the running one — press \"New agenda\" to build and start a fresh sequence. This keeps the sync guarantee simple: one link is always one fixed, unambiguous sequence."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to use the Agenda Timer","step":[{"@type":"HowToStep","position":1,"text":"Press Add segment for each item in the running order, giving every one a name and a length."},{"@type":"HowToStep","position":2,"text":"Check the order top to bottom before you begin — segments run in sequence and each one auto-advances into the next."},{"@type":"HowToStep","position":3,"text":"Press Copy sync link and share it, so every participant's screen follows the same agenda."},{"@type":"HowToStep","position":4,"text":"Press Start agenda when the meeting begins; use New agenda to build a fresh running order without disturbing the shared link."}]}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
 <script data-grow-initializer="">
 !(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
@@ -163,6 +164,16 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
           <p>The mistake most agendas make is budgeting to the total rather than to the items. Six items in an hour becomes "about ten minutes each", which in practice means the first two take thirty-five minutes and the last two get cut. Assigning each item its own countdown up front forces the harder conversation — which of these is actually worth fifteen minutes? — while it's still cheap to have.</p>
           <p>Two things make chained timers work better than one long one. First, name each segment: a countdown labelled "Budget review" tells a room what's ending, where a bare number just applies pressure. Second, leave a deliberate gap — a five-minute buffer near the end absorbs the one item that always overruns without stealing from whatever is last on the list, which is usually the thing nobody wanted to discuss.</p>
           <p>If an item genuinely needs more time, the honest move is to stop and re-share a fresh countdown rather than quietly letting it run. That keeps the shared clock truthful, which is the only reason anyone pays attention to it.</p>
+    
+  <section class="howto">
+    <h2>How to use the Agenda Timer</h2>
+    <ol>
+      <li>Press Add segment for each item in the running order, giving every one a name and a length.</li>
+      <li>Check the order top to bottom before you begin — segments run in sequence and each one auto-advances into the next.</li>
+      <li>Press Copy sync link and share it, so every participant's screen follows the same agenda.</li>
+      <li>Press Start agenda when the meeting begins; use New agenda to build a fresh running order without disturbing the shared link.</li>
+    </ol>
+  </section>
     
   <section class="faq">
     <h2>Common questions</h2>
