@@ -1,9 +1,25 @@
-# www is not the canonical host (see site-config.mjs SITE_URL) — force it
-# to the apex domain instead of silently serving duplicate content. Google
-# was crawling https://www.countlink.app/ and correctly marking it an
-# alternate of the apex page's canonical tag, but the intended fix is a
-# redirect so www is never independently crawlable in the first place.
-https://www.countlink.app/* https://countlink.app/:splat 301!
+# ── www: DO NOT try to fix it in this file ────────────────────────────────
+# There used to be a rule here:
+#
+#   https://www.countlink.app/* https://countlink.app/:splat 301!
+#
+# It never did anything. Cloudflare Pages' _redirects explicitly does not
+# support domain-level redirects — the "from" column is matched as a path,
+# so a rule whose source carries a hostname matches nothing and is silently
+# dropped rather than erroring. Verified 2026-08-06: www.countlink.app was
+# still serving the entire site at HTTP 200, three weeks after the rule was
+# added, and Search Console had https://www.countlink.app/ filed under
+# "Alternative page with proper canonical tag".
+#
+# The rule was removed rather than left in place, because a rule that looks
+# like a fix and isn't one is worse than no rule — it cost three weeks.
+#
+# The real fix is a zone-level Single Redirect rule in the Cloudflare
+# dashboard (Rules → Redirect Rules), which runs before Pages ever sees the
+# request. It cannot live in this repo. See docs/www-redirect.md.
+#
+# The rules below DO work — they are path-only, which is all this file
+# supports.
 
 # ── Page consolidation, 2026-07-29 ────────────────────────────────────────
 # Search Console showed 42 of 45 URLs stuck in "Discovered – currently not

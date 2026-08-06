@@ -1026,7 +1026,7 @@ ${growScript()}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-${chassis("/guides")}
+${chassis("/guides/")}
 <div class="rig">
 ${instrumentIndex(null)}
 <main class="rig-main" id="main">
@@ -1039,7 +1039,7 @@ ${main}
       ${footLinks ?? timerLinks(null)}
     </div>
     <div class="foot-in">
-      <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
+      <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
       <div>No data leaves your browser; the timer lives entirely in the link.</div>
     </div>
   </div>
@@ -1142,7 +1142,7 @@ const guidePage = (a) => {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: NAME, item: `${SITE_URL}/` },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` },
       { "@type": "ListItem", position: 3, name: a.title, item: `${SITE_URL}/guides/${a.slug}` },
     ],
   })}</script>`;
@@ -1153,7 +1153,7 @@ const guidePage = (a) => {
     ${byline(a)}
     ${a.bodyHtml}
     ${authorBox()}
-    <p class="article-back"><a href="/guides">← All guides</a></p>
+    <p class="article-back"><a href="/guides/">← All guides</a></p>
   </article>
   <div class="ad-slot">
     <ins class="adsbygoogle" style="display:block;min-height:90px"
@@ -1176,7 +1176,7 @@ const guidesIndexPage = () => {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: NAME, item: `${SITE_URL}/` },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides` },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/guides/` },
     ],
   })}</script>`;
   const main = `
@@ -1189,7 +1189,7 @@ const guidesIndexPage = () => {
   </section>
   <div class="guide-list">${cards}
   </div>`;
-  return guideShell({ rel: "../", title: "Timing & Productivity Guides", description: "Practical guides on running meetings, exams, classes, workshops, standups and workouts to time — timeboxing, the Pomodoro technique, interval training and more.", canonicalPath: "/guides", headJsonLd: jsonLd, main });
+  return guideShell({ rel: "../", title: "Timing & Productivity Guides", description: "Practical guides on running meetings, exams, classes, workshops, standups and workouts to time — timeboxing, the Pomodoro technique, interval training and more.", canonicalPath: "/guides/", headJsonLd: jsonLd, main });
 };
 
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
@@ -1213,7 +1213,7 @@ const notFoundPage = () => guideShell({
   <p>If you were opening a shared countdown, ask whoever sent it for a fresh
   link: the timer lives entirely in the URL, so a truncated or edited link
   can't be recovered from this end.</p>
-  <p><a href="/">Start a countdown</a> · <a href="/guides">Read the guides</a> · <a href="/contact">Report a broken link</a></p>
+  <p><a href="/">Start a countdown</a> · <a href="/guides/">Read the guides</a> · <a href="/contact">Report a broken link</a></p>
 </article>`,
 });
 
@@ -1227,7 +1227,7 @@ const BUILD_DATE = new Date().toISOString().split("T")[0];
 const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}${hrefFor(p.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
-  const guideUrls = [`  <url><loc>${SITE_URL}/guides</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
+  const guideUrls = [`  <url><loc>${SITE_URL}/guides/</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
     .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -1292,7 +1292,7 @@ const INDEX_START = "<!-- INDEX_START — auto-synced from scripts/build-timer-p
 const INDEX_END = "<!-- INDEX_END -->";
 
 const CHASSIS_NAV = [
-  ["/guides", "Guides"],
+  ["/guides/", "Guides"],
   ["/how-it-works", "How it works"],
   ["/compare", "Compare"],
   ["/about", "About"],
