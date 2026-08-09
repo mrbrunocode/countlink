@@ -136,7 +136,7 @@ export const ARTICLES = [
   },
   {
     slug: "the-pomodoro-technique",
-    title: "The Pomodoro Technique, explained — and how to do it as a group",
+    title: "The Pomodoro Technique, explained — solo and as a group",
     description:
       "The Pomodoro Technique in practice: why 25-minute focus blocks work, how to run them, common mistakes, and how to keep a whole study group or team in sync.",
     date: "2026-07-23",
@@ -208,7 +208,7 @@ export const ARTICLES = [
   },
   {
     slug: "using-timers-in-the-classroom",
-    title: "Using timers in the classroom: a practical guide for teachers",
+    title: "Using timers in the classroom: a guide for teachers",
     description:
       "A visible countdown is one of the simplest classroom-management tools there is. How to use timers well for transitions, group work, tests and focus — by age group.",
     date: "2026-07-23",
@@ -278,7 +278,7 @@ export const ARTICLES = [
   },
   {
     slug: "interval-training-timing",
-    title: "Interval training timing explained: Tabata, HIIT and boxing rounds",
+    title: "Interval training timing: Tabata, HIIT, boxing rounds",
     description:
       "Work, rest, repeat — but the exact numbers define the workout. A guide to interval training timing, from Tabata to boxing rounds, and why a shared clock helps.",
     date: "2026-07-23",
