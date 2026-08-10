@@ -65,9 +65,25 @@
     } else if (s.state === "running") {
       curState = "running"; if (s.end) end = s.end;
       $("ctrlStatus").textContent = "Live";
-    } else if (s.state === "ready" || s.state === "finished") {
+    } else if (s.state === "finished") {
+      /* Finished is not stopped, and saying so was wrong twice over: the
+         countdown ran its full course rather than being cut short, and the
+         board on the other end is sitting on a live "Restart — same duration"
+         button. Reporting it as a stop also disabled every control here, so
+         the phone that had been running the session went dead the moment the
+         session ended. Readout freezes at 00:00 and stop stays available (the
+         board is still on screen), but pause/adjust are meaningless now. */
+      curState = "finished";
+      clearInterval(tick); tick = null;
+      $("ctrlReadout").textContent = fmt(0);
+      $("ctrlStatus").textContent = "Finished — time is up.";
+      $("pauseResumeBtn").disabled = true;
+      $("minusBtn").disabled = true;
+      $("plusBtn").disabled = true;
+      return;
+    } else if (s.state === "ready") {
       curState = "stopped";
-      clearInterval(tick);
+      clearInterval(tick); tick = null;
       disableAll("This countdown was stopped.");
       return;
     }

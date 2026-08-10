@@ -343,6 +343,50 @@ export const GROUPS = [
 export const hrefFor = (slug) => (slug === "index" ? "/timers/" : `/timers/${slug}`);
 const fileFor = (slug) => `${slug}.html`; // slug "index" → index.html, which is what we want
 
+/*
+ * /embed/index.html is a copy of the root index.html, served from a path that
+ * _headers exempts from X-Frame-Options: DENY so third-party sites can frame
+ * the overlay. Two things have to change on the way in, and both were missed
+ * when this was a bare `rootHtml.replace("<head>", ...)`:
+ *
+ * 1. RELATIVE PATHS. index.html links its assets relatively ("assets/app.js",
+ *    "manifest.json") because it sits at the root, where that resolves. Copied
+ *    verbatim into /embed/, every one of them resolves to /embed/assets/… and
+ *    404s — so the widget rendered as unstyled, script-less full-site chrome
+ *    with a dead board. Shipped broken from the day the embed button landed
+ *    until 2026-08-10; nothing caught it because the deploy guard only checks
+ *    that a file exists for each *page* path, and the build only ever
+ *    string-replaced <head>. Rewritten to root-absolute here, and asserted in
+ *    test/embed.test.mjs.
+ * 2. ADSENSE + GA. An ad slot inside a 400x160 third-party iframe has
+ *    availableWidth=0 and throws TagError on every load; beyond the noise,
+ *    serving ads from inside a frame on sites we don't control is exactly the
+ *    kind of placement that puts a pending AdSense review at risk. Analytics
+ *    goes with it — sessions from an embed aren't site sessions, and counting
+ *    them inflates the numbers that AdSense and we both read.
+ *
+ * Pure and exported so both rules are unit-testable without running a build.
+ */
+export function buildEmbedHtml(rootHtml) {
+  const NOINDEX = '<meta name="robots" content="noindex,follow">';
+  return rootHtml
+    // Guarded so the transform is idempotent: /embed/ is rewritten from
+    // index.html on every build, and an unguarded replace stacks a second
+    // robots meta each time it's applied to its own output.
+    .replace("<head>", rootHtml.includes(NOINDEX) ? "<head>" : `<head>\n${NOINDEX}`)
+    // Root-relative asset refs → absolute. Anchored on the quote so it can only
+    // ever match a full attribute value, never a substring of a longer path
+    // that happens to contain "assets/" (e.g. an already-absolute "/assets/…").
+    .replace(/(href|src)="(assets\/|manifest\.json)/g, '$1="/$2')
+    // The GA loader, the inline gtag bootstrap, the AdSense loader, the <ins>
+    // slot, and the push() that fills it.
+    .replace(/<script async src="https:\/\/www\.googletagmanager\.com[^"]*"><\/script>\s*/g, "")
+    .replace(/<script>window\.dataLayer[\s\S]*?<\/script>\s*/g, "")
+    .replace(/<script async src="https:\/\/pagead2\.googlesyndication\.com[^"]*"[^>]*><\/script>\s*/g, "")
+    .replace(/<ins class="adsbygoogle"[\s\S]*?<\/ins>\s*/g, "")
+    .replace(/<script>\(adsbygoogle[\s\S]*?<\/script>\s*/g, "");
+}
+
 export const PAGES = [
   { slug: "index", minutes: 10, label: "Time's up", eyebrow: "Timer Durations",
     h1: "Shared Timer — Pick A Duration, Share The Link",
@@ -867,7 +911,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
       </div>
       <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
       <div id="embedWrap" style="display:none;margin-top:10px">
-        <textarea id="embedCode" readonly rows="3" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
+        <textarea id="embedCode" readonly rows="3" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
         <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
         <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same code streamers use for an OBS overlay works as a plain &lt;iframe&gt; on any page.</div>
       </div>
@@ -980,7 +1024,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=fd231dfc" defer></script>
+<script src="../assets/app.js?v=04d0b564" defer></script>
 </body>
 </html>
 `; };
@@ -1538,8 +1582,7 @@ async function main() {
   const embedDir = join(ROOT, "embed");
   await mkdir(embedDir, { recursive: true });
   const rootHtml = await readFile(join(ROOT, "index.html"), "utf-8");
-  await writeFile(join(embedDir, "index.html"),
-    rootHtml.replace("<head>", '<head>\n<meta name="robots" content="noindex,follow">'), "utf-8");
+  await writeFile(join(embedDir, "index.html"), buildEmbedHtml(rootHtml), "utf-8");
   console.log("Wrote embed/index.html (framable overlay host, noindex)");
 
   console.log("\nTo rename or update the domain, run scripts/rename-brand.mjs (don't edit site-config.mjs by hand).");

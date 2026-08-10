@@ -14,6 +14,11 @@ let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up) | "inter
                       // the other way; "interval" additionally derives which phase/round is
                       // current from elapsed time, rather than counting to one fixed deadline.
 let ivWork=20,ivRest=10,ivRounds=8; // interval mode: work/rest seconds per round, total rounds
+/* Which work/rest phase draw() last rendered, as "<round><w|r>" — the only
+   thing that tells a 250ms frame it has crossed a round boundary and owes a
+   beep. null means "nothing rendered yet", which suppresses the cue on the
+   first frame after a start or after opening a shared link mid-round. */
+let ivPhaseKey=null;
 /* The board has four lifecycle states, driving which buttons show:
    "ready"    — nothing running; preset duration displayed; Start lives ON the board
    "running"  — counting; Share/Stop replace Start
@@ -48,6 +53,8 @@ let unsubRealtimeState=null,unsubRealtimeCommands=null,realtimeHeartbeat=null;
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     fmt2: fmt2, charsFor: charsFor, numOr: numOr, validTimestamp: validTimestamp,
+    pickMinutes: pickMinutes, modeForHash: modeForHash, intervalPhase: intervalPhase,
+    remoteStateAction: remoteStateAction, esc: esc,
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
     alarmTones: alarmTones,
@@ -69,6 +76,60 @@ if ("serviceWorker" in navigator) {
 
 function fmt2(n){return String(n).padStart(2,"0")}
 
+/* One escaper for every innerHTML interpolation in this file. There were
+   three near-copies before — two inline in template literals, one local to
+   the agenda dashboard — and all three covered only <>& , which is enough
+   for text between tags but not for a value going into an attribute, where
+   an unescaped quote ends the attribute early. Quotes are included here so
+   there's one rule to remember rather than two. */
+function esc(s){
+  return String(s==null?"":s).replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* Copy-to-clipboard, for a site whose single most important interaction is
+   "copy the link and send it". Every call site used to be a bare
+   `await navigator.clipboard.writeText(x)` with nothing around it, and that
+   promise rejects for reasons that have nothing to do with the user doing
+   anything wrong: a non-secure context (any plain-http origin, which is how
+   this gets opened on a LAN — http://192.168.x.x — for a projector), Safari
+   losing the user-gesture association across an await, or a permissions
+   policy in the iframe the embed runs in. On rejection the button did
+   nothing at all: no copy, no message, no error — the primary action of the
+   product silently failing.
+   Falls back to the old execCommand path (still the only thing that works in
+   a non-secure context), and returns false if even that fails so the caller
+   can say so rather than claim success. */
+async function copyText(text){
+  try{
+    if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true;}
+  }catch(e){/* fall through to the legacy path below */}
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    ta.setAttribute("readonly","");
+    // Off-screen but still focusable/selectable — display:none or
+    // visibility:hidden would make execCommand("copy") a no-op.
+    ta.style.cssText="position:fixed;top:0;left:-9999px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok=document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){return false;}
+}
+/* Shared "did it work?" feedback so no button can claim "Copied ✓" after a
+   failed copy — the one thing worse than a copy that fails is a copy that
+   fails and says it didn't. */
+function flashCopyResult(btn,okText,failText){
+  return ok=>{
+    const orig=btn.textContent;
+    btn.textContent=ok?okText:failText;
+    btn.classList.toggle("copied",ok);
+    setTimeout(()=>{btn.textContent=orig;btn.classList.remove("copied");},ok?1800:3200);
+    return ok;
+  };
+}
+
 // Reads a user-editable numeric field/URL-param, falling back to `fallback`
 // only when the raw value is missing/blank/non-numeric — NOT via `raw||fallback`,
 // which silently discards an intentionally-entered 0 (falsy) and substitutes
@@ -83,6 +144,82 @@ function numOr(raw,fallback){
   return Number.isNaN(n)?fallback:n;
 }
 
+/* The one place the "how many minutes is this form asking for" question gets
+   answered. It used to be answered inline at four call sites with three
+   different hardcoded fallbacks — `+$("customMin").value||10` when previewing
+   the ready board, `||25` when actually starting, `||10` again on stop. So
+   clearing the minutes field and pressing Start gave you a board that had
+   been previewing 10:00 and a countdown that ran for 25:00. Neither number
+   was even right: the page's own advertised duration (COUNTLINK_DEFAULT, the
+   25 on /timers/pomodoro-timer, the 10 on the homepage) is what a blank field
+   should fall back to, and now does.
+   Pure half, exported and tested; `0` clamps to 1 to match renderReady()'s
+   own Math.max(1,min) rather than starting a countdown that's already over. */
+/* Tile-layout mode for a board booted from a shared link rather than from
+   start()/startUp() — pure so the three directions can be asserted directly
+   (see test/duration.test.mjs), which is how the "up" case below is pinned.
+
+   "up" MUST be forced to "hms" for the same reason startUp() hardcodes it:
+   6 tiles, because an open-ended stopwatch runs past an hour. It has to be
+   said again here because in "up" mode `end` holds the START instant, so the
+   caller's `total` is NEGATIVE and every threshold below falls through to
+   "ms". That gave the *recipient* of a shared stopwatch link a 4-tile mm:ss
+   board while the sender's own screen showed hh:mm:ss — at 1h41m elapsed the
+   two read "10:45" and "01:41:45". A tool whose entire promise is that
+   everyone sees the identical timer was showing two people different numbers
+   off one link, and the shorter one was wrong.
+
+   "interval" always renders through an explicit "ms" override in draw(), so
+   its value here is cosmetic; set for consistency. */
+function modeForHash(direction,total){
+  if(direction==="up")return "hms";
+  if(direction==="interval")return "ms";
+  return total>=86400000?"days":total>=3600000?"hms":"ms";
+}
+/* Interval mode's whole derivation — which round, which phase, how much of it
+   is left — as a pure function of elapsed time, so it's testable without a
+   clock or a DOM (see test/interval.test.mjs).
+
+   The urgency rule is the reason this got extracted. It used to be a bare
+   `phaseLeftMs<=10000`, which quietly assumed every phase is comfortably
+   longer than 10 seconds. On this site's own advertised Tabata default —
+   20s work, 10s rest — the rest phase is 10s, so it was urgent from its first
+   frame to its last, and work was urgent for half its length. The board
+   pulsed red essentially non-stop, which is the opposite of an escalation:
+   a signal that's always on carries no information. Anything 20s or shorter
+   IS the urgent part already, so it gets no pulse; longer phases keep the
+   final-10-seconds escalation they were designed for. */
+function intervalPhase(workSec,restSec,rounds,elapsedMs){
+  // Thresholds live INSIDE the function on purpose. Module-level `const`s
+  // declared below the test-export early return (see this file's header) are
+  // still in their temporal dead zone when a test calls in, so a top-level
+  // URGENT_MS here threw ReferenceError under the test runner while working
+  // fine in a browser — the exact hazard that comment describes.
+  const URGENT_MS=10000, URGENT_MIN_PHASE_MS=20000;
+  const cycleMs=(workSec+restSec)*1000;
+  if(elapsedMs>=cycleMs*rounds)return {done:true,round:rounds,inWork:false,phaseLeftMs:0,phaseTotalMs:0,urgent:false};
+  const posMs=elapsedMs%cycleMs;
+  const inWork=posMs<workSec*1000;
+  const phaseTotalMs=(inWork?workSec:restSec)*1000;
+  const phaseLeftMs=inWork?workSec*1000-posMs:cycleMs-posMs;
+  return {
+    done:false,
+    round:Math.floor(elapsedMs/cycleMs)+1,
+    inWork:inWork,
+    phaseTotalMs:phaseTotalMs,
+    phaseLeftMs:phaseLeftMs,
+    urgent:phaseTotalMs>URGENT_MIN_PHASE_MS&&phaseLeftMs<=URGENT_MS,
+  };
+}
+function pickMinutes(raw,pageDefault){
+  const n=numOr(raw,pageDefault);
+  return n>=1?n:1;
+}
+function formMinutes(){
+  const d=window.COUNTLINK_DEFAULT||{};
+  const el=$("customMin");
+  return pickMinutes(el&&el.value,d.minutes||10);
+}
 function setDefaultUntil(){
   const d=new Date(Date.now()+3600e3);d.setSeconds(0,0);
   const p=n=>String(n).padStart(2,"0");
@@ -180,7 +317,14 @@ function setState(s){
   show("syncDot",live);
   const dot=$("syncDot");if(dot)dot.classList.toggle("is-paused",s==="paused");
   const bs=$("boardStartBtn");
-  if(bs)bs.textContent = s==="finished" ? "Restart — same duration"
+  /* "Restart — same duration" is only true when there IS a known duration to
+     restart. Someone who opens a link that had already expired never had one
+     (bootFromHash derives `total` from the time left at load, which is
+     negative), so the restart falls back to this page's default length — and
+     the button was promising to repeat a duration it couldn't know. Say what
+     it will actually do instead. */
+  const canRepeat = direction==="up" || direction==="interval" || total>0;
+  if(bs)bs.textContent = s==="finished" ? (canRepeat?"Restart — same duration":"Start a new countdown")
     : (formDirection==="up" ? "Start counting up" : "Start countdown");
   const st=$("stopBtn");
   if(st)st.textContent = s==="finished" ? "New timer" : "Stop";
@@ -206,7 +350,7 @@ function start(ms,lab){
   controlSession=(wantsControl&&window.CountlinkRealtime&&window.CountlinkRealtime.enabled)?genSessionId():null;
   pausedRemaining=0;
   location.hash=`t=${end}&l=${encodeURIComponent(label)}${controlSession?`&c=${controlSession}`:""}`;
-  lastAnnouncedMin=null;announcedFinal=false;
+  lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce(`Countdown started: ${Math.round(ms/60e3)} minutes${label?", "+label:""}`);
   saveRecent();
   setState("running");
@@ -220,7 +364,7 @@ function startUp(lab){
   controlSession=null;pausedRemaining=0; // phone control is down-mode only
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
-  lastAnnouncedMin=null;announcedFinal=false;
+  lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce("Stopwatch started"+(label?": "+label:""));
   saveRecent();
   setState("running");
@@ -238,7 +382,7 @@ function startInterval(workSec,restSec,rounds,lab){
   ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
   mode="ms";
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`;
-  lastAnnouncedMin=null;announcedFinal=false;
+  lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce(`Interval timer started: ${ivRounds} rounds of ${ivWork}s work, ${ivRest}s rest`);
   saveRecent();
   setState("running");
@@ -252,10 +396,10 @@ function startInterval(workSec,restSec,rounds,lab){
    explicit broadcast rather than the passive link-timestamp mechanic. */
 function stopTimer(){
   const hadControl=!!controlSession;
-  clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;
+  clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;ivPhaseKey=null;
   history.replaceState(null,"",location.pathname+location.search);
   document.body.classList.remove("viewing");
-  renderReady(+($("customMin")&&$("customMin").value)||10,$("evtName")?$("evtName").value:"");
+  renderReady(formMinutes(),$("evtName")?$("evtName").value:"");
   const heads=$("subLine");
   if(heads)heads.innerHTML="Stopped on this screen. A link you already shared keeps counting on other screens — the link itself is the timer.";
   if(hadControl)broadcastState("ready");
@@ -325,17 +469,37 @@ function applyRemoteCommand(cmd){
 /* A hard-sync from another tab's broadcast — used to catch this tab up
    (initial load, or one that missed a live command) rather than to drive
    its own state changes moment-to-moment; see connectRealtimeIfNeeded(). */
+/* What an incoming state broadcast should make THIS screen do. Pure, so the
+   one rule that matters here can be asserted directly (test/phone-control.test.mjs).
+
+   That rule: only "ready" tears a screen down. "finished" deliberately does
+   NOT. A finished countdown is a state every connected board reaches on its
+   own, off the same shared deadline, at the same instant — it is a fact, not
+   a command. Treating it as one meant that within a single 4s heartbeat of a
+   controlled countdown hitting zero, the first board to broadcast "finished"
+   made every other board call stopTimer(): wiping the "Time." board and its
+   Restart button, replacing it with "Stopped on this screen", clearing the
+   hash — and stopTimer()'s own broadcast then rippled back out. The classroom
+   projector blanked itself seconds after the exam it was timing ended. */
+function remoteStateAction(incoming,current){
+  if(!incoming)return "none";
+  if(incoming.state==="paused")return current==="paused"?"repaint-paused":"pause";
+  if(incoming.state==="running")return current==="running"?"sync-end":"resume";
+  if(incoming.state==="ready"&&current!=="ready")return "stop";
+  return "none";
+}
 function applyRemoteState(s){
   if(direction!=="down"||!controlSession||!s)return;
   if(s.label!=null)label=s.label;
-  if(s.state==="paused"){
+  const action=remoteStateAction(s,state);
+  if(action==="pause"||action==="repaint-paused"){
     pausedRemaining=s.pausedRemaining||0;
-    if(state!=="paused")setState("paused");
+    if(action==="pause")setState("paused");
     renderPausedTiles();
-  }else if(s.state==="running"){
+  }else if(action==="resume"||action==="sync-end"){
     if(s.end)end=s.end;
-    if(state!=="running"){setState("running");render();}
-  }else if((s.state==="ready"||s.state==="finished")&&state!=="ready"){
+    if(action==="resume"){setState("running");render();}
+  }else if(action==="stop"){
     stopTimer();
   }
 }
@@ -552,6 +716,14 @@ function charsFor(left,modeOverride){
   }
   if(effMode==="hms"){
     const h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
+    /* A 2-tile hours field can't show 100+. fmt2(100) is "100", and taking
+       hh[0]/hh[1] off it silently rendered "10" — a stopwatch left running
+       over a long weekend read 10:xx:xx and looked plausible while being
+       four days wrong. Countdowns can't reach this (>=24h picks "days"), but
+       count-up has no upper bound, so overflow falls back to the same plain
+       "Nd HH:MM:SS" readout the days mode uses rather than lying in two
+       digits. */
+    if(h>99)return {plain:`${Math.floor(s/86400)}d ${fmt2(Math.floor(s%86400/3600))}:${fmt2(m)}:${fmt2(sec)}`};
     const hh=fmt2(h),mm=fmt2(m),ss=fmt2(sec);
     return {tiles:[
       {t:"tile",v:hh[0]},{t:"tile",v:hh[1]},{t:"sep",v:":"},
@@ -593,7 +765,14 @@ function draw(){
     const elapsed=Date.now()-end;
     const c=charsFor(elapsed);
     const curSecond=Math.floor(elapsed/1000);
-    if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
+    /* Past 100 hours charsFor() hands back a plain string instead of tiles
+       (see its own comment) — the down branch below has always handled that
+       shape, this one didn't, and buildTiles(undefined) would have thrown on
+       every frame from that point on. */
+    if(c.plain){
+      $("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
+      prevValues=null;
+    }else if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
     else updateTiles(c.tiles);
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
     lastSecond=curSecond;
@@ -621,22 +800,35 @@ function draw(){
       return;
     }
     document.querySelector(".bar").style.display="";
-    const posMs=elapsedMs%(cycleSec*1000);
-    const round=Math.floor(elapsedMs/(cycleSec*1000))+1;
-    const inWork=posMs<ivWork*1000;
-    const phaseLeftMs=inWork?ivWork*1000-posMs:cycleSec*1000-posMs;
+    const {round,inWork,phaseLeftMs,phaseTotalMs,urgent}=intervalPhase(ivWork,ivRest,ivRounds,elapsedMs);
     const c=charsFor(phaseLeftMs,"ms");
     const curSecond=Math.floor(phaseLeftMs/1000);
     if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
     else updateTiles(c.tiles);
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
     lastSecond=curSecond;
-    setUrgent(phaseLeftMs<=10000);
+    /* A round-transition cue. An interval timer is the one mode nobody is
+       looking at — you're mid-burpee, the screen is across the room — and it
+       had no audible marker at all between rounds, only a single chime after
+       the very last one. The per-second tick is identical in work and rest,
+       so by ear the whole session was one undifferentiated noise. Fires on
+       every work→rest→work boundary, not on the first frame (no phantom beep
+       when a late viewer opens the link mid-round) and not on the final
+       boundary into "done", which has its own chime below. */
+    const phaseKey=round+(inWork?"w":"r");
+    if(ivPhaseKey!==null&&ivPhaseKey!==phaseKey){beep();announcedFinal=false;lastAnnouncedMin=null;}
+    ivPhaseKey=phaseKey;
+    setUrgent(urgent);
     if(ivPhaseEl)ivPhaseEl.textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`;
     $("evtLabel").textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`+(label?" · "+label:"");
     announceLeft(phaseLeftMs);
     $("subLine").innerHTML=`round <b>${round} of ${ivRounds}</b> — synced on every screen with this link`;
-    $("barFill").style.width=Math.max(0,Math.min(100,(1-phaseLeftMs/((inWork?ivWork:cycleSec)*1000))*100))+"%";
+    /* Progress across THIS phase, so work and rest each fill 0→100%.
+       It used to divide the rest phase's remaining time by the whole cycle
+       length, which made the bar snap backwards to ~67% (for the default
+       20/10) at each work→rest boundary and crawl from there — reading as a
+       glitch rather than as progress. */
+    $("barFill").style.width=Math.max(0,Math.min(100,(1-phaseLeftMs/phaseTotalMs)*100))+"%";
     $("shareUrl").textContent=makeLink();
     return;
   }
@@ -699,7 +891,13 @@ function renderRecent(){
     const t=new Date(r.e).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     const status=r.d==="up"?`stopwatch · started ${t}`
       :(r.e<=Date.now()?`finished at ${t}`:`running · ends ${t}`);
-    return `<a class="recent-item" href="${r.u}"><span class="rl">${(r.l||"Untitled timer").replace(/[<>&]/g,ch=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[ch]))}</span><span class="rs">${status}</span></a>`;
+    // The label was already escaped; the URL was not, and it goes into an
+    // attribute — where a bare " ends the attribute and everything after it
+    // is parsed as markup. These URLs are self-produced by makeLink() and
+    // browsers percent-encode quotes in a real location, so this isn't a
+    // live hole; it's one character of storage-shaped input away from being
+    // one, and the escape costs nothing.
+    return `<a class="recent-item" href="${esc(r.u)}"><span class="rl">${esc(r.l||"Untitled timer")}</span><span class="rs">${status}</span></a>`;
   }).join("");
 }
 if($("recentClear"))$("recentClear").addEventListener("click",()=>{
@@ -725,14 +923,14 @@ document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click
   if($("durationFields"))$("durationFields").style.display=isUp?"none":"block";
   if($("countUpHint"))$("countUpHint").style.display=isUp?"block":"none";
   $("startBtn").textContent=isUp?"Start counting up":"Start countdown";
-  if(state!=="running")renderReady(+$("customMin").value||10,$("evtName").value);
+  if(state!=="running")renderReady(formMinutes(),$("evtName").value);
 }));
 
 function startFromForm(){
   if(formDirection==="up"){startUp($("evtName").value);return;}
   const dirty=$("untilTime").dataset.dirty;
   if(dirty)start(new Date($("untilTime").value)-Date.now(),$("evtName").value);
-  else start((+$("customMin").value||25)*60e3,$("evtName").value);
+  else start(formMinutes()*60e3,$("evtName").value);
 }
 if($("startBtn"))$("startBtn").addEventListener("click",()=>{
   startFromForm();
@@ -753,7 +951,7 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
     // FORM FIELD instead, which a recipient's page never syncs to the link's
     // real label, so it silently restarted under the page's stale default
     // text rather than the timer that just finished.
-    else start((+$("customMin").value||25)*60e3,label);
+    else start(formMinutes()*60e3,label);
     return;
   }
   startFromForm();
@@ -786,9 +984,8 @@ if($("shareBtn"))$("shareBtn").addEventListener("click",async e=>{
     try{await navigator.share({title:label||"CountLink shared timer",url:link});return}
     catch(err){if(err&&err.name==="AbortError")return}
   }
-  await navigator.clipboard.writeText(link);
-  e.target.classList.add("copied");e.target.textContent="Link copied — send it";
-  setTimeout(()=>{e.target.classList.remove("copied");e.target.textContent="Copy sync link";},1800);
+  const done=flashCopyResult($("shareBtn"),"Link copied — send it","Couldn't copy — the link is on the board above");
+  done(await copyText(link));
 });
 /* QR code: the one on-demand, opt-in feature that calls a third-party API
    (goqr.me) — only fires when the viewer explicitly asks for it, and only
@@ -818,9 +1015,8 @@ if($("controlLinkBtn"))$("controlLinkBtn").addEventListener("click",async e=>{
     try{await navigator.share({title:"Control "+(label||"this countdown"),url:link});return}
     catch(err){if(err&&err.name==="AbortError")return}
   }
-  await navigator.clipboard.writeText(link);
-  e.target.textContent="Control link copied — open it on your phone";
-  setTimeout(()=>{e.target.textContent="Copy control link";},2200);
+  const done=flashCopyResult($("controlLinkBtn"),"Control link copied — open it on your phone","Couldn't copy — use the QR code below instead");
+  done(await copyText(link));
 });
 if($("controlQrBtn"))$("controlQrBtn").addEventListener("click",()=>{
   const lbl=$("controlQrBtnLabel")||$("controlQrBtn");
@@ -838,9 +1034,8 @@ if($("controlQrBtn"))$("controlQrBtn").addEventListener("click",()=>{
 if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
   const u=new URL(makeLink());
   u.searchParams.set("overlay","1");
-  await navigator.clipboard.writeText(u.toString());
-  e.target.textContent="Overlay link copied — paste into OBS";
-  setTimeout(()=>{e.target.textContent="Copy OBS overlay link →";},2200);
+  const done=flashCopyResult($("overlayBtn"),"Overlay link copied — paste into OBS","Couldn't copy — add ?overlay=1 to the sync link");
+  done(await copyText(u.toString()));
 });
 /* General-purpose embed: the exact same ?overlay=1 mechanism the OBS button
    above uses, generalized into a plain <iframe> snippet for any website —
@@ -865,9 +1060,8 @@ if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
   $("embedWrap").style.display="block";$("embedBtn").textContent="Hide embed code";
 });
 if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{
-  await navigator.clipboard.writeText($("embedCode").value);
-  e.target.textContent="Copied ✓";
-  setTimeout(()=>{e.target.textContent="Copy embed code";},1600);
+  const done=flashCopyResult($("embedCopyBtn"),"Copied ✓","Couldn't copy — select the code above");
+  done(await copyText($("embedCode").value));
 });
 if($("fsBtn"))$("fsBtn").addEventListener("click",()=>{
   document.body.classList.toggle("fs");
@@ -920,8 +1114,8 @@ function bootFromHash(){
   // so the exact value of `mode` here doesn't matter for it — set anyway
   // for consistency with every other mode.)
   total=end-Date.now();
-  mode = direction==="interval"?"ms":total>=86400000?"days":total>=3600000?"hms":"ms";
-  fired=false;prevValues=null;lastSecond=null;
+  mode = modeForHash(direction,total);
+  fired=false;prevValues=null;lastSecond=null;ivPhaseKey=null;
   // A recipient came for the timer, not the pitch — hide the marketing hero
   // so the board is the first thing on their screen.
   document.body.classList.add("viewing");
@@ -978,7 +1172,7 @@ function initMultiDashboard(){
       const done=left<=0;
       if(!done)anyActive=true;
       return `<div class="multi-card${done?" done":""}" data-i="${i}">
-        <div class="multi-card-label">${t.label.replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))||"Timer "+(i+1)}</div>
+        <div class="multi-card-label">${esc(t.label)||"Timer "+(i+1)}</div>
         <div class="multi-card-time">${done?"Done":fmtMulti(left)}</div>
         <button type="button" class="multi-card-remove" data-remove="${i}" aria-label="Remove this timer">×</button>
       </div>`;
@@ -1010,9 +1204,7 @@ function initMultiDashboard(){
     persist();
   });
   if($("multiShareBtn"))$("multiShareBtn").addEventListener("click",async (e)=>{
-    await navigator.clipboard.writeText(location.href);
-    const t=e.target.textContent;e.target.textContent="Link copied ✓";
-    setTimeout(()=>{e.target.textContent=t;},1600);
+    flashCopyResult(e.currentTarget,"Link copied ✓","Couldn't copy — copy the address bar")(await copyText(location.href));
   });
   window.addEventListener("hashchange",()=>{multiTimers=decodeMultiHash();renderCards();});
 }
@@ -1072,7 +1264,6 @@ function initAgendaDashboard(){
   const labelEl=$("agendaLabel"),minutesEl=$("agendaMinutes");
   let agendaTick=null,agendaFired=false;
 
-  function esc(s){return String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));}
 
   function renderBuilderList(){
     listEl.innerHTML=agendaSegments.map((seg,i)=>`
@@ -1157,9 +1348,7 @@ function initAgendaDashboard(){
     bootRunning();
   });
   if($("agendaShareBtn"))$("agendaShareBtn").addEventListener("click",async (e)=>{
-    await navigator.clipboard.writeText(location.href);
-    const t=e.target.textContent;e.target.textContent="Link copied ✓";
-    setTimeout(()=>{e.target.textContent=t;},1600);
+    flashCopyResult(e.currentTarget,"Link copied ✓","Couldn't copy — copy the address bar")(await copyText(location.href));
   });
   if($("agendaRestartBtn"))$("agendaRestartBtn").addEventListener("click",()=>{
     agendaSegments=[];

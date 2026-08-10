@@ -56,15 +56,24 @@
   window.CountlinkRealtime = {
     enabled: !!KEY,
 
+    /* Both subscribe* methods below unsubscribe by (event, listener) rather
+       than the bare ch.unsubscribe() they used to call. rt.channels.get()
+       returns the SAME channel object for a given name, so "state" and
+       "command" share one channel — and a no-argument unsubscribe() detaches
+       every listener on it. Tearing down the state subscription therefore
+       silently killed command handling too. Nothing has caught fire yet only
+       because app.js's disconnectRealtime() happens to drop both together;
+       any future caller that drops one would have lost the other. */
     subscribeState(sessionId, onState) {
       if (!KEY || !sessionId) return () => {};
       let closed = false, ch = null;
+      const handler = (msg) => { if (!closed) onState(msg.data); };
       client().then((rt) => {
         if (closed) return;
         ch = rt.channels.get(channelFor(sessionId));
-        ch.subscribe("state", (msg) => { if (!closed) onState(msg.data); });
+        ch.subscribe("state", handler);
       }).catch(() => {});
-      return () => { closed = true; if (ch) ch.unsubscribe(); };
+      return () => { closed = true; if (ch) ch.unsubscribe("state", handler); };
     },
 
     publishState(sessionId, state) {
@@ -75,12 +84,13 @@
     subscribeCommands(sessionId, onCommand) {
       if (!KEY || !sessionId) return () => {};
       let closed = false, ch = null;
+      const handler = (msg) => { if (!closed) onCommand(msg.data); };
       client().then((rt) => {
         if (closed) return;
         ch = rt.channels.get(channelFor(sessionId));
-        ch.subscribe("command", (msg) => { if (!closed) onCommand(msg.data); });
+        ch.subscribe("command", handler);
       }).catch(() => {});
-      return () => { closed = true; if (ch) ch.unsubscribe(); };
+      return () => { closed = true; if (ch) ch.unsubscribe("command", handler); };
     },
 
     publishCommand(sessionId, cmd) {

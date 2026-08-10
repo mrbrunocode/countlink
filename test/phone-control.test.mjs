@@ -7,7 +7,61 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, genSessionId } = loadDuration();
+const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, genSessionId, remoteStateAction } = loadDuration();
+
+// ── remoteStateAction ─────────────────────────────────────────────────────
+//
+// Every connected tab broadcasts its own state on a 4s heartbeat, and every
+// tab applies what it receives. The rule below decides what an incoming
+// broadcast is allowed to do to the screen receiving it, and getting it wrong
+// was destructive rather than merely wrong: "finished" used to be handled in
+// the same branch as "ready", i.e. as a stop command.
+//
+// So the moment a phone-controlled countdown hit zero, the first board to
+// heartbeat "finished" made every other board tear itself down — the "Time."
+// readout and its Restart button replaced by "Stopped on this screen", the
+// hash cleared — and that board's own stop broadcast rippled onward. A
+// classroom projector blanked itself seconds after the exam ended.
+
+test("a finished broadcast never stops another screen — it is a fact, not a command", () => {
+  for (const current of ["running", "paused", "finished", "ready"]) {
+    assert.notEqual(
+      remoteStateAction({ state: "finished" }, current),
+      "stop",
+      `a peer reaching zero tore down a board that was "${current}"`,
+    );
+  }
+});
+
+test("an explicit stop still stops every screen that isn't already stopped", () => {
+  // stopTimer() broadcasts "ready", and that IS a command — it's how the
+  // controller's Stop button reaches other screens. This must keep working.
+  assert.equal(remoteStateAction({ state: "ready" }, "running"), "stop");
+  assert.equal(remoteStateAction({ state: "ready" }, "paused"), "stop");
+  assert.equal(remoteStateAction({ state: "ready" }, "finished"), "stop");
+});
+
+test("a stop broadcast to an already-stopped screen is inert, so stops can't ripple forever", () => {
+  // stopTimer() itself rebroadcasts "ready"; without this, two boards would
+  // bounce stop messages off each other indefinitely.
+  assert.equal(remoteStateAction({ state: "ready" }, "ready"), "none");
+});
+
+test("pause and resume drive state changes only when the state actually differs", () => {
+  assert.equal(remoteStateAction({ state: "paused" }, "running"), "pause");
+  assert.equal(remoteStateAction({ state: "paused" }, "paused"), "repaint-paused",
+    "a repeat heartbeat repaints the frozen tiles without re-entering the state");
+  assert.equal(remoteStateAction({ state: "running" }, "paused"), "resume");
+  assert.equal(remoteStateAction({ state: "running" }, "running"), "sync-end",
+    "a running heartbeat only re-syncs the deadline; it must not restart the render loop");
+});
+
+test("a missing or malformed broadcast does nothing", () => {
+  assert.equal(remoteStateAction(null, "running"), "none");
+  assert.equal(remoteStateAction(undefined, "running"), "none");
+  assert.equal(remoteStateAction({}, "running"), "none");
+  assert.equal(remoteStateAction({ state: "nonsense" }, "running"), "none");
+});
 
 test("clampAdjustedEnd shifts the deadline by the delta", () => {
   const now = 1_000_000;
