@@ -384,7 +384,14 @@ export function buildEmbedHtml(rootHtml) {
     .replace(/<script>window\.dataLayer[\s\S]*?<\/script>\s*/g, "")
     .replace(/<script async src="https:\/\/pagead2\.googlesyndication\.com[^"]*"[^>]*><\/script>\s*/g, "")
     .replace(/<ins class="adsbygoogle"[\s\S]*?<\/ins>\s*/g, "")
-    .replace(/<script>\(adsbygoogle[\s\S]*?<\/script>\s*/g, "");
+    .replace(/<script>\(adsbygoogle[\s\S]*?<\/script>\s*/g, "")
+    /* Grow (faves.grow.me). Caught only by loading the deployed /embed/ in a
+       real browser and listing document.scripts — it injects its own floating
+       share button and a "you might also like" recommendation card, both of
+       which rendered ON TOP of the countdown inside the 400x160 frame. An
+       embed is someone else's page furniture; it has no business growing a
+       third-party share widget and an ad-adjacent content recommender there. */
+    .replace(/<script data-grow-initializer="">[\s\S]*?<\/script>\s*/g, "");
 }
 
 export const PAGES = [

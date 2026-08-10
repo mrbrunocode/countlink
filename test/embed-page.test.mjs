@@ -36,6 +36,24 @@ test("the built /embed/ page carries no analytics tag", () => {
   assert.doesNotMatch(embedHtml(), /googletagmanager\.com|gtag\(/, "GA is still in /embed/");
 });
 
+test("the built /embed/ page carries no third-party widget scripts at all", () => {
+  // Grow (faves.grow.me) survived the first pass of this stripping and was
+  // only caught by listing document.scripts on the deployed page — it renders
+  // a floating share button and a content-recommendation card straight over
+  // the countdown inside the frame.
+  assert.doesNotMatch(embedHtml(), /grow\.me|data-grow-initializer/, "Grow is still in /embed/");
+
+  // Stated as a general rule rather than a list, so the next tag someone adds
+  // to index.html fails here instead of silently shipping into other people's
+  // pages. Only this site's own scripts belong in an embed.
+  const external = [...embedHtml().matchAll(/<script[^>]+src="(https?:)?\/\/([^"]+)"/g)].map((m) => m[2]);
+  assert.deepEqual(
+    external,
+    [],
+    `/embed/ is pasted onto sites we don't control; it must load nothing but our own assets. Found: ${external.join(", ")}`,
+  );
+});
+
 test("the built /embed/ page is noindex", () => {
   assert.match(embedHtml(), /<meta name="robots" content="noindex,follow">/);
 });
