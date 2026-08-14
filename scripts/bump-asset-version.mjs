@@ -46,8 +46,15 @@ const jsHash = await hashOf("assets/app.js");
 // and (2026-07-25) corrupted a string literal in build-timer-pages.mjs into a
 // path that could not be opened. Matching the plain reference or one already
 // carrying a stale ?v= keeps re-runs idempotent rather than accumulating.
-const CSS_RE = /((?:href|src)="(?:\.\.\/)?assets\/style\.css)(\?v=[0-9a-f]+)?"/g;
-const JS_RE = /((?:href|src)="(?:\.\.\/)?assets\/app\.js)(\?v=[0-9a-f]+)?"/g;
+// The `\$\{\w+\}` alternative covers references built from a template
+// variable rather than a literal path — the /guides templates emit
+// href="${rel}assets/style.css", and without this branch they never matched,
+// so every guides page had carried the SAME stale stamp since it was first
+// generated (?v=79ba9849 while style.css was long past it). Nothing looked
+// broken, which is exactly the failure this script exists to prevent: a
+// returning visitor holding that cache key keeps getting the old stylesheet.
+const CSS_RE = /((?:href|src)="(?:\$\{\w+\}|\.\.\/)?assets\/style\.css)(\?v=[0-9a-f]+)?"/g;
+const JS_RE = /((?:href|src)="(?:\$\{\w+\}|\.\.\/)?assets\/app\.js)(\?v=[0-9a-f]+)?"/g;
 
 async function patch(relPath) {
   const path = join(ROOT, relPath);
