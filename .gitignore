@@ -5,3 +5,11 @@ Thumbs.db
 .vscode/
 .wrangler/
 dist/
+
+# Playwright (cross-browser E2E). node_modules was never listed here because
+# this repo had zero dependencies until the E2E suite; without it an npm
+# install would have been committed wholesale.
+node_modules/
+test-results/
+playwright-report/
+.playwright/

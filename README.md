@@ -127,6 +127,42 @@ this is done by token scoping — `:root` aliases the old dark-surface names
 (`--paper-text`, `--panel`, `--board-deep`…) to panel values, and `.board`
 re-declares them dark for its own subtree.
 
+## Tests
+
+Two layers, run separately:
+
+```bash
+npm test          # node --test — pure logic, ~1s, zero dependencies
+npm run test:e2e  # Playwright — 5 browser projects against the real dev server
+npm run test:all  # both
+```
+
+`node --test` covers the duration model, hash parsing, phone-control maths and
+the page/URL invariants. It stays dependency-free and fast, and it is what the
+build guard leans on.
+
+The Playwright suite (`e2e/`) covers what pure tests structurally cannot:
+whether the settable board's *interaction* survives a different engine. It runs
+Chromium, Firefox, WebKit, and real device emulation for iPhone (WebKit) and
+Pixel (Chromium) — the last two matter because touch has no hover at all, so
+tap-to-reveal is the only way to reach the chevrons there.
+
+Two real bugs were invisible to Chromium alone and only surfaced once the
+suite ran cross-browser:
+- the clipboard handler was bound to `#tiles`, which is the only place Chromium
+  delivers a paste made over a non-editable element — Firefox and WebKit
+  dispatch it at the document, so paste silently did nothing in both;
+- `.rig` set `align-items:start` for the desktop grid, which carried into the
+  mobile flex column and stopped `.rig-main` stretching, so the AdSense `ins`
+  tag's negative margin pushed it ~36px wider than the viewport and clipped the
+  board's right edge on phone widths. `html{overflow-x:hidden}` had been hiding
+  the symptom.
+
+Writing the suite also exposed that <kbd>Esc</kbd> did nothing: it re-read
+`#customMin`, which the board itself writes to on every edit, so "undo my
+rolling" restored exactly what you had just rolled. It now restores the last
+duration that came from outside the board.
+
 ## The board is the input
 
 As of August 2026 the split-flap board is not just a readout — on a board that

@@ -6,9 +6,15 @@
   "scripts": {
     "build": "node scripts/build-timer-pages.mjs",
     "dev": "node scripts/build-timer-pages.mjs && node scripts/dev-server.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "node --test && playwright test"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   }
 }

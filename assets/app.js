@@ -45,6 +45,11 @@ let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
    the duration routes through renderReady(), which resets this, so the two can
    never silently disagree. */
 let boardTotal=null,boardTypeBuf="";
+/* The duration the board was last set to from OUTSIDE itself — page load, or a
+   quick-timer preset. Escape restores this. It can't just re-read #customMin,
+   because the board writes its own value there on every edit (see
+   syncBoardToForm), so "undo my rolling" would have meant "undo nothing". */
+let boardBaseline=null;
 let unsubRealtimeState=null,unsubRealtimeCommands=null,realtimeHeartbeat=null;
 
 // Exposes the pure duration-formatting functions to Node's test runner (see
@@ -588,6 +593,7 @@ function renderReady(min,lab,msOverride){
      before setState("ready") runs at the bottom of this function. */
   const settable = formDirection==="down" && mode!=="days" && !c.plain && !!$("tiles");
   boardTotal = settable ? clampTotalSeconds(Math.round(ms/1000)) : null;
+  boardBaseline = boardTotal;   // what Escape returns to
   boardTypeBuf="";
   if(c.plain)$("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
   else buildTiles(c.tiles,settable);
@@ -784,8 +790,19 @@ function dropBoardHours(){
       setBoardTotal(parseKeypadDigits(boardTypeBuf||"0"));
     }
     else if(e.key==="Escape"){
+      /* Back to the last duration that came from outside the board — page
+         default or a quick-timer preset. Deliberately NOT formMinutes(): the
+         board syncs itself into #customMin as you roll, so reading the form
+         back would restore whatever you just typed and Escape would do
+         nothing at all. */
       e.preventDefault();boardTypeBuf="";
-      renderReady(formMinutes(),$("evtName")?$("evtName").value:"");
+      if(boardBaseline!=null){
+        const base=boardBaseline;
+        if($("customMin"))$("customMin").value=String(Math.max(1,Math.round(base/60)));
+        setBoardTotal(base,{hours:needsHours(base)});
+        boardBaseline=base;
+        announce(spokenDuration(base));
+      }
     }
     else if(e.key==="Enter"){e.preventDefault();boardTypeBuf="";startFromForm();}
     else if(e.key==="Home"){e.preventDefault();bumpBoardField(k,-99);}

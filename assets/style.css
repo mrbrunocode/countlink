@@ -920,7 +920,16 @@ body.overlay-mode .tiles{gap:8px}
    is still the first thing on the page on a tablet or a phone — which is the
    whole point of this site: you open it to hand a room a clock. */
 @media(max-width:900px){
-  .rig{display:flex;flex-direction:column}
+  /* align-items:start is set on .rig for the DESKTOP grid, so the sticky index
+     rail tops out instead of stretching. In this mobile flex COLUMN it means
+     the cross axis (horizontal) no longer stretches, so .rig-main sizes to its
+     own content — and the AdSense <ins> carries a negative margin-left that
+     inflates that content width, pushing .rig-main ~36px wider than the
+     viewport. html{overflow-x:hidden} hid the scrollbar but not the effect:
+     the board, laid out inside that too-wide column, had its right edge
+     (and its bottom-right bolt) clipped off screen on phone widths.
+     Restoring stretch here fixes the cause rather than the symptom. */
+  .rig{display:flex;flex-direction:column;align-items:stretch}
   .rig-main{order:1}
   .rig-index{
     order:2;border-right:0;border-top:2px solid var(--rule);

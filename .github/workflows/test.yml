@@ -1,24 +1,69 @@
-name: test
+name: tests
 
-# Content-integrity and build-generator checks (see test/) — catches a
-# timers/ page row that breaks the build, duplicate title/meta/FAQ text
-# (the main reason programmatic pages get de-indexed), or a page that's
-# silently missing from the sitemap. Uses node:test (built into Node
-# 18+) — no dependencies to install, no browser automation, single fast
-# job.
-
+# Two layers, deliberately separate.
+#
+# `node --test` is the original content-integrity and build-generator check:
+# it catches a timers/ row that breaks the build, duplicate title/meta/FAQ text
+# (the main reason programmatic pages get de-indexed), or a page silently
+# missing from the sitemap — plus the duration model, hash parsing and
+# phone-control maths. Built into Node, no dependencies, about a second. That
+# stays the fast feedback loop and must not grow one.
+#
+# Playwright covers what pure tests structurally cannot: whether the settable
+# board's *interaction* survives a different browser engine. That matters here
+# because the board leans on pointer events, focus-driven affordances, wheel,
+# touch and clipboard — and two real bugs found while writing this suite were
+# invisible to Chromium alone (a paste handler bound to the wrong element, and
+# a mobile layout rule that clipped the board's right edge on iPhone widths).
+#
+# This runs alongside the deploy workflow rather than gating it, so a flaky
+# browser run can never block a content fix from shipping. If you'd rather
+# deploys wait for green, add `needs: [unit, browsers]` to the deploy job.
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch: {}
 
 jobs:
-  test:
+  unit:
+    name: unit (node --test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-      - run: npm test
+          node-version: 22
+      - run: node --test
+
+  browsers:
+    name: browsers (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, mobile-safari, mobile-chrome]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Only the engine this shard needs, with its OS dependencies.
+      - name: Install browser
+        run: |
+          case "${{ matrix.project }}" in
+            mobile-safari) npx playwright install --with-deps webkit ;;
+            mobile-chrome) npx playwright install --with-deps chromium ;;
+            *)             npx playwright install --with-deps "${{ matrix.project }}" ;;
+          esac
+      - run: npx playwright test --project=${{ matrix.project }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

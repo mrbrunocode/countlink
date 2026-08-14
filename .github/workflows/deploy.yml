@@ -54,11 +54,15 @@ jobs:
             --exclude 'design-system' \
             --exclude 'package.json' \
             --exclude 'package-lock.json' \
+            --exclude 'e2e' \
+            --exclude 'playwright.config.mjs' \
+            --exclude 'playwright-report' \
+            --exclude 'test-results' \
             --exclude 'README.md'
       - name: Guard — nothing private, and the public set is complete
         run: |
           # Loud failure if an excluded path slipped through.
-          for bad in scripts test docs archive design-system package.json README.md .git .github; do
+          for bad in scripts test e2e docs archive design-system package.json package-lock.json node_modules playwright.config.mjs README.md .git .github; do
             if [ -e "dist/$bad" ]; then echo "::error::$bad leaked into dist/"; exit 1; fi
           done
           # Every URL the sitemap advertises must exist as a file. This is the
