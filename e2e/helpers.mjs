@@ -90,7 +90,31 @@ export async function secondsFromHash(page) {
  * nothing in the third. Driving the actual clipboard exercises the same path a
  * person does, in all three.
  */
-export async function pasteText(page, text) {
+export async function pasteText(page, text, browserName) {
+  /* Two strategies, chosen by engine, because no single one works everywhere:
+     - A synthetic ClipboardEvent carrying a DataTransfer is deterministic and
+       needs no platform clipboard — but Firefox deliberately blanks
+       clipboardData on events the page constructs itself (verified: setData
+       round-trips, the event reads back ""), so it would silently test nothing.
+     - A real copy/paste round-trip works in Firefox, but depends on a platform
+       clipboard that headless WebKit on Linux does not have — green on macOS,
+       red in CI.
+     So: real clipboard for Firefox, synthetic for the rest. Both end at the
+     same document-level handler, which is the thing under test. */
+  if (browserName !== "firefox") {
+    await page.evaluate((t) => {
+      const dt = new DataTransfer();
+      dt.setData("text", t);
+      document.dispatchEvent(new ClipboardEvent("paste", {
+        bubbles: true, cancelable: true, clipboardData: dt,
+      }));
+    }, text);
+    return;
+  }
+  return realClipboardPaste(page, text);
+}
+
+async function realClipboardPaste(page, text) {
   const focusSel = await page.evaluate(() => {
     const a = document.activeElement;
     if (!a) return null;

@@ -113,34 +113,34 @@ test.describe("the ready board accepts input", () => {
     expect(await boardValue(page)).toBe("10:00");
   });
 
-  test("a pasted duration lands on the board", async ({ page }) => {
+  test("a pasted duration lands on the board", async ({ page, browserName }) => {
     // A real clipboard round-trip (see helpers.pasteText) — this is the path
     // that actually differs between engines, and the reason the handler is
     // bound to the document rather than to #tiles.
     await field(page, "m").focus();
-    await pasteText(page, "1:30:00");
+    await pasteText(page, "1:30:00", browserName);
     expect(await boardValue(page)).toBe("01:30:00");
 
     await preset(page, 10);
     await field(page, "m").focus();
-    await pasteText(page, "90m");
+    await pasteText(page, "90m", browserName);
     expect(await boardValue(page)).toBe("01:30:00");
 
     await preset(page, 10);
     await field(page, "m").focus();
-    await pasteText(page, "45");            // bare number = minutes
+    await pasteText(page, "45", browserName);            // bare number = minutes
     expect(await boardValue(page)).toBe("45:00");
   });
 
-  test("pasting into the form below the board is not hijacked", async ({ page }) => {
+  test("pasting into the form below the board is not hijacked", async ({ page, browserName }) => {
     await page.locator("#evtName").focus();
-    await pasteText(page, "5:00");
+    await pasteText(page, "5:00", browserName);
     expect(await boardValue(page)).toBe("10:00");
   });
 
-  test("an unreadable paste changes nothing", async ({ page }) => {
+  test("an unreadable paste changes nothing", async ({ page, browserName }) => {
     await field(page, "m").focus();
-    await pasteText(page, "next tuesday");
+    await pasteText(page, "next tuesday", browserName);
     expect(await boardValue(page)).toBe("10:00");
   });
 });
