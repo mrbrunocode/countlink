@@ -342,13 +342,27 @@ body.viewing .stage-section{padding-top:18px}
 .board.style-light{
   /* Design-system light-theme neutrals + accent (both already WCAG AA on
      their own surfaces — see design-system/tokens/colors.css). */
-  --board:oklch(0.985 0.004 75); --board-deep:oklch(1 0 0); --panel:oklch(0.975 0.005 75); --panel-line:oklch(0.88 0.008 75);
-  --flap:oklch(1 0 0); --flap-ink:oklch(0.19 0.014 75); --paper-text:oklch(0.19 0.014 75); --paper-dim:oklch(0.50 0.014 75);
+  /* The board GROUND is deliberately a clear step darker than the flaps.
+     It used to be 0.985 against pure-white flaps — a 1.5% difference, so the
+     tiles stopped reading as cards at all and the board looked like one flat
+     white rectangle ("white on white"). The flaps stay pure white so the
+     digits keep maximum punch under the bright-room light this theme exists
+     for; the ground carries the separation instead. */
+  --board:oklch(0.90 0.007 75); --board-deep:oklch(0.90 0.007 75); --panel:oklch(0.965 0.005 75); --panel-line:oklch(0.80 0.010 75);
+  /* --paper-dim darkened alongside it: the sub-line sits on the ground, not on
+     a flap, so lightening the ground's neighbours without this would have
+     dropped it under 4.5:1. */
+  --flap:oklch(1 0 0); --flap-ink:oklch(0.19 0.014 75); --paper-text:oklch(0.19 0.014 75); --paper-dim:oklch(0.42 0.014 75);
   --amber:oklch(0.56 0.19 70); --amber-deep:oklch(0.46 0.20 70); --ok:oklch(0.52 0.15 152);
   background:var(--board);border-color:var(--panel-line);
   box-shadow:0 1px 0 rgba(0,0,0,.03) inset, 0 8px 24px hsl(75 30% 60% / .16), 0 2px 6px hsl(75 30% 60% / .10);
 }
 /* on the darkened light-theme amber, dark ink no longer clears 4.5:1 — white does */
+/* A hairline on each flap so a card still has an edge where its white meets
+   the ground, at any brightness. Kept off .half.top's own inset seam shadow by
+   using an outline rather than another box-shadow. */
+.board.style-light .tile .half,
+.board.style-light .tile .flap{outline:1px solid oklch(0.84 0.010 75);outline-offset:-1px}
 .board.style-light .btn.primary{color:#fff}
 .board.style-light .btn.primary:hover{color:#fff}
 
