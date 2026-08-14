@@ -4,6 +4,20 @@
 
 CountLink is a static web app: no signup, no backend, no per-viewer cost. The sync mechanic (timestamp embedded in the shared link) is the core differentiator versus real-time-server competitors like ShareMyTimer and Stagetimer.io — see the comparison page below for specifics.
 
+## Setting a timer
+
+The split-flap board on every timer page is the input, not just a readout — unlike vClock and online-stopwatch.com, whose displays are read-only. On a board that is not yet running you can:
+
+- Click or tap a pair of digits to reveal up/down arrows over them, then click the arrows to roll that unit.
+- Use the keyboard: arrow up/down rolls the focused unit, shift+arrow moves by ten, left/right moves between hours, minutes and seconds.
+- Type the time like a microwave keypad — digits fill from the right, so typing 700 sets 7:00 and typing 9000 sets 1:30:00 (90 minutes normalises to an hour and a half).
+- Scroll the mouse wheel over a unit, or drag it up and down on a touchscreen.
+- Paste a duration: 1:30:00, 5:00, 90m, 1h30m, or a bare number like 45 (read as minutes).
+
+Rolling minutes past 59 carries into hours and the hours pair appears automatically; rolling back under an hour retracts it. A small "+hr" control to the left of the digits adds or removes the hours pair explicitly. The board holds one duration, so rolling seconds up from 59 adds a minute rather than wrapping.
+
+Once a countdown starts the board is sealed: the controls are removed from the page entirely, so nobody opening a shared link can alter what the room sees. It becomes settable again when the countdown finishes.
+
 ## Primary pages
 - [Home / timer tool](https://countlink.app/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
 - [How It Works](https://countlink.app/how-it-works): the link-timestamp sync mechanic explained in depth

@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=e76811f5">
+<link rel="stylesheet" href="assets/style.css?v=c3712599">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -204,6 +204,10 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <p style="margin-bottom:16px"><b>Until.at</b> is the closest match to CountLink's opt-in phone control — start a countdown on your phone, display it full-screen elsewhere. The mechanism is different, though: it's built around a downloadable app and a join code rather than a plain link, so it's a heavier setup for the same idea.</p>
     <p style="margin-bottom:16px"><b>GoTimer</b> is worth a look specifically for OBS — it's a dedicated, URL-configurable overlay with pre-built scenario links (starting soon, BRB, raid countdown) and no signup or watermark, purpose-built for streaming in a way a general-purpose shared timer isn't.</p>
     <p style="margin-bottom:16px"><b>TimerLink</b> covers similar ground to CountLink and ShareMyTimer (events, meetings, streams) but is account-based — a dashboard to manage multiple timers, password-protected links, no credit card to start but a free-tier structure that implies paid plans above it. If you want a saved timer library and don't mind an account, that's the trade-off; CountLink has neither the dashboard nor the account requirement.</p>
+    <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">Setting the time on the display itself</h2>
+    <p style="margin-bottom:16px">One thing CountLink does that the big general-purpose timer sites don't: <b>the countdown display is also the control</b>. Click or tap a pair of digits on the split-flap board and arrows appear over them; you can also type the time straight in like a microwave keypad, scroll over a unit, drag it on a touchscreen, or paste a duration such as <code>1:30:00</code> or <code>90m</code>. Rolling the minutes past 59 grows an hours pair in automatically.</p>
+    <p style="margin-bottom:16px">For comparison, the two largest free timer sites both use a read-only display and put the controls elsewhere on the page: on <b>vClock</b> the countdown is a plain text element with no editable or spin-button behaviour, and <b>online-stopwatch.com</b> likewise exposes no editable field on its display, with durations chosen from separate preset pages. Both were checked directly in the page's own markup in <b>August 2026</b>; the five products in the table above were not re-checked on this specific point, so treat this as a note about those two sites rather than a claim about the whole market.</p>
+    <p style="margin-bottom:16px">Once a countdown is running the board locks — the controls are removed from the page entirely, so nobody opening your shared link can change what the room is looking at. It becomes settable again once the countdown finishes.</p>
   </section>
 </main>
 </div>

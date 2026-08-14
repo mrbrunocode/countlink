@@ -399,7 +399,7 @@ export const PAGES = [
     h1: "Shared Timer — Pick A Duration, Share The Link",
     meta: "Free shared timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen counts down to the same second — no account, no viewer limit.",
     intro: "Every duration below runs the same board you see here, and every one of them is shareable: set the length, copy the link, and anyone who opens it counts down to the identical second. Pick a quick timer in the panel below, or type any custom length.",
-    setupHint: "The board above is ready at 10 minutes — use the quick buttons for a different length, or type a custom one.",
+    setupHint: "The board above is ready at 10 minutes, and you can set it right there — click the digits and roll them with the arrows, or just type the time. These controls do the same job, plus counting down to a date.",
     extra: `
         <div class="obs-extra">
           <h3>Common durations, and what people use them for</h3>
@@ -422,7 +422,8 @@ export const PAGES = [
       { q: "Is there a limit to how many people can open the link?", a: "No limit. Since there's no server tracking viewers, showing the countdown to one person or a thousand costs exactly the same — nothing. Each device just does its own math against the timestamp in the URL." },
       { q: "Does it still work if I close the tab and reopen it?", a: "Yes. Reopening the link re-reads the same deadline from the URL and picks up exactly where the countdown should be — nothing resets." },
       { q: "Does the timer keep going if the Wi-Fi drops?", a: "Yes, on any device that already has the page open. The countdown is calculated locally against a timestamp in the URL, so it doesn't need an ongoing connection to keep counting." },
-      { q: "Can I use a duration that isn't one of the presets?", a: "Yes — the custom-minutes field takes any length, and the date & time field counts down to a specific moment instead of a duration." },
+      { q: "Can I use a duration that isn't one of the presets?", a: "Yes. Set it on the board itself: click a pair of digits and roll them with the up and down arrows, or just type the time in — typing 7 0 0 gives you 7:00, the same way a microwave works. Rolling the minutes past 59 adds an hours pair automatically, and you can add or remove hours with the small +hr control to the left of the digits. The custom-minutes field and the date & time field below the board still work the same way." },
+      { q: "How do I set the timer without using the buttons below?", a: "The board is the control. Hover or tap a pair of digits and small up and down arrows appear over them; click those, use the arrow keys, scroll over the digits, or drag them up and down on a touchscreen. You can also paste a duration like 1:30:00 or 90m straight onto the board. Once a countdown is running the board locks, so nobody watching your shared link can change what the room sees." },
       { q: "What happens when a shared countdown runs out?", a: "Every open screen hits zero at the same instant and plays a short chime if sound is on. Nothing else happens automatically, so it's safe to leave running in the background." },
     ] },
   { slug: "exam-timer", minutes: 60, label: "Time is up — pens down", eyebrow: "Exam Timer", affiliate: true,
@@ -431,7 +432,7 @@ export const PAGES = [
     intro: "Put the countdown on the front screen and, if students have devices, on theirs too — everyone sees the identical time remaining, which is the whole point of a fair exam clock. Set it to your exam length and share the link before the paper starts.",
     extra: EXAM_EXTRA,
     howto: [
-      "Set the exam length with Custom minutes, or count down to a fixed finish time using \"…or until a date & time\".",
+      "Set the exam length straight on the board — click the minutes and use the arrows, or just type it (type 90 00 for an hour and a half). You can also count down to a fixed finish time using \"…or until a date & time\".",
       "Put the board on the room's front screen and press Fullscreen so the countdown is readable from the back.",
       "If your exam rules permit candidate devices, press Show QR code so students can open the identical countdown on their own screens.",
       "Press Start countdown as you begin the paper — every screen hits zero at the same instant and plays the chime.",
@@ -447,7 +448,7 @@ export const PAGES = [
     intro: "Group work, quiz rounds, silent reading, transition time between activities — a visible shared countdown ends the “how much longer” questions on its own. Project it fullscreen or share the link to student devices.",
     extra: CLASSROOM_EXTRA,
     howto: [
-      "Pick a length with Quick timer for the activity — short for transitions, longer for group work or silent reading.",
+      "Set the length on the board itself — click a pair of digits and roll them with the arrows, or type the time in. Quick timer presets are there too if one of them already fits.",
       "Type the activity under \"What's it for?\" so the screen answers \"what are we doing?\" as well as \"how long left?\".",
       "Press Fullscreen to project it, or Show QR code so students can pull the same countdown up on their own devices.",
       "Press Start countdown, and set a fresh timer for each activity so every one gets its own clean clock.",
@@ -556,7 +557,7 @@ export const PAGES = [
     h1: "Pomodoro Timer — 25 Minutes, Shareable",
     meta: "A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.",
     intro: "The pomodoro technique is 25 minutes of focus, then a 5-minute break, repeated. Solo, any kitchen timer works — but a pomodoro is better with company. Start the 25 minutes here, share the link, and your study group or team focuses to the same clock and breaks at the same moment.",
-    setupHint: "The board above is set to the classic 25-minute pomodoro — set 5 minutes here for the break, then Restart for the next round.",
+    setupHint: "The board above is set to the classic 25-minute pomodoro, and you can change it on the board itself. For the break, set 5 minutes and press start again.",
     extra: `
         <div class="obs-extra">
           <h3>Running full pomodoro cycles</h3>
@@ -569,7 +570,7 @@ export const PAGES = [
           <p>Why doesn't it auto-advance from focus to break? Because the link is the timer: each countdown is one fixed end time that every screen agrees on. An auto-advancing cycle would need every viewer's browser to agree on state changes over time — that's a server, and no server is the reason this tool has no viewer limits.</p>
         </div>`,
     howto: [
-      "Set Quick timer to 25 min — the classic focus block — or type your own length into Custom minutes.",
+      "Set 25 minutes — the classic focus block — by typing 25 00 straight onto the board, or tap the 25 min preset. Roll the digits with the arrows to fine-tune it.",
       "Name it under \"What's it for?\" so every screen shows what the block is for, then press Start countdown.",
       "Press Copy sync link and send it to whoever is working along with you; every device shows the identical time remaining.",
       "When the chime sounds, start a fresh 5-minute timer for the break, and take a longer 15–30 minute break after four cycles.",
@@ -877,7 +878,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
   <section class="setup-section">
     <div class="panel">
       <h2>Change the countdown</h2>
-      <div class="hint">${p.setupHint || `The board above is set to ${p.minutes} minutes, ready when you are — adjust it here if you need something else.`}</div>
+      <div class="hint">${p.setupHint || `You can set the time on the board itself — click the digits and roll them with the arrows, or just type it. These controls do the same job, plus counting down to a date.`}</div>
       <label>Direction</label>
       <div class="quick dir-toggle">
         <button class="q active" data-dir="down" aria-pressed="true">Count down</button>
@@ -956,7 +957,7 @@ return `<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/style.css?v=e76811f5">
+<link rel="stylesheet" href="../assets/style.css?v=c3712599">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1031,7 +1032,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=04d0b564" defer></script>
+<script src="../assets/app.js?v=9f6e53bf" defer></script>
 </body>
 </html>
 `; };
@@ -1312,6 +1313,20 @@ const llmsTxt = () => {
 > Free shared countdown timer. Set a duration, copy the link, and everyone who opens it sees the identical countdown — synced by encoding the end timestamp in the URL itself, with no account and no server round-trip.
 
 ${BRAND} is a static web app: no signup, no backend, no per-viewer cost. The sync mechanic (timestamp embedded in the shared link) is the core differentiator versus real-time-server competitors like ShareMyTimer and Stagetimer.io — see the comparison page below for specifics.
+
+## Setting a timer
+
+The split-flap board on every timer page is the input, not just a readout — unlike vClock and online-stopwatch.com, whose displays are read-only. On a board that is not yet running you can:
+
+- Click or tap a pair of digits to reveal up/down arrows over them, then click the arrows to roll that unit.
+- Use the keyboard: arrow up/down rolls the focused unit, shift+arrow moves by ten, left/right moves between hours, minutes and seconds.
+- Type the time like a microwave keypad — digits fill from the right, so typing 700 sets 7:00 and typing 9000 sets 1:30:00 (90 minutes normalises to an hour and a half).
+- Scroll the mouse wheel over a unit, or drag it up and down on a touchscreen.
+- Paste a duration: 1:30:00, 5:00, 90m, 1h30m, or a bare number like 45 (read as minutes).
+
+Rolling minutes past 59 carries into hours and the hours pair appears automatically; rolling back under an hour retracts it. A small "+hr" control to the left of the digits adds or removes the hours pair explicitly. The board holds one duration, so rolling seconds up from 59 adds a minute rather than wrapping.
+
+Once a countdown starts the board is sealed: the controls are removed from the page entirely, so nobody opening a shared link can alter what the room sees. It becomes settable again when the countdown finishes.
 
 ## Primary pages
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit

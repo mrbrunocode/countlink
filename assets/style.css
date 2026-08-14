@@ -377,7 +377,112 @@ body.viewing .stage-section{padding-top:18px}
   align-self:center;letter-spacing:.04em;line-height:var(--th);
 }
 
-.sub{font-family:var(--mono);font-size:.72rem;color:var(--paper-dim);margin-top:16px}
+/* ===================================================================
+   Settable board — the ready board IS the input.
+
+   Every selector here is gated behind .board.settable, which assets/app.js
+   puts on (and takes off) in setState(). A running or shared board therefore
+   picks up none of this, and the controls aren't in its DOM either — the CSS
+   is the second line of defence, not the only one.
+
+   The grouping unit is a FIELD (a pair of flaps = one unit), not a single
+   flap: hovering either digit of the minutes lights both, because the thing
+   you are changing is "minutes", not "the tens column of minutes".
+   =================================================================== */
+.field{
+  display:flex;align-items:center;position:relative;flex:none;
+  gap:inherit; /* inherits .tiles' responsive tile gap so pairs sit on the same rhythm */
+}
+.board.settable .field{cursor:ns-resize}
+.board.settable .field::before{
+  content:"";position:absolute;inset:-7px -5px;border:1px solid transparent;
+  transition:border-color .13s,background .13s;pointer-events:none;
+}
+.board.settable .field:hover::before,
+.board.settable .field:focus-visible::before,
+.board.settable .field:focus-within::before{
+  border-color:var(--amber);
+  background:color-mix(in oklab,var(--amber) 9%,transparent);
+}
+.board.settable .field:focus{outline:none}
+.board.settable .field:focus-visible::before{
+  box-shadow:0 0 0 2px color-mix(in oklab,var(--amber) 45%,transparent);
+}
+/* Chevrons are absolutely positioned overlays so they never enter layout
+   flow. That is deliberate: .board reserves the tile row's height via --th
+   before any JS runs (a measured CLS fix), and anything that pushed the row
+   around on hover would hand that back. */
+.chev{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:34px;height:20px;display:none;place-items:center;
+  background:var(--panel);border:1px solid var(--panel-line);
+  color:var(--paper-text);cursor:pointer;z-index:7;padding:0;
+}
+.chev.up{top:-30px}
+.chev.down{bottom:-30px}
+/* The chevrons float 10px clear of the flaps for breathing room, which left a
+   dead gap: crossing it dropped :hover, so the chevron vanished before the
+   pointer arrived and only felt clickable after a click had pinned it open.
+   These invisible bridges extend each chevron's hit area down to meet the
+   field, keeping hover continuous without moving anything visually. */
+.chev::after{content:"";position:absolute;left:-6px;right:-6px;height:14px}
+.chev.up::after{top:100%}
+.chev.down::after{bottom:100%}
+.board.settable .field:hover .chev,
+.board.settable .field:focus-within .chev{display:grid}
+.chev:hover{background:var(--amber);border-color:var(--amber);color:var(--board-deep)}
+.chev:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.chev svg{width:11px;height:11px;display:block}
+/* A zeroed hours pair swaps its own down-chevron for "− Hrs": rolling below
+   zero and dropping the unit are the same intent, so they share one slot. */
+.retract{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:-30px;
+  display:none;place-items:center;height:20px;padding:0 8px;white-space:nowrap;
+  background:var(--panel);border:1px solid var(--panel-line);color:var(--paper-dim);
+  font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;z-index:7;
+}
+.board.settable .field.can-retract:hover .retract,
+.board.settable .field.can-retract:focus-within .retract{display:grid}
+.board.settable .field.can-retract:hover .chev.down,
+.board.settable .field.can-retract:focus-within .chev.down{display:none}
+.retract:hover{border-color:var(--amber);color:var(--amber)}
+.retract:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+/* "+hr" ghost. Slim on purpose — a full-width dashed placeholder the size of
+   the hours pair competed with the digits on a board most people only read. */
+.ghost{
+  width:clamp(22px,3.4vw,30px);height:var(--th);flex:none;
+  display:none;place-items:center;background:transparent;
+  border:1px dashed var(--panel-line);color:var(--paper-dim);cursor:pointer;
+  font-family:var(--mono);font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:0;opacity:.55;margin-right:clamp(1px,.5vw,5px);
+  transition:border-color .14s,color .14s,background .14s,opacity .14s;
+}
+.board.settable .ghost{display:grid}
+.ghost:hover,.ghost:focus-visible{
+  border-color:var(--amber);color:var(--amber);opacity:1;
+  background:color-mix(in oklab,var(--amber) 8%,transparent);
+}
+.ghost:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ghost .stack{display:grid;justify-items:center;line-height:1.15}
+.ghost .plus{font-size:.92rem;line-height:1}
+/* Touch: drag-to-roll needs the vertical axis, but the board fills most of a
+   phone screen — claiming that axis unconditionally means a swipe starting on
+   the flaps doesn't scroll the page, which feels broken. So the field only
+   takes the axis once it has been tapped (focused). Tap to engage, then drag;
+   an untouched board scrolls like any other part of the page. */
+.board.settable .field{touch-action:pan-y}
+.board.settable .field:focus-within{touch-action:none}
+@media (prefers-reduced-motion:reduce){
+  .board.settable .field::before,.ghost,.chev{transition:none}
+}
+
+/* margin-top clears the settable board's down-chevron, which overlays 30px
+   below the tile row (see .chev). Set on every board rather than only settable
+   ones — adjacent-sibling margins collapse, so this is the single gap between
+   the tiles and the sub-line, and keeping it constant stops the text jumping
+   the instant a countdown starts and the controls disappear. */
+.sub{font-family:var(--mono);font-size:.72rem;color:var(--paper-dim);margin-top:34px}
 .sub b{color:var(--amber);font-weight:500}
 .bar{height:2px;background:var(--panel-line);margin:20px auto 0;max-width:420px;position:relative;border-radius:0;overflow:hidden}
 .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--amber);width:0%}

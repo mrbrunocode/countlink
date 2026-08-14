@@ -38,6 +38,13 @@ let state="ready";
    a moving reference point (stopwatch elapsed / interval cycle position)
    doesn't have a single clean "remaining" value to freeze the same way. */
 let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
+/* Settable board: the duration currently shown on a READY board, in seconds,
+   or null for "the board hasn't been touched — use the form". Non-null makes
+   the board authoritative over #customMin at start, which is what lets someone
+   set 7:30 on the flaps and just press Start. Every form control that changes
+   the duration routes through renderReady(), which resets this, so the two can
+   never silently disagree. */
+let boardTotal=null,boardTypeBuf="";
 let unsubRealtimeState=null,unsubRealtimeCommands=null,realtimeHeartbeat=null;
 
 // Exposes the pure duration-formatting functions to Node's test runner (see
@@ -60,6 +67,11 @@ if (typeof module !== "undefined" && module.exports) {
     alarmTones: alarmTones,
     clampAdjustedEnd: clampAdjustedEnd, clampAdjustedRemaining: clampAdjustedRemaining,
     computeResumeEnd: computeResumeEnd, genSessionId: genSessionId,
+    // settable board (see "the duration model" block below charsFor)
+    clampTotalSeconds: clampTotalSeconds, fieldsFromTotal: fieldsFromTotal,
+    totalFromFields: totalFromFields, needsHours: needsHours,
+    parseKeypadDigits: parseKeypadDigits, bumpTotal: bumpTotal,
+    parsePastedDuration: parsePastedDuration, maxSettable: maxSettable,
   };
   return;
 }
@@ -309,6 +321,37 @@ function setState(s){
   state=s;
   setWakeLockActive(s==="running"||s==="finished");
   if(s!=="running")setUrgent(false);
+  /* Settable when idle, sealed when live. Driven from here so the rule lives
+     in exactly one place and can't drift: the moment a countdown starts, the
+     board stops accepting input, and a viewer opening a shared link (which
+     always boots straight into "running") never gets a control at all. */
+  const bd=$("boardEl");
+  if(bd){
+    const canSet=(s==="ready"||s==="finished")&&formDirection==="down"&&
+      direction!=="up"&&direction!=="interval"&&mode!=="days"&&!!$("tiles");
+    bd.classList.toggle("settable",canSet);
+    // Strip the input layer out of the DOM on the way into a live state —
+    // hiding it in CSS would leave real <button>s inside a sealed board.
+    if(!canSet&&$("tiles")&&$("tiles").querySelector(".field,.ghost")){
+      $("tiles").querySelectorAll(".chev,.retract,#addHrsBtn").forEach(el=>el.remove());
+      $("tiles").querySelectorAll(".field").forEach(el=>{
+        el.removeAttribute("role");el.removeAttribute("tabindex");
+        el.removeAttribute("aria-label");el.removeAttribute("aria-valuemin");
+        el.removeAttribute("aria-valuemax");el.removeAttribute("aria-valuenow");
+        el.removeAttribute("aria-valuetext");
+      });
+    }
+    /* …and put it back on the way into one. This is what makes a FINISHED
+       board settable: renderReady() builds the controls for "ready", but a
+       countdown reaching zero lands here with plain tiles on screen, so
+       without this the class said settable while the DOM had nothing to
+       press. Seeds from the duration that just ran, so "again, but five
+       minutes" is a roll away rather than a scroll away. */
+    if(canSet&&$("tiles")&&!$("tiles").querySelector(".field")&&!$("tiles").querySelector(".tile-day")){
+      const secs=boardTotal!=null?boardTotal:clampTotalSeconds(Math.round((total||0)/1000));
+      if(secs>0){boardTypeBuf="";setBoardTotal(secs);}
+    }
+  }
   const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?"":"none"};
   const live=s==="running"||s==="paused"; // "paused" is still a live, shareable session — see the state-list comment above
   show("boardStartBtn",!live);
@@ -540,19 +583,253 @@ function renderReady(min,lab,msOverride){
      still live-previews it; the label always shows once running. */
   $("evtLabel").textContent="";
   const c=charsFor(formDirection==="up"?0:ms);
+  /* Whether this particular ready board can be set on directly. Computed here
+     rather than via boardIsSettable() because `state` is still whatever it was
+     before setState("ready") runs at the bottom of this function. */
+  const settable = formDirection==="down" && mode!=="days" && !c.plain && !!$("tiles");
+  boardTotal = settable ? clampTotalSeconds(Math.round(ms/1000)) : null;
+  boardTypeBuf="";
   if(c.plain)$("tiles").innerHTML=`<div class="tile-day">${c.plain}</div>`;
-  else buildTiles(c.tiles);
+  else buildTiles(c.tiles,settable);
   prevValues=null;
   $("subLine").innerHTML=formDirection==="up"
     ? "A shared stopwatch — starts from zero when you press start."
-    : (msOverride!=null
-      ? `counting to <b>${new Date(Date.now()+ms).toLocaleDateString([],{month:"short",day:"numeric"})}</b> — you'll get a share link the moment you start`
-      : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`);
+    : settable
+      ? `<b>${esc(spokenDuration(boardTotal))}</b> — set it right here, or press start to get a share link`
+      : (msOverride!=null
+        ? `counting to <b>${new Date(Date.now()+ms).toLocaleDateString([],{month:"short",day:"numeric"})}</b> — you'll get a share link the moment you start`
+        : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`);
   $("barFill").style.width="0%";
   const bar=document.querySelector(".bar");if(bar)bar.style.display="";
   if($("shareUrl"))$("shareUrl").textContent="";
   setState("ready");
 }
+
+/* ================= settable board: the input layer =================
+   Turns the ready board into the primary way to set a countdown. Everything
+   here no-ops unless boardIsSettable() is true, and setState() rebuilds the
+   tiles whenever that changes, so a running or shared board carries no
+   controls in its DOM at all — not hidden ones, none. That matters more than
+   it looks: the whole product promise is that everyone opening a link sees the
+   identical countdown, so a viewer must have nothing to press. */
+function boardIsSettable(){
+  if(!$("tiles")||!$("boardEl"))return false;
+  if(state!=="ready"&&state!=="finished")return false;
+  // Only a plain countdown has a duration to roll. A stopwatch starts from
+  // zero, an interval board is driven by its own work/rest fields, and a
+  // days-mode board renders one plain string with no tiles to grab.
+  if(formDirection!=="down")return false;
+  if(direction==="up"||direction==="interval")return false;
+  if(mode==="days")return false;
+  return true;
+}
+function boardFieldEls(){return $("tiles")?[...$("tiles").querySelectorAll(".field")]:[];}
+function currentBoardTotal(){
+  if(boardTotal!=null)return boardTotal;
+  const els=boardFieldEls();
+  if(!els.length)return 0;
+  const o={h:0,m:0,s:0};
+  els.forEach(el=>{o[el.dataset.k]=+el.getAttribute("aria-valuenow")||0;});
+  return totalFromFields(o);
+}
+/* Re-render the ready board at a new duration. Keeps the hours pair visible
+   while the hours field has focus even once it hits zero — collapsing an
+   element out from under someone's focus is how this kind of auto-layout
+   turns hostile. */
+function setBoardTotal(t,opts){
+  /* opts.hours: true = force the hours pair on, false = force it off,
+     undefined = decide automatically. The explicit form matters because the
+     "keep hours while focused" rule below would otherwise defeat the "− Hrs"
+     control: focus is still inside the hours field at the moment you press it,
+     so an inferred decision keeps the field the user just asked to remove. */
+  const forceHours=opts&&typeof opts.hours==="boolean"?opts.hours:null;
+  boardTotal=clampTotalSeconds(t);
+  const focusKey=document.activeElement&&document.activeElement.classList&&
+    document.activeElement.classList.contains("field")?document.activeElement.dataset.k:null;
+  const showHours=forceHours!=null?(forceHours||needsHours(boardTotal))
+    :(needsHours(boardTotal)||focusKey==="h");
+  mode=showHours?"hms":"ms";
+  const f=fieldsFromTotal(boardTotal);
+  const chars=showHours
+    ?[{t:"tile",v:fmt2(f.h)[0]},{t:"tile",v:fmt2(f.h)[1]},{t:"sep",v:":"},
+      {t:"tile",v:fmt2(f.m)[0]},{t:"tile",v:fmt2(f.m)[1]},{t:"sep",v:":"},
+      {t:"tile",v:fmt2(f.s)[0]},{t:"tile",v:fmt2(f.s)[1]}]
+    :[{t:"tile",v:fmt2(f.m)[0]},{t:"tile",v:fmt2(f.m)[1]},{t:"sep",v:":"},
+      {t:"tile",v:fmt2(f.s)[0]},{t:"tile",v:fmt2(f.s)[1]}];
+  const hadHours=boardFieldEls().some(el=>el.dataset.k==="h");
+  if(hadHours!==showHours||!boardFieldEls().length){
+    buildTiles(chars,true);
+    if(focusKey){const el=$("tiles").querySelector('.field[data-k="'+focusKey+'"]');if(el)el.focus();}
+  }else{
+    updateTiles(chars);
+  }
+  syncBoardToForm();
+  updateReadySubline();
+  /* On a finished board the start button promises "Restart — same duration".
+     The moment the digits are rolled to something else that promise is false,
+     so the button has to stop making it. */
+  if(state==="finished"){
+    const bs=$("boardStartBtn");
+    if(bs&&direction!=="up"&&direction!=="interval"){
+      const same=total>0&&Math.abs(boardTotal-Math.round(total/1000))<1;
+      bs.textContent=same?(total>0?"Restart — same duration":"Start a new countdown"):"Start countdown";
+    }
+  }
+}
+/* The board and the setup panel must never disagree about the duration, so
+   every board edit writes back to #customMin and drops the "until a date"
+   mode — exactly what clicking a quick-timer preset already does. */
+function syncBoardToForm(){
+  if(boardTotal==null)return;
+  const el=$("customMin");
+  if(el)el.value=String(Math.max(1,Math.round(boardTotal/60)));
+  if($("untilTime"))$("untilTime").dataset.dirty="";
+}
+function spokenDuration(t){
+  const f=fieldsFromTotal(t),p=[];
+  if(f.h)p.push(f.h+(f.h===1?" hour":" hours"));
+  if(f.m)p.push(f.m+(f.m===1?" minute":" minutes"));
+  if(f.s)p.push(f.s+(f.s===1?" second":" seconds"));
+  return p.length?p.join(" "):"nothing set";
+}
+function updateReadySubline(){
+  if(state!=="ready"||!boardIsSettable()||boardTotal==null)return;
+  $("subLine").innerHTML=`<b>${esc(spokenDuration(boardTotal))}</b> — set it right here, or press start to get a share link`;
+}
+function bumpBoardField(key,delta){
+  if(!boardIsSettable())return;
+  boardTypeBuf="";
+  const unit=key==="h"?3600:key==="m"?60:1;
+  setBoardTotal(bumpTotal(currentBoardTotal(),unit,delta),key==="h"?{hours:true}:undefined);
+  const el=$("tiles").querySelector('.field[data-k="'+key+'"]');
+  if(el&&document.activeElement!==el&&document.activeElement&&
+     document.activeElement.classList&&!document.activeElement.classList.contains("chev"))el.focus();
+  announce(spokenDuration(currentBoardTotal()));
+}
+function typeBoardDigit(d){
+  if(!boardIsSettable())return;
+  boardTypeBuf=(boardTypeBuf+d).slice(-6);
+  setBoardTotal(parseKeypadDigits(boardTypeBuf));
+  announce(spokenDuration(currentBoardTotal()));
+}
+function addBoardHours(){
+  if(!boardIsSettable())return;
+  boardTypeBuf="";
+  setBoardTotal(currentBoardTotal(),{hours:true});
+  const el=$("tiles").querySelector('.field[data-k="h"]');if(el)el.focus();
+  announce("Hours added");
+}
+function dropBoardHours(){
+  if(!boardIsSettable())return;
+  boardTypeBuf="";
+  const f=fieldsFromTotal(currentBoardTotal());
+  setBoardTotal(f.m*60+f.s,{hours:false});
+  const el=$("tiles").querySelector('.field[data-k="m"]');if(el)el.focus();
+  announce("Hours removed");
+}
+/* Wired once, delegated from #tiles, and every handler guards on
+   boardIsSettable() — so these stay attached and inert rather than being
+   added and removed as the board changes state. */
+(function wireSettableBoard(){
+  const t=$("tiles");
+  if(!t)return;
+  t.addEventListener("click",e=>{
+    if(!boardIsSettable())return;
+    if(e.target.closest(".retract")){e.preventDefault();dropBoardHours();return;}
+    if(e.target.closest("#addHrsBtn")){e.preventDefault();addBoardHours();return;}
+    const chev=e.target.closest(".chev");
+    if(chev){
+      e.preventDefault();
+      bumpBoardField(chev.closest(".field").dataset.k,chev.classList.contains("up")?1:-1);
+      return;
+    }
+    const fld=e.target.closest(".field");
+    if(fld)fld.focus();
+  });
+  t.addEventListener("keydown",e=>{
+    if(!boardIsSettable())return;
+    const fld=e.target.closest(".field");
+    if(!fld)return;
+    const k=fld.dataset.k,step=e.shiftKey?10:1;
+    if(e.key==="ArrowUp"){e.preventDefault();bumpBoardField(k,step);}
+    else if(e.key==="ArrowDown"){e.preventDefault();bumpBoardField(k,-step);}
+    else if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
+      e.preventDefault();
+      const order=boardFieldEls().map(el=>el.dataset.k);
+      const i=order.indexOf(k)+(e.key==="ArrowRight"?1:-1);
+      if(i>=0&&i<order.length){
+        const next=$("tiles").querySelector('.field[data-k="'+order[i]+'"]');if(next)next.focus();
+      }else if(i<0){
+        const g=$("addHrsBtn");if(g)g.focus();
+      }
+    }
+    else if(/^\d$/.test(e.key)){e.preventDefault();typeBoardDigit(e.key);}
+    else if(e.key==="Backspace"){
+      e.preventDefault();
+      boardTypeBuf=boardTypeBuf.slice(0,-1);
+      setBoardTotal(parseKeypadDigits(boardTypeBuf||"0"));
+    }
+    else if(e.key==="Escape"){
+      e.preventDefault();boardTypeBuf="";
+      renderReady(formMinutes(),$("evtName")?$("evtName").value:"");
+    }
+    else if(e.key==="Enter"){e.preventDefault();boardTypeBuf="";startFromForm();}
+    else if(e.key==="Home"){e.preventDefault();bumpBoardField(k,-99);}
+  });
+  t.addEventListener("wheel",e=>{
+    if(!boardIsSettable())return;
+    const fld=e.target.closest(".field");
+    if(!fld)return;
+    e.preventDefault();
+    bumpBoardField(fld.dataset.k,e.deltaY<0?1:-1);
+  },{passive:false});
+  t.addEventListener("paste",e=>{
+    if(!boardIsSettable())return;
+    if(!e.target.closest(".field"))return;
+    e.preventDefault();
+    const txt=(e.clipboardData||window.clipboardData).getData("text");
+    const parsed=parsePastedDuration(txt);
+    if(parsed==null){announce("Couldn't read that as a duration");return;}
+    boardTypeBuf="";setBoardTotal(parsed);
+    announce(spokenDuration(parsed));
+  });
+  /* Touch: drag a field vertically to roll it — the gesture the physical
+     metaphor implies. Mouse is excluded so it can't fight text selection or
+     the chevrons. */
+  let dragKey=null,dragY=0,dragAcc=0;
+  t.addEventListener("pointerdown",e=>{
+    if(!boardIsSettable()||e.pointerType==="mouse")return;
+    const fld=e.target.closest(".field");
+    if(!fld||e.target.closest(".chev")||e.target.closest(".retract"))return;
+    /* Only a field that's already been tapped takes over the vertical axis —
+       see the touch-action rule in style.css. Without this, the first swipe
+       over a board that fills half the phone screen rolls digits instead of
+       scrolling the page. */
+    if(!fld.contains(document.activeElement)&&document.activeElement!==fld)return;
+    dragKey=fld.dataset.k;dragY=e.clientY;dragAcc=0;
+  });
+  window.addEventListener("pointermove",e=>{
+    if(!dragKey)return;
+    dragAcc+=(dragY-e.clientY);dragY=e.clientY;
+    while(Math.abs(dragAcc)>=18){
+      bumpBoardField(dragKey,dragAcc>0?1:-1);
+      dragAcc+=dragAcc>0?-18:18;
+    }
+  },{passive:true});
+  window.addEventListener("pointerup",()=>{dragKey=null;});
+  window.addEventListener("pointercancel",()=>{dragKey=null;});
+  /* Once focus leaves a zeroed hours field, let it retract. */
+  t.addEventListener("focusout",e=>{
+    if(!boardIsSettable())return;
+    const fld=e.target.closest(".field");
+    if(!fld||fld.dataset.k!=="h")return;
+    setTimeout(()=>{
+      if(!boardIsSettable())return;
+      const still=$("tiles")&&$("tiles").contains(document.activeElement);
+      if(!still&&!needsHours(currentBoardTotal()))setBoardTotal(currentBoardTotal(),{hours:false});
+    },0);
+  });
+})();
 
 /* ---------- sound: a soft mechanical tick each second, plus a triple chime at zero ---------- */
 function ctx(){
@@ -659,31 +936,125 @@ document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="visible"&&wakeLockActive&&!wakeLock)acquireWakeLock();
 });
 
-/* ---------- split-flap tile rendering ---------- */
-function buildTiles(chars){
+/* ---------- split-flap tile rendering ----------
+   Tiles are grouped into FIELDS (hh / mm / ss) rather than laid out flat, so a
+   settable board has one control per unit instead of one per digit. Six
+   separate per-digit spinbuttons would read as "0, spin button" six times to a
+   screen reader, and per-digit wheels can't carry — see the duration-model
+   block above. The flat, non-settable path renders the same tiles inside the
+   same wrappers, so updateTiles()/charsFor() and all three board styles are
+   untouched either way. */
+function tileFields(chars){
+  const groups=[];let cur=[];
+  chars.forEach(c=>{
+    if(c.t==="sep"){if(cur.length){groups.push(cur);cur=[];}return;}
+    cur.push(c);
+  });
+  if(cur.length)groups.push(cur);
+  const keys=groups.length===3?["h","m","s"]:groups.length===2?["m","s"]:null;
+  return keys?groups.map((g,i)=>({key:keys[i],chars:g})):null;
+}
+const FIELD_LABEL={h:"Hours",m:"Minutes",s:"Seconds"};
+function makeTileEl(v){
+  const tile=document.createElement("div");
+  tile.className="tile";
+  tile.setAttribute("aria-hidden","true"); // decoration; the field carries the value
+  tile.innerHTML=`
+      <div class="flap"><span class="num">${v}</span></div>
+      <div class="half top"><span class="num">${v}</span></div>
+      <div class="half bottom"><span class="num">${v}</span></div>`;
+  return tile;
+}
+function makeChev(dir,key){
+  const b=document.createElement("button");
+  b.type="button";b.className="chev "+dir;b.tabIndex=-1;
+  b.setAttribute("aria-label",(dir==="up"?"Increase ":"Decrease ")+FIELD_LABEL[key].toLowerCase());
+  b.innerHTML=dir==="up"
+    ? '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 2 L11 9 L1 9 Z" fill="currentColor"/></svg>'
+    : '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 10 L1 3 L11 3 Z" fill="currentColor"/></svg>';
+  return b;
+}
+function buildTiles(chars,settable){
   // chars: array of {t:"tile"|"sep", v:string}
   const board=$("tiles");
   board.innerHTML="";
-  chars.forEach((c,i)=>{
-    if(c.t==="sep"){
+  const fields=tileFields(chars);
+  if(!settable||!fields){
+    // Plain readout — exactly the markup this function always produced.
+    chars.forEach(c=>{
+      if(c.t==="sep"){
+        const s=document.createElement("div");
+        s.className="tile-sep";s.textContent=c.v;
+        board.appendChild(s);
+        return;
+      }
+      board.appendChild(makeTileEl(c.v));
+    });
+    return;
+  }
+  /* "+hr" ghost: sits exactly where the hours pair will appear, so the control
+     is in the place the result shows up. Deliberately slim — a full-size
+     placeholder competes with the digits on a board most visitors only read. */
+  if(fields.length===2){
+    const g=document.createElement("button");
+    g.type="button";g.className="ghost";g.id="addHrsBtn";
+    g.title="Add hours";
+    g.setAttribute("aria-label","Add hours to this timer");
+    g.innerHTML='<span class="stack"><span class="plus">+</span><span>hr</span></span>';
+    board.appendChild(g);
+  }
+  fields.forEach((f,i)=>{
+    if(i){
       const s=document.createElement("div");
-      s.className="tile-sep";s.textContent=c.v;
+      s.className="tile-sep";s.textContent=":";
       board.appendChild(s);
-      return;
     }
-    const tile=document.createElement("div");
-    tile.className="tile";tile.dataset.idx=i;
-    tile.innerHTML=`
-      <div class="flap"><span class="num">${c.v}</span></div>
-      <div class="half top"><span class="num">${c.v}</span></div>
-      <div class="half bottom"><span class="num">${c.v}</span></div>`;
-    board.appendChild(tile);
+    const wrap=document.createElement("div");
+    wrap.className="field";wrap.dataset.k=f.key;
+    wrap.setAttribute("role","spinbutton");
+    wrap.setAttribute("tabindex","0");
+    wrap.setAttribute("aria-label",FIELD_LABEL[f.key]);
+    wrap.setAttribute("aria-valuemin","0");
+    wrap.setAttribute("aria-valuemax",f.key==="h"?"99":"59");
+    const val=+f.chars.map(c=>c.v).join("");
+    wrap.setAttribute("aria-valuenow",String(val));
+    wrap.setAttribute("aria-valuetext",val+" "+FIELD_LABEL[f.key].toLowerCase());
+    f.chars.forEach(c=>wrap.appendChild(makeTileEl(c.v)));
+    wrap.appendChild(makeChev("up",f.key));
+    wrap.appendChild(makeChev("down",f.key));
+    /* A zeroed hours pair swaps its own down-chevron for a remove control:
+       rolling below zero and "drop this unit" are the same intent, so they
+       share one slot rather than adding more chrome to the board. */
+    if(f.key==="h"){
+      wrap.classList.toggle("can-retract",val===0);
+      const rt=document.createElement("button");
+      rt.type="button";rt.className="retract";rt.tabIndex=-1;
+      rt.setAttribute("aria-label","Remove hours");
+      rt.textContent="− Hrs";
+      wrap.appendChild(rt);
+    }
+    board.appendChild(wrap);
   });
 }
 function updateTiles(chars){
   const board=$("tiles");
   const tileEls=[...board.querySelectorAll(".tile")];
   let ti=0;
+  /* Keep the spinbutton values in step with the flaps. Without this a screen
+     reader would keep reading the value the board was built with, however many
+     times the user had rolled it since. */
+  const fieldEls=[...board.querySelectorAll(".field")];
+  if(fieldEls.length){
+    const groups=tileFields(chars);
+    if(groups&&groups.length===fieldEls.length){
+      groups.forEach((g,i)=>{
+        const el=fieldEls[i],v=+g.chars.map(c=>c.v).join("");
+        el.setAttribute("aria-valuenow",String(v));
+        el.setAttribute("aria-valuetext",v+" "+FIELD_LABEL[el.dataset.k].toLowerCase());
+        if(el.dataset.k==="h")el.classList.toggle("can-retract",v===0);
+      });
+    }
+  }
   chars.forEach(c=>{
     if(c.t==="sep")return;
     const el=tileEls[ti++];
@@ -737,6 +1108,75 @@ function charsFor(left,modeOverride){
     {t:"tile",v:mm[0]},{t:"tile",v:mm[1]},{t:"sep",v:":"},
     {t:"tile",v:ss[0]},{t:"tile",v:ss[1]},
   ]};
+}
+
+/* ================= settable board: the duration model =================
+   The ready board is an INPUT, not just a readout — you set the countdown on
+   the flaps themselves (see setSettable/buildTiles below). Everything here is
+   pure so it can be unit-tested without a browser; the DOM layer further down
+   only ever calls into these.
+
+   The board holds ONE duration, as total seconds, and every edit is arithmetic
+   on that total. That is the whole design decision: treating the three fields
+   as independent digit wheels — the obvious first cut — means rolling seconds
+   up from 59 wraps to 00 and *reduces* the countdown by 59 seconds, which is
+   indefensible on a timer. Holding a single total gives carry and borrow for
+   free (59:59 + 1s = 1:00:00, 0:00 - 1s stays 0) and lets the hours pair grow
+   and retract on its own, so there is no "mode" for anyone to manage. */
+/* 99:59:59 — the most six tiles can show. A `function` rather than a `const`
+   for the same temporal-dead-zone reason as alarmTones() above: the test
+   harness returns at the module.exports block near the top of this file, so
+   the rest of the file never executes and any `const` declared down here would
+   still be uninitialized when an exported function tried to read it. Function
+   declarations hoist their full body, so this is always callable. */
+function maxSettable(){return 99*3600+59*60+59;}
+function clampTotalSeconds(t){
+  t=Math.floor(Number(t));
+  if(!isFinite(t))return 0;
+  return Math.max(0,Math.min(maxSettable(),t));
+}
+function fieldsFromTotal(t){
+  t=clampTotalSeconds(t);
+  return {h:Math.floor(t/3600),m:Math.floor(t%3600/60),s:t%60};
+}
+function totalFromFields(o){
+  return clampTotalSeconds((o&&o.h||0)*3600+(o&&o.m||0)*60+(o&&o.s||0));
+}
+/* Hours are shown whenever the duration needs them, and only then — matching
+   the same >=1h threshold start() already uses to pick "hms" over "ms", so a
+   board set to 1:00:00 and a board started at 1:00:00 have identical layout. */
+function needsHours(totalSeconds){return clampTotalSeconds(totalSeconds)>=3600;}
+/* Keypad entry fills from the right, then NORMALISES: "9000" means 90 minutes,
+   which is a legal thing to type and an illegal thing to display, so it lands
+   as 1:30:00 rather than erroring. Microwaves and phone timers both behave
+   this way, so it needs no teaching. */
+function parseKeypadDigits(buf){
+  const d=String(buf==null?"":buf).replace(/\D/g,"").slice(-6).padStart(6,"0");
+  return clampTotalSeconds(+d.slice(0,2)*3600 + +d.slice(2,4)*60 + +d.slice(4,6));
+}
+function bumpTotal(total,unitSeconds,delta){
+  return clampTotalSeconds(clampTotalSeconds(total)+unitSeconds*Math.trunc(delta));
+}
+/* Pasting a duration. Accepts what people actually have on their clipboard:
+   "1:30:00", "5:00", "90m", "1h30m", or a bare number read as minutes (the
+   overwhelmingly common case — "45" from a calendar invite means 45 minutes,
+   never 45 seconds). Returns null for anything unparseable so the caller can
+   say so rather than silently setting a wrong time. */
+function parsePastedDuration(txt){
+  const t=String(txt==null?"":txt).trim().toLowerCase();
+  if(!t)return null;
+  const colon=t.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if(colon){
+    return colon[3]!==undefined
+      ? clampTotalSeconds(+colon[1]*3600 + +colon[2]*60 + +colon[3])
+      : clampTotalSeconds(+colon[1]*60 + +colon[2]);
+  }
+  const units=t.match(/^(?:(\d{1,3})\s*h)?\s*(?:(\d{1,3})\s*m(?!s))?\s*(?:(\d{1,3})\s*s)?$/);
+  if(units&&(units[1]||units[2]||units[3])){
+    return clampTotalSeconds((+units[1]||0)*3600+(+units[2]||0)*60+(+units[3]||0));
+  }
+  if(/^\d{1,3}$/.test(t))return clampTotalSeconds(+t*60);
+  return null;
 }
 
 /* ---------- screen-reader announcements ----------
@@ -796,7 +1236,16 @@ function draw(){
       $("evtLabel").textContent=`Done — ${ivRounds} of ${ivRounds} rounds`+(label?" · "+label:"");
       $("subLine").innerHTML="<b>All rounds complete.</b> This screen — and every screen with your link — just finished together.";
       $("barFill").style.width="100%";
-      if(!fired){fired=true;beep();setState("finished");announceLeft(0);}
+      if(!fired){
+        fired=true;beep();
+        /* Nothing left to draw — stop the 250ms loop before flipping state.
+           It used to keep running over a finished board, which was harmless
+           while the board was a readout and is not now: it repainted 00:00
+           over any duration rolled onto the settable finished board within a
+           quarter of a second. */
+        clearInterval(tick);tick=null;
+        setState("finished");announceLeft(0);
+      }
       return;
     }
     document.querySelector(".bar").style.display="";
@@ -845,7 +1294,13 @@ function draw(){
     }
     $("subLine").innerHTML="<b>Time.</b> This screen — and every screen with your link — just hit zero together.";
     $("barFill").style.width="100%";
-    if(!fired){fired=true;beep();setState("finished");announceLeft(0);}
+    if(!fired){
+      fired=true;beep();
+      // See the interval branch above: the loop must stop before the board
+      // becomes settable again, or it repaints zero over the user's input.
+      clearInterval(tick);tick=null;
+      setState("finished");announceLeft(0);
+    }
     return;
   }
   const c=charsFor(left);
@@ -929,8 +1384,14 @@ document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click
 function startFromForm(){
   if(formDirection==="up"){startUp($("evtName").value);return;}
   const dirty=$("untilTime").dataset.dirty;
-  if(dirty)start(new Date($("untilTime").value)-Date.now(),$("evtName").value);
-  else start(formMinutes()*60e3,$("evtName").value);
+  if(dirty){start(new Date($("untilTime").value)-Date.now(),$("evtName").value);return;}
+  /* A board that's been set on wins over #customMin — that's the whole point
+     of setting it there. It also carries SECONDS, which the minutes-only form
+     field can't express, so reading the form here would quietly round 7:30
+     down to 7:00. Falls back to the form whenever the board isn't settable
+     (count-up, interval, days-mode boards). */
+  if(boardTotal!=null&&boardTotal>0){start(boardTotal*1000,$("evtName").value);return;}
+  start(formMinutes()*60e3,$("evtName").value);
 }
 if($("startBtn"))$("startBtn").addEventListener("click",()=>{
   startFromForm();
@@ -942,6 +1403,12 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
     // Restart: same duration/label as the countdown that just ended (fresh link)
     if(direction==="up")startUp(label);
     else if(direction==="interval")startInterval(ivWork,ivRest,ivRounds,label);
+    /* A finished board is settable again, so if it's been rolled to a new
+       duration that's what "start" must mean — restarting the old length
+       after the user has visibly changed the digits would be the board
+       lying about itself. boardTotal is seeded from `total` when the
+       countdown ends, so an untouched board still restarts identically. */
+    else if(boardTotal!=null&&boardTotal>0)start(boardTotal*1000,label);
     else if(total>0)start(total,label);
     // A recipient who opened the link after it already expired never had a
     // positive `total` to begin with — there's no way to recover the

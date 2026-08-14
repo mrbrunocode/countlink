@@ -127,6 +127,56 @@ this is done by token scoping — `:root` aliases the old dark-surface names
 (`--paper-text`, `--panel`, `--board-deep`…) to panel values, and `.board`
 re-declares them dark for its own subtree.
 
+## The board is the input
+
+As of August 2026 the split-flap board is not just a readout — on a board that
+isn't running, you set the countdown **on the flaps themselves**. This came out
+of watching a first-time visitor try to touch the digits and find nothing: the
+tiles are the largest, most button-like objects on the page (92x130px on
+desktop) and were completely inert, while the real duration controls sat 282px
+below the fold behind the ad slot. vClock and online-stopwatch.com both use
+read-only displays too, so this is a genuine differentiator rather than
+catch-up.
+
+**One rule governs it: settable when idle, sealed when live.** `setState()`
+toggles `.board.settable`, and that is the only place the rule lives. A running
+or shared board has the controls removed from the DOM entirely — not hidden in
+CSS — because the product promise is that everyone opening a link sees the
+identical countdown, so a viewer must have nothing to press. Three independent
+guards enforce it (`buildTiles()` only builds controls when settable,
+`setState()` strips them on the way into a live state, and every CSS rule that
+reveals a control is gated behind `.board.settable`); `test/settable-board.test.mjs`
+fails if any of the three is removed.
+
+**The value model is one duration, held as total seconds** — never three
+independent digit wheels. That is what gives carry and borrow: rolling seconds
+up from 59 adds a minute rather than wrapping and silently shortening the
+countdown by 59 seconds. It also means the hours pair can grow and retract on
+its own, so there is no "mode" for anyone to manage. The pure functions
+(`clampTotalSeconds`, `fieldsFromTotal`, `parseKeypadDigits`, `bumpTotal`,
+`parsePastedDuration`, `needsHours`) live in one block in `app.js` above the
+announcements section and are exported for the test runner.
+
+Input paths: chevrons on hover/focus, arrow keys (shift = 10), typing like a
+microwave keypad (digits fill from the right; `9000` normalises to 1:30:00),
+scroll wheel, vertical drag on touch, and paste (`1:30:00`, `90m`, bare `45` =
+minutes). A slim `+hr` ghost sits where the hours pair will appear; a zeroed
+hours field swaps its own down-chevron for `− Hrs`.
+
+Two things that look like details and are not:
+- **Chevrons are absolutely positioned overlays** so they never enter layout
+  flow. `.board` reserves the tile row's height via `--th` before JS runs (a
+  measured CLS fix); anything that pushed the row around on hover would hand
+  that back. Measured CLS after the change is 0.
+- **`touch-action` is `pan-y` until a field is focused**, then `none`. Claiming
+  the vertical axis unconditionally means a swipe starting on the board — which
+  fills most of a phone screen — doesn't scroll the page. Tap to engage, then
+  drag.
+
+Opted out entirely: days-mode boards (date targets like Christmas render one
+plain string, and a date picker is the right control for a date), count-up,
+interval and agenda boards, and any page with no `#tiles`.
+
 **Chrome sync.** CountLink pre-dates the template engine, so `index.html`,
 `about`, `how-it-works`, `compare` and the three legal pages are real files
 rather than generated ones. Rather than retrofit them to a generator, the two
