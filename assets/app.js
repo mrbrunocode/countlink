@@ -659,7 +659,14 @@ function setBoardTotal(t,opts){
   const hadHours=boardFieldEls().some(el=>el.dataset.k==="h");
   if(hadHours!==showHours||!boardFieldEls().length){
     buildTiles(chars,true);
-    if(focusKey){const el=$("tiles").querySelector('.field[data-k="'+focusKey+'"]');if(el)el.focus();}
+    /* Restore focus after the rebuild. If the field that had focus no longer
+       exists — typing 4500 on an hours board drops the hours pair — fall back
+       to the leftmost remaining field rather than dumping focus on <body>,
+       which would strand a keyboard user mid-entry. */
+    if(focusKey){
+      const el=$("tiles").querySelector('.field[data-k="'+focusKey+'"]')||$("tiles").querySelector(".field");
+      if(el)el.focus();
+    }
   }else{
     updateTiles(chars);
   }
@@ -709,7 +716,14 @@ function bumpBoardField(key,delta){
 function typeBoardDigit(d){
   if(!boardIsSettable())return;
   boardTypeBuf=(boardTypeBuf+d).slice(-6);
-  setBoardTotal(parseKeypadDigits(boardTypeBuf));
+  const parsed=parseKeypadDigits(boardTypeBuf);
+  /* Typing is a WHOLE-BOARD action, so it decides the units explicitly rather
+     than inheriting the "keep the hours pair while it has focus" rule. That
+     rule exists so a field can't vanish from under someone rolling it with the
+     arrows; it isn't wanted here, where typing 4500 on a board that opened at
+     1:00:00 plainly means 45:00 and should not leave a 00 hours pair sitting
+     in front of it. */
+  setBoardTotal(parsed,{hours:needsHours(parsed)});
   announce(spokenDuration(currentBoardTotal()));
 }
 function addBoardHours(){

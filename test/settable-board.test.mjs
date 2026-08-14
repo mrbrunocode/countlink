@@ -316,3 +316,20 @@ test("reaching zero stops the draw loop before the board becomes settable", () =
       "so the loop will repaint zero over anything the user sets");
   }
 });
+
+test("typing decides the units explicitly, rolling does not", () => {
+  // Two different rules, deliberately. Rolling with the arrows must never make
+  // the field under your cursor disappear, so it inherits "keep the hours pair
+  // while it has focus". Typing is a whole-board action — typing 4500 on a
+  // board that opened at 1:00:00 means 45:00, and leaving a 00 hours pair in
+  // front of it is just noise — so it passes the units explicitly.
+  const js = readFileSync(join(ROOT, "assets", "app.js"), "utf8");
+  const typeFn = js.slice(js.indexOf("function typeBoardDigit("), js.indexOf("function addBoardHours("));
+  assert.match(typeFn, /setBoardTotal\(parsed,\{hours:needsHours\(parsed\)\}\)/,
+    "typeBoardDigit no longer sets the units explicitly, so typing a short " +
+    "duration on an hours board will strand a 00 hours pair in front of it");
+
+  const bumpFn = js.slice(js.indexOf("function bumpBoardField("), js.indexOf("function typeBoardDigit("));
+  assert.match(bumpFn, /key==="h"\?\{hours:true\}:undefined/,
+    "bumpBoardField no longer protects a focused hours field from retracting");
+});
