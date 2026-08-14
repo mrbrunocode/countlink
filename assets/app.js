@@ -783,11 +783,21 @@ function dropBoardHours(){
     e.preventDefault();
     bumpBoardField(fld.dataset.k,e.deltaY<0?1:-1);
   },{passive:false});
-  t.addEventListener("paste",e=>{
+  /* Bound to the DOCUMENT, not to #tiles. A paste over a non-editable element
+     is delivered inconsistently across engines — Chrome dispatches it at the
+     focused div, Safari and Firefox often dispatch it at the document (or not
+     at all), so a listener on the tiles alone made this a Chrome-only feature.
+     Guarding on "a board field currently has focus" keeps it from stealing
+     pastes meant for the real inputs below the board. Paste is an extra path
+     anyway — typing, chevrons, keys, wheel and drag all work regardless. */
+  document.addEventListener("paste",e=>{
     if(!boardIsSettable())return;
-    if(!e.target.closest(".field"))return;
+    const active=document.activeElement;
+    if(!active||!active.classList||!active.classList.contains("field"))return;
     e.preventDefault();
-    const txt=(e.clipboardData||window.clipboardData).getData("text");
+    const cb=e.clipboardData||window.clipboardData;
+    if(!cb)return;
+    const txt=cb.getData("text");
     const parsed=parsePastedDuration(txt);
     if(parsed==null){announce("Couldn't read that as a duration");return;}
     boardTypeBuf="";setBoardTotal(parsed);

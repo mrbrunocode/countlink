@@ -473,6 +473,29 @@ body.viewing .stage-section{padding-top:18px}
    an untouched board scrolls like any other part of the page. */
 .board.settable .field{touch-action:pan-y}
 .board.settable .field:focus-within{touch-action:none}
+/* ---- coarse pointers: real touch targets ----
+   The chevrons are 34x20 and the "+hr" ghost 22px wide, which read fine under
+   a mouse and are both under the 44px WCAG 2.5.5 / platform minimum for a
+   finger. On touch there is no hover either, so these ARE the interaction —
+   a tap reveals them and the next tap has to land.
+
+   The chevrons get a genuinely bigger box (and the sub-line more clearance,
+   on every board rather than only settable ones, so nothing shifts when a
+   countdown starts). The ghost instead keeps its slim visual width and grows
+   an invisible hit area: the tile row is 361px inside a 379px board on a
+   375px screen, so there is no room to make it visually wider. */
+@media (pointer:coarse){
+  .chev{width:48px;height:30px}
+  .chev.up{top:-42px}
+  .chev.down{bottom:-42px}
+  .chev::after{height:18px;left:-8px;right:-8px}
+  .retract{height:30px;bottom:-42px;padding:0 12px}
+  /* `.board .sub`, not `.sub`: the base .sub rule is declared later in this
+     file and a media query adds no specificity, so a bare .sub here loses. */
+  .board .sub{margin-top:48px}
+  .ghost{position:relative}
+  .ghost::after{content:"";position:absolute;top:-6px;bottom:-6px;left:-11px;right:-11px}
+}
 @media (prefers-reduced-motion:reduce){
   .board.settable .field::before,.ghost,.chev{transition:none}
 }
