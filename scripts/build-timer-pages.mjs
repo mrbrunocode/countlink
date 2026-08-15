@@ -1145,8 +1145,16 @@ const pageBySlug = (slug) => PAGES.find((p) => p.slug === slug);
 const articleBySlug = (slug) => ARTICLES.find((a) => a.slug === slug);
 
 // Rendered on a timer page: the guide(s) that cover using this timer well.
+// Cap raised from 2 to 3 on 2026-08-15: at 2, "how-to-run-a-timed-exam" (3rd
+// in GUIDES_FOR_TIMER for both exam-timer and classroom-timer) never got an
+// incoming link from any indexed timer page, and "facilitating-workshops-to-
+// time" only got one (from multiple-timers-at-once). Both are in Search
+// Console's "Discovered – currently not indexed" bucket; concentrating a
+// little more internal-link weight from the indexed timer pages onto them is
+// a cheap, targeted nudge for crawl discovery.
+const RELATED_GUIDES_CAP = 3;
 const relatedGuides = (timerSlug) => {
-  const slugs = (GUIDES_FOR_TIMER[timerSlug] || []).slice(0, 2);
+  const slugs = (GUIDES_FOR_TIMER[timerSlug] || []).slice(0, RELATED_GUIDES_CAP);
   const items = slugs.map(articleBySlug).filter(Boolean);
   if (!items.length) return "";
   return `

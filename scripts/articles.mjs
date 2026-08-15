@@ -171,7 +171,8 @@ export const ARTICLES = [
     <p>That only works if everyone sees the same clock. Rather than each person running their own timer (which drift apart within minutes), one person runs a <a href="/timers/pomodoro-timer">shared 25-minute countdown</a> and shares the link — everyone opens it and sees the identical time remaining down to the second. At zero, start the break timer and share that. It turns a solo discipline into a shared rhythm, which for a lot of people is exactly what makes it stick.</p>
 
     <h2>The takeaway</h2>
-    <p>The Pomodoro Technique works because it makes starting easy, makes focus finite and visible, and builds in the recovery that keeps you going. Do it solo when you need to grind through your own list; do it as a group, on one shared clock, when you want the accountability and rhythm of focusing alongside other people. Either way, the tomato timer is doing something subtle: turning "I should focus" into a concrete 25-minute box you can actually see close.</p>`,
+    <p>The Pomodoro Technique works because it makes starting easy, makes focus finite and visible, and builds in the recovery that keeps you going. Do it solo when you need to grind through your own list; do it as a group, on one shared clock, when you want the accountability and rhythm of focusing alongside other people. Either way, the tomato timer is doing something subtle: turning "I should focus" into a concrete 25-minute box you can actually see close.</p>
+    <p>The same fixed-block instinct shows up outside solo focus work, too — see <a href="/guides/timeboxing-meetings">timeboxing meetings</a> for using a hard countdown to keep meetings from sprawling, and <a href="/guides/running-short-standups">running a short daily standup</a> for the same idea applied to the one meeting most teams already have.</p>`,
   },
   {
     slug: "running-short-standups",
