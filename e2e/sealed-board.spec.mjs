@@ -101,6 +101,21 @@ test.describe("a finished board reopens", () => {
     expect(await boardValue(page)).toBe("01:01");
   });
 
+  test("hitting zero adds a one-time completion flash, in the existing signal colour", async ({ page }) => {
+    // Smoke check for the completion moment (assets/style.css .finish-flash,
+    // assets/app.js flashFinish()) — more deliberate than the final-10-seconds
+    // urgent-final pulse, fired once at the exact zero-crossing. Only checks
+    // that the class appears; the CSS/animation details aren't something a
+    // unit test can see, and this is exactly what the Playwright suite is for
+    // per README § Tests.
+    await page.goto("/timers/classroom-timer");
+    await expect(field(page, "m")).toBeVisible();
+    await preset(page, 1);
+    await typeOnBoard(page, "1");               // 00:01
+    await page.locator("#boardStartBtn").click();
+    await expect(page.locator("#boardEl")).toHaveClass(/finish-flash/, { timeout: 8000 });
+  });
+
   test("the restart button stops promising the old duration once it changes", async ({ page }) => {
     await page.goto("/timers/classroom-timer");
     await expect(field(page, "m")).toBeVisible();

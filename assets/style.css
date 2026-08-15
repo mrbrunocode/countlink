@@ -543,6 +543,23 @@ body.viewing .stage-section{padding-top:18px}
   .board.urgent-final{outline:2px solid var(--signal-deep);outline-offset:3px}
 }
 
+/* ---- Completion flash: one-time, at the exact zero-crossing ----
+   Same rule as urgent-final above — no new colour, an escalation of the one
+   existing signal — but a distinct GESTURE: a single ring expanding out from
+   the board rather than a steady pulse, so the actual instant of completion
+   reads as more deliberate than the final-10-seconds countdown that led up to
+   it. Toggled by app.js (flashFinish()) and removed on its own animationend,
+   so it never lingers into whatever state the board moves to next. */
+.board.finish-flash{animation:finishFlash .9s cubic-bezier(.22,.7,.3,1) 1}
+@keyframes finishFlash{
+  0%{box-shadow:0 0 0 0 color-mix(in oklab,var(--signal-deep) 65%,transparent)}
+  70%{box-shadow:0 0 0 22px color-mix(in oklab,var(--signal-deep) 0%,transparent)}
+  100%{box-shadow:0 0 0 22px color-mix(in oklab,var(--signal-deep) 0%,transparent)}
+}
+@media(prefers-reduced-motion:reduce){
+  .board.finish-flash{animation:none;outline:3px solid var(--signal-deep);outline-offset:6px}
+}
+
 /* Mobile: primary action full-width, secondaries share one compact row —
    a stack of 4+ full-width buttons was most of a screen by itself.
    auto-fit means hidden (display:none) buttons don't leave an empty track

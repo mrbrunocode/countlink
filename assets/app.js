@@ -77,6 +77,10 @@ if (typeof module !== "undefined" && module.exports) {
     totalFromFields: totalFromFields, needsHours: needsHours,
     parseKeypadDigits: parseKeypadDigits, bumpTotal: bumpTotal,
     parsePastedDuration: parsePastedDuration, maxSettable: maxSettable,
+    // standalone offline export + "how this works" panel (see the blocks
+    // right after parsePastedDuration above)
+    buildStandaloneTimerHtml: buildStandaloneTimerHtml, standaloneFilename: standaloneFilename,
+    describeLinkState: describeLinkState,
   };
   return;
 }
@@ -322,6 +326,25 @@ function setUrgent(on){
   if(b)b.classList.toggle("urgent-final",!!on);
 }
 
+/* ---------- completion flash: one-time, at the exact zero-crossing ----------
+   More deliberate than urgent-final's steady pulse above (which keeps firing
+   through the last 10 seconds, unchanged) — a single expanding ring in the
+   same signal colour marks the instant a countdown actually ends. Fired once,
+   from the two `if(!fired)` zero-crossing blocks in draw() (down mode and
+   interval mode), right next to the existing beep(). Removes its own class on
+   animationend rather than a timer, so it can never linger into whatever
+   state the board moves to next; class-then-reflow-then-class handles the
+   (rare but real) back-to-back restart case the same way the flap-flip code
+   above does. */
+function flashFinish(){
+  const b=$("boardEl");
+  if(!b)return;
+  b.classList.remove("finish-flash");
+  void b.offsetWidth;
+  b.classList.add("finish-flash");
+  b.addEventListener("animationend",()=>b.classList.remove("finish-flash"),{once:true});
+}
+
 function setState(s){
   state=s;
   setWakeLockActive(s==="running"||s==="finished");
@@ -361,6 +384,10 @@ function setState(s){
   const live=s==="running"||s==="paused"; // "paused" is still a live, shareable session — see the state-list comment above
   show("boardStartBtn",!live);
   show("shareBtn",live);
+  // Offline export is a down/up-mode thing — see buildStandaloneTimerHtml()
+  // below (standalone offline export block). /timers/ pages don't have a
+  // downloadBtn in their DOM at all, so this is a no-op there either way.
+  show("downloadBtn",live&&(direction==="down"||direction==="up"));
   show("stopBtn",s!=="ready");
   show("syncDot",live);
   const dot=$("syncDot");if(dot)dot.classList.toggle("is-paused",s==="paused");
@@ -1220,6 +1247,100 @@ function parsePastedDuration(txt){
   return null;
 }
 
+/* ================= standalone offline export =================
+   "Download this timer as one HTML file" — not a copy of this app, a
+   separate, minimal, fully self-contained page. The wedge this whole family
+   of features leans into is that the deadline already lives in the URL, not
+   on a server; baking that same timestamp into a tiny file that keeps
+   counting with zero network, forever, is the most literal possible proof of
+   that claim. Pure so the exact markup is testable without a DOM or a real
+   Blob/anchor-click download — the only DOM-wiring is the click handler
+   further down that turns this string into a file. */
+function buildStandaloneTimerHtml(end,label,direction){
+  const dir=direction==="up"?"up":"down"; // interval/days aren't offered a download button (see setState()) — down is the safe fallback if ever called with one
+  const safeLabel=esc(label||"");
+  const titlePrefix=label?esc(label)+" — ":"";
+  const labelBlock=label?`<div class="label">${safeLabel}</div>`:"";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${titlePrefix}Offline countdown</title>
+<style>
+:root{color-scheme:dark light}
+html,body{height:100%;margin:0}
+body{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  min-height:100%;padding:24px;box-sizing:border-box;text-align:center;
+  background:#141412;color:#f3ede2;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+.label{font-size:1.05rem;opacity:.82;max-width:34ch}
+.clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:min(20vw,5.5rem);letter-spacing:.02em}
+.note{font-size:.78rem;opacity:.5;max-width:38ch;line-height:1.5}
+</style>
+</head>
+<body>
+${labelBlock}
+<div class="clock" id="c">--:--</div>
+<p class="note">Offline copy from CountLink. No network connection is used here — this counts against your own device's clock, forever.</p>
+<script>
+(function(){
+  var end=${JSON.stringify(Number(end))};
+  var dir=${JSON.stringify(dir)};
+  var el=document.getElementById("c");
+  function p(n){return (n<10?"0":"")+n}
+  function fmt(ms){
+    var s=Math.max(0,Math.floor(ms/1000));
+    var h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
+    return h>0?(p(h)+":"+p(m)+":"+p(sec)):(p(m)+":"+p(sec));
+  }
+  function tick(){
+    var ms=dir==="up"?(Date.now()-end):(end-Date.now());
+    el.textContent=fmt(ms);
+  }
+  tick();
+  setInterval(tick,250);
+})();
+</script>
+</body>
+</html>
+`;
+}
+/* A filename someone can actually recognise in a downloads folder full of
+   them — the page's own label if it has one, a generic name otherwise.
+   Clamped and slugified defensively: `label` is free-typed text that has
+   never had to be filesystem-safe before this. */
+function standaloneFilename(label){
+  const base=String(label||"").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
+  return (base?"countlink-"+base:"countlink-timer")+".html";
+}
+
+/* ================= "how this works" panel: read-only proof =================
+   Formats the SAME live state draw()/makeLink() already read (end/label/
+   direction) plus the raw hash string — never a value of its own — into the
+   copy the panel shows. Pure so the exact wording is testable without a DOM.
+   The panel this feeds is read-only by construction: it only ever renders
+   this into innerHTML, never wires an input, so it can't become a second way
+   to set the timer (see the "settable when idle, sealed when live" rule
+   enforced elsewhere in this file and in test/settable-board.test.mjs). */
+function describeLinkState(end,label,direction,rawHash){
+  const hasTimer=Number.isFinite(end);
+  const whenText=hasTimer?new Date(end).toLocaleString([],{dateStyle:"medium",timeStyle:"medium"}):null;
+  const modeText=direction==="up"?"Counts up from"
+    :direction==="interval"?"Interval cycle started at"
+    :"Counts down to";
+  return {
+    hasTimer:hasTimer,
+    whenText:whenText,
+    modeText:modeText,
+    label:label||"",
+    rawHash:rawHash||"",
+  };
+}
+
 /* ---------- screen-reader announcements ----------
    The flip tiles are aria-hidden (per-digit divs read as noise); instead a
    polite live region announces at sensible moments only — start, each whole
@@ -1278,7 +1399,7 @@ function draw(){
       $("subLine").innerHTML="<b>All rounds complete.</b> This screen — and every screen with your link — just finished together.";
       $("barFill").style.width="100%";
       if(!fired){
-        fired=true;beep();
+        fired=true;beep();flashFinish();
         /* Nothing left to draw — stop the 250ms loop before flipping state.
            It used to keep running over a finished board, which was harmless
            while the board was a readout and is not now: it repainted 00:00
@@ -1336,7 +1457,7 @@ function draw(){
     $("subLine").innerHTML="<b>Time.</b> This screen — and every screen with your link — just hit zero together.";
     $("barFill").style.width="100%";
     if(!fired){
-      fired=true;beep();
+      fired=true;beep();flashFinish();
       // See the interval branch above: the loop must stop before the board
       // becomes settable again, or it repaints zero over the user's input.
       clearInterval(tick);tick=null;
@@ -1495,6 +1616,20 @@ if($("shareBtn"))$("shareBtn").addEventListener("click",async e=>{
   const done=flashCopyResult($("shareBtn"),"Link copied — send it","Couldn't copy — the link is on the board above");
   done(await copyText(link));
 });
+/* Offline export: thin Blob+object-URL+synthetic-anchor wiring over
+   buildStandaloneTimerHtml() above — that function is the tested part, this
+   is just plumbing a string into a file download, matched to how every other
+   pure/DOM split in this file works. */
+if($("downloadBtn"))$("downloadBtn").addEventListener("click",()=>{
+  if(!end)return;
+  const html=buildStandaloneTimerHtml(end,label,direction);
+  const blob=new Blob([html],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=standaloneFilename(label);
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
 /* QR code: the one on-demand, opt-in feature that calls a third-party API
    (goqr.me) — only fires when the viewer explicitly asks for it, and only
    ever sends the already-public share link, never anything else. */
@@ -1534,6 +1669,22 @@ if($("controlQrBtn"))$("controlQrBtn").addEventListener("click",()=>{
   if(!link)return;
   $("controlQrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(link)}`;
   $("controlQrWrap").style.display="block";lbl.textContent="Hide QR code";
+});
+/* "How this works" panel: read-only, built from describeLinkState() above —
+   never adds an input, so it can't become a back door around "settable when
+   idle, sealed when live". Rendered fresh on every open so a viewer who opens
+   it, waits, and reopens it sees the current label/end, not a stale snapshot. */
+if($("howBtn"))$("howBtn").addEventListener("click",()=>{
+  const showing=$("howWrap").style.display!=="none";
+  if(showing){$("howWrap").style.display="none";$("howBtn").textContent="How this works — inspect this link";return;}
+  const info=describeLinkState(end,label,direction,location.hash.replace(/^#/,""));
+  $("howBody").innerHTML=info.hasTimer
+    ? `<p><b>${esc(info.modeText)}</b> <b>${esc(info.whenText)}</b>${info.label?` — labeled "${esc(info.label)}"`:""}.</p>
+       <p style="margin-top:8px">Raw link hash, decoded straight off the URL above: <code style="word-break:break-all">${esc(info.rawHash)}</code></p>
+       <p style="margin-top:8px">That's the whole mechanism: no account, no server request, no database. Close this tab and reopen the exact same link on a different device and it counts to the identical instant, using nothing but that device's own clock.</p>`
+    : `<p>No timer link is open on this page yet — set one and press start, or open a link someone shared with you, then come back here.</p>
+       <p style="margin-top:8px">Once one is running, this panel decodes it straight off the URL: no account, no server request, no database.</p>`;
+  $("howWrap").style.display="block";$("howBtn").textContent="Hide how this works";
 });
 /* OBS/Twitch pages only: same link, plus ?overlay=1 so whoever pastes it into
    a Browser Source gets the transparent, chrome-stripped view automatically —

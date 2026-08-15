@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/style.css?v=4f9a83b4">
+<link rel="stylesheet" href="/assets/style.css?v=504ba975">
 
 <script type="application/ld+json">
 {
@@ -231,6 +231,7 @@
       <div class="stage-btns">
         <button class="btn primary" id="boardStartBtn">Start countdown</button>
         <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
+        <button class="btn" id="downloadBtn" style="display:none">Download offline copy</button>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
@@ -302,6 +303,15 @@
         <div id="controlQrWrap" style="display:none;margin-top:10px">
           <img id="controlQrImg" width="160" height="160" alt="QR code for the control link" style="background:#fff;padding:8px;border-radius:6px">
         </div>
+      </div>
+      <!-- Read-only proof panel: shows the deadline decoded straight from this
+           page's own URL. describeLinkState()/the click handler in app.js
+           never add a way to EDIT the timer here — only render() reads
+           from it — so it can't become a back door around "settable when
+           idle, sealed when live" (see test/settable-board.test.mjs). -->
+      <button class="btn icon-btn" id="howBtn" style="margin-top:16px">How this works — inspect this link</button>
+      <div id="howWrap" style="display:none;margin-top:10px">
+        <div class="hint" id="howBody"></div>
       </div>
     </div>
   </section>
@@ -411,6 +421,6 @@
 
 <script src="/assets/realtime-config.js" defer></script>
 <script src="/assets/realtime.js" defer></script>
-<script src="/assets/app.js?v=f45530c5" defer></script>
+<script src="/assets/app.js?v=67dfcb78" defer></script>
 </body>
 </html>
