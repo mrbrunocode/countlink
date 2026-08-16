@@ -834,12 +834,29 @@ function dropBoardHours(){
     else if(e.key==="Enter"){e.preventDefault();boardTypeBuf="";startFromForm();}
     else if(e.key==="Home"){e.preventDefault();bumpBoardField(k,-99);}
   });
+  /* Mouse wheel and trackpad scroll both fire as "wheel" events, but a
+     trackpad's two-finger scroll sends many small-delta events per physical
+     gesture rather than one per notch — bumping on every event made a single
+     scroll flip several digits at once, impossible to land on exactly +1.
+     Accumulate delta and only commit a step once it crosses a threshold,
+     mirroring the touch-drag accumulator above. Resets on a new field or
+     after a pause so a fresh gesture doesn't inherit leftover delta. */
+  let wheelKey=null,wheelAcc=0,wheelTimer=null;
+  const WHEEL_STEP=40;
   t.addEventListener("wheel",e=>{
     if(!boardIsSettable())return;
     const fld=e.target.closest(".field");
     if(!fld)return;
     e.preventDefault();
-    bumpBoardField(fld.dataset.k,e.deltaY<0?1:-1);
+    const k=fld.dataset.k;
+    if(wheelKey!==k){wheelKey=k;wheelAcc=0;}
+    wheelAcc+=e.deltaY;
+    clearTimeout(wheelTimer);
+    wheelTimer=setTimeout(()=>{wheelKey=null;wheelAcc=0;},400);
+    while(Math.abs(wheelAcc)>=WHEEL_STEP){
+      bumpBoardField(k,wheelAcc<0?1:-1);
+      wheelAcc+=wheelAcc<0?WHEEL_STEP:-WHEEL_STEP;
+    }
   },{passive:false});
   /* Bound to the DOCUMENT, not to #tiles. A paste over a non-editable element
      is delivered inconsistently across engines — Chrome dispatches it at the
