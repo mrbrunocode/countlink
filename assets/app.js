@@ -839,8 +839,12 @@ function dropBoardHours(){
      gesture rather than one per notch — bumping on every event made a single
      scroll flip several digits at once, impossible to land on exactly +1.
      Accumulate delta and only commit a step once it crosses a threshold,
-     mirroring the touch-drag accumulator above. Resets on a new field or
-     after a pause so a fresh gesture doesn't inherit leftover delta. */
+     mirroring the touch-drag accumulator above. A physical mouse notch
+     reports one large delta (~100-120) in a single event, so a triggered
+     step fully resets the accumulator rather than subtracting one unit of
+     it — otherwise one notch (well over the threshold) would fire several
+     steps at once. Resets on a new field or after a pause so a fresh
+     gesture doesn't inherit leftover delta. */
   let wheelKey=null,wheelAcc=0,wheelTimer=null;
   const WHEEL_STEP=40;
   t.addEventListener("wheel",e=>{
@@ -853,9 +857,9 @@ function dropBoardHours(){
     wheelAcc+=e.deltaY;
     clearTimeout(wheelTimer);
     wheelTimer=setTimeout(()=>{wheelKey=null;wheelAcc=0;},400);
-    while(Math.abs(wheelAcc)>=WHEEL_STEP){
+    if(Math.abs(wheelAcc)>=WHEEL_STEP){
       bumpBoardField(k,wheelAcc<0?1:-1);
-      wheelAcc+=wheelAcc<0?WHEEL_STEP:-WHEEL_STEP;
+      wheelAcc=0;
     }
   },{passive:false});
   /* Bound to the DOCUMENT, not to #tiles. A paste over a non-editable element
