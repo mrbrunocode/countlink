@@ -910,7 +910,17 @@ body.fs .rig{display:block}
 body.fs .rig-main{padding:0}
 body.fs .stage-section{padding:0}
 body.fs{display:grid;place-items:center;min-height:100vh}
-body.fs .board{border:none;border-radius:0;width:100vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center;background:var(--board);--tw:42px;--th:60px;--fs:2.1rem}
+/* No `background` override here on purpose: .board already paints its own
+   background (the dark chassis gradient for Board/Minimal, or its own
+   re-declared --board for .style-light) — this rule used to stomp that with
+   a flat `background:var(--board)`, which reads --board from :root/body
+   scope where it resolves to the LIGHT page ground, not the board's own
+   dark palette. Board/Minimal fullscreen was rendering on a near-white
+   ground instead of the dark chassis: the corner bolts lost their contrast,
+   and Minimal's --paper-text digits (light-on-dark by design) turned near-
+   invisible white-on-white. That's also why the dark "Board" style looked
+   like it forgot its own theme the moment you went fullscreen. */
+body.fs .board{border:none;border-radius:0;width:100vw;min-height:100vh;display:flex;flex-direction:column;justify-content:center;--tw:42px;--th:60px;--fs:2.1rem}
 @media(min-width:420px){body.fs .board{--tw:56px;--th:80px;--fs:2.9rem}}
 @media(min-width:640px){body.fs .board{--tw:70px;--th:100px;--fs:3.6rem}}
 @media(min-width:900px){body.fs .board{--tw:120px;--th:170px;--fs:6.2rem}}
