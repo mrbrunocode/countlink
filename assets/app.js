@@ -66,6 +66,7 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     fmt2: fmt2, charsFor: charsFor, numOr: numOr, validTimestamp: validTimestamp,
     pickMinutes: pickMinutes, modeForHash: modeForHash, intervalPhase: intervalPhase,
+    downUrgency: downUrgency,
     remoteStateAction: remoteStateAction, esc: esc,
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
@@ -232,6 +233,20 @@ function intervalPhase(workSec,restSec,rounds,elapsedMs){
     urgent:phaseTotalMs>URGENT_MIN_PHASE_MS&&phaseLeftMs<=URGENT_MS,
   };
 }
+/* Down-mode's two-stage urgency, as a pure function of time left and the
+   countdown's original total — same reasoning as intervalPhase() above:
+   testable without a clock or a DOM. `final` is the existing last-10-seconds
+   pulse, unchanged. `warn` is a quieter first stage from 60s down to 10s,
+   gated on total>180000 so a short countdown doesn't spend its whole run in
+   "warning" the way an un-gated interval phase used to (see intervalPhase's
+   own comment for that exact failure mode). */
+function downUrgency(leftMs,totalMs){
+  const WARN_MS=60000,FINAL_MS=10000,WARN_MIN_TOTAL_MS=180000;
+  return {
+    final:leftMs<=FINAL_MS,
+    warn:leftMs>FINAL_MS&&leftMs<=WARN_MS&&totalMs>WARN_MIN_TOTAL_MS,
+  };
+}
 function pickMinutes(raw,pageDefault){
   const n=numOr(raw,pageDefault);
   return n>=1?n:1;
@@ -321,9 +336,12 @@ function genSessionId(){
    second colour. Toggled off on every reset path (stop/new timer/restart)
    and the instant a countdown actually hits zero, so it never keeps pulsing
    over a finished board. */
-function setUrgent(on){
+function setUrgent(on,warn){
   const b=$("boardEl");
-  if(b)b.classList.toggle("urgent-final",!!on);
+  if(b){
+    b.classList.toggle("urgent-final",!!on);
+    b.classList.toggle("urgent-warn",!!warn);
+  }
 }
 
 /* ---------- completion flash: one-time, at the exact zero-crossing ----------
@@ -348,7 +366,7 @@ function flashFinish(){
 function setState(s){
   state=s;
   setWakeLockActive(s==="running"||s==="finished");
-  if(s!=="running")setUrgent(false);
+  if(s!=="running")setUrgent(false,false);
   /* Settable when idle, sealed when live. Driven from here so the rule lives
      in exactly one place and can't drift: the moment a countdown starts, the
      board stops accepting input, and a viewer opening a shared link (which
@@ -1499,7 +1517,8 @@ function draw(){
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
   }
   lastSecond=curSecond;
-  setUrgent(left<=10000);
+  const urgency=downUrgency(left,total);
+  setUrgent(urgency.final,urgency.warn);
   announceLeft(left);
   $("subLine").innerHTML=`ends at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";

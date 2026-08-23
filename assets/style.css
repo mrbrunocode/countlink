@@ -543,6 +543,14 @@ body.viewing .stage-section{padding-top:18px}
   .board.urgent-final{outline:2px solid var(--signal-deep);outline-offset:3px}
 }
 
+/* ---- Early wrap-up warning: 60s down to 10s, down-mode only ----
+   A quieter first stage before urgent-final's pulse kicks in — a static
+   hairline in the same signal colour, no animation, so it reads as a heads-up
+   rather than an alarm. Motion-free by construction, so nothing extra is
+   needed under prefers-reduced-motion. app.js's thresholds never set both
+   classes at once, so which rule "wins" doesn't arise in practice. */
+.board.urgent-warn{outline:2px solid var(--signal-deep);outline-offset:3px}
+
 /* ---- Completion flash: one-time, at the exact zero-crossing ----
    Same rule as urgent-final above — no new colour, an escalation of the one
    existing signal — but a distinct GESTURE: a single ring expanding out from
