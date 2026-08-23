@@ -3,6 +3,7 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
 # Embeddable widgets must be framable by other sites — that is the entire
 # point of them. X-Frame-Options above is a blanket DENY and has no
