@@ -432,6 +432,7 @@ function start(ms,lab){
   render();
   connectRealtimeIfNeeded();
   updateControlLinkUI();
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"down",phone_control:!!controlSession});
 }
 function startUp(lab){
   direction="up";
@@ -444,6 +445,7 @@ function startUp(lab){
   saveRecent();
   setState("running");
   render();
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"up",phone_control:false});
 }
 /* Interval mode: `end` is the cycle START instant (like "up"), and every tick
    derives the current phase/round from elapsed time modulo (work+rest) —
@@ -462,6 +464,7 @@ function startInterval(workSec,restSec,rounds,lab){
   saveRecent();
   setState("running");
   render();
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"interval",phone_control:false});
 }
 /* Stop is honest about what it can do: with no server, there is no way to
    halt a countdown on screens that already have the link — the link IS the

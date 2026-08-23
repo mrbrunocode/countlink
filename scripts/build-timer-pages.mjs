@@ -1036,7 +1036,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=93caab57" defer></script>
+<script src="../assets/app.js?v=40d49ed1" defer></script>
 </body>
 </html>
 `; };
