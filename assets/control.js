@@ -105,5 +105,30 @@
     $("ctrlStatus").textContent = "Stop sent.";
   });
 
+  /* Same cap/cleanup rule as app.js's sanitizeFlashText, kept as its own
+     small copy rather than an import — this file deliberately shares no JS
+     with app.js, only the wire protocol (see the top-of-file comment). The
+     board re-sanitizes independently on arrival regardless, so this copy
+     only has to be good enough to keep an obviously-malformed message off
+     the wire in the first place, not to be the sole source of truth. */
+  const FLASH_MAX_LEN = 60;
+  function cleanFlashText(raw) {
+    return String(raw || "").replace(/[\x00-\x1f\x7f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, FLASH_MAX_LEN);
+  }
+  function sendFlash() {
+    const text = cleanFlashText($("flashInput").value);
+    if (!text) return;
+    window.CountlinkRealtime.publishCommand(sessionId, { type: "flash", text });
+    $("flashInput").value = "";
+    $("flashHint").textContent = "Sent.";
+    setTimeout(() => {
+      $("flashHint").textContent = "Blinks briefly on every connected screen, then disappears on its own.";
+    }, 1800);
+  }
+  $("flashSendBtn").addEventListener("click", sendFlash);
+  $("flashInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); sendFlash(); }
+  });
+
   $("ctrlStatus").textContent = "Live";
 })();

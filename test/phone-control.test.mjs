@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, genSessionId, remoteStateAction } = loadDuration();
+const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, genSessionId, remoteStateAction, sanitizeFlashText } = loadDuration();
 
 // ── remoteStateAction ─────────────────────────────────────────────────────
 //
@@ -96,4 +96,49 @@ test("genSessionId produces a short, URL-safe, non-empty id, and doesn't repeat 
   assert.match(a, /^[a-z0-9]+$/);
   assert.ok(a.length >= 6);
   assert.notEqual(a, b);
+});
+
+// ── sanitizeFlashText ──────────────────────────────────────────────────────
+//
+// A flash message is untrusted input the moment it arrives on the board's
+// end of the wire — anyone holding the control link can send arbitrary
+// text, and app.js writes it via textContent (never innerHTML), so the only
+// job left for this function is shape: one line, trimmed, capped.
+
+test("sanitizeFlashText trims surrounding whitespace", () => {
+  assert.equal(sanitizeFlashText("  5 minutes left  "), "5 minutes left");
+});
+
+test("sanitizeFlashText collapses internal runs of whitespace to one space", () => {
+  assert.equal(sanitizeFlashText("5   minutes    left"), "5 minutes left");
+});
+
+test("sanitizeFlashText flattens newlines and tabs into a single line", () => {
+  assert.equal(sanitizeFlashText("line one\nline two\tline three"), "line one line two line three");
+});
+
+test("sanitizeFlashText strips other control characters without leaving gaps", () => {
+  assert.equal(sanitizeFlashText("wrap\x07up\x1btime"), "wrap up time");
+});
+
+test("sanitizeFlashText caps length at 60 characters", () => {
+  const long = "x".repeat(120);
+  const cleaned = sanitizeFlashText(long);
+  assert.equal(cleaned.length, 60);
+  assert.equal(cleaned, "x".repeat(60));
+});
+
+test("sanitizeFlashText treats null/undefined/empty as an empty message", () => {
+  assert.equal(sanitizeFlashText(null), "");
+  assert.equal(sanitizeFlashText(undefined), "");
+  assert.equal(sanitizeFlashText(""), "");
+  assert.equal(sanitizeFlashText("   "), "");
+});
+
+test("sanitizeFlashText does not escape HTML — that's textContent's job at render time, not this function's", () => {
+  // A regression here would mean someone tried to make this function do
+  // esc()'s job too. It shouldn't: app.js renders the result via
+  // el.textContent, never innerHTML, so HTML-escaping the string would only
+  // make literal "&lt;" show up on the board.
+  assert.equal(sanitizeFlashText("<b>5 min</b>"), "<b>5 min</b>");
 });

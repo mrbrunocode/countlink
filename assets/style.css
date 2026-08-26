@@ -568,6 +568,34 @@ body.viewing .stage-section{padding-top:18px}
   .board.finish-flash{animation:none;outline:3px solid var(--signal-deep);outline-offset:6px}
 }
 
+/* ---- Flash message: a phone-controlled banner, not a board state ----
+   Injected by app.js (ensureFlashEl/showFlashMessage) as the first child of
+   #boardEl — never present in markup, so every timer page gets it for free
+   without a template edit. Positioned to sit above the tiles regardless of
+   board size (.board is already position:relative), hidden until .show is
+   added, and self-removing after FLASH_DURATION_MS. Blinks rather than
+   pulsing steadily so it reads as a distinct interruption from the
+   urgent-final pulse above rather than one more variant of it. */
+.flash-msg{
+  position:absolute;left:50%;top:10px;z-index:6;
+  max-width:calc(100% - 28px);
+  transform:translateX(-50%) translateY(-6px);
+  padding:9px 18px;border-radius:3px;
+  background:var(--signal-deep);color:#fff;
+  font:600 .8rem/1.35 var(--sans);text-align:center;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  opacity:0;pointer-events:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+  transition:opacity .2s ease,transform .2s ease;
+}
+@media(min-width:640px){.flash-msg{font-size:.94rem;padding:11px 22px}}
+.flash-msg.show{
+  opacity:1;transform:translateX(-50%) translateY(0);
+  animation:flashBlink 1s step-start infinite;
+}
+@keyframes flashBlink{50%{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.flash-msg.show{animation:none}}
+
 /* Mobile: primary action full-width, secondaries share one compact row —
    a stack of 4+ full-width buttons was most of a screen by itself.
    auto-fit means hidden (display:none) buttons don't leave an empty track

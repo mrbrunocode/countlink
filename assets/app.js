@@ -51,6 +51,15 @@ let boardTotal=null,boardTypeBuf="";
    syncBoardToForm), so "undo my rolling" would have meant "undo nothing". */
 let boardBaseline=null;
 let unsubRealtimeState=null,unsubRealtimeCommands=null,realtimeHeartbeat=null;
+/* Flash messages (see control.html): a one-off text overlay sent from the
+   controller, riding the same "command" channel as pause/adjust/stop rather
+   than new infrastructure. Deliberately NOT part of the persisted `state`
+   broadcast — a late-joining tab has no reason to see a message that already
+   expired on every other screen, so it only ever reaches tabs that were
+   connected at the moment it was sent. flashTimeout is the one in-flight
+   auto-hide timer; a new flash clears and replaces it rather than stacking. */
+const FLASH_MAX_LEN=60,FLASH_DURATION_MS=8000;
+let flashTimeout=null;
 
 // Exposes the pure duration-formatting functions to Node's test runner (see
 // test/duration.test.mjs). Placed here, after every `let`/`const` above is
@@ -67,7 +76,7 @@ if (typeof module !== "undefined" && module.exports) {
     fmt2: fmt2, charsFor: charsFor, numOr: numOr, validTimestamp: validTimestamp,
     pickMinutes: pickMinutes, modeForHash: modeForHash, intervalPhase: intervalPhase,
     downUrgency: downUrgency,
-    remoteStateAction: remoteStateAction, esc: esc,
+    remoteStateAction: remoteStateAction, esc: esc, sanitizeFlashText: sanitizeFlashText,
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
     alarmTones: alarmTones,
@@ -106,6 +115,17 @@ function fmt2(n){return String(n).padStart(2,"0")}
    there's one rule to remember rather than two. */
 function esc(s){
   return String(s==null?"":s).replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* The one rule a flash message's text has to satisfy before it's shown on
+   anyone's screen: no newlines/control characters (a board is one line, not
+   a text box), no leading/trailing padding, and capped at FLASH_MAX_LEN so a
+   long paste can't overflow the banner. Run on both ends of the wire — once
+   in control.js before publishing, and again here before display — so a
+   stray hand-crafted command can't skip the cap either. */
+function sanitizeFlashText(raw){
+  if(raw==null)return "";
+  return String(raw).replace(/[\x00-\x1f\x7f]+/g," ").replace(/\s+/g," ").trim().slice(0,FLASH_MAX_LEN);
 }
 
 /* Copy-to-clipboard, for a site whose single most important interaction is
@@ -560,7 +580,43 @@ function applyRemoteCommand(cmd){
     broadcastState();
   }else if(cmd.type==="stop"&&state!=="ready"){
     stopTimer();
+  }else if(cmd.type==="flash"){
+    // Deliberately unconditioned on `state` — unlike pause/resume/adjust/stop,
+    // a flash message isn't a lifecycle transition, so it can land while the
+    // board is ready, running, paused, or finished and still just show.
+    showFlashMessage(cmd.text);
   }
+}
+/* Renders a flash-message command onto this board. Text arrives over the
+   wire as untrusted input (anyone with the control link can send it), so
+   this re-sanitizes it independently of whatever control.js already did
+   before publishing — a hand-crafted command shouldn't get to skip the
+   length cap or smuggle control characters just because it skipped the UI.
+   Written via textContent below, never innerHTML, so there's no HTML/script
+   injection surface regardless of what sanitizeFlashText allows through. */
+function ensureFlashEl(){
+  const b=$("boardEl");
+  if(!b)return null;
+  let el=document.getElementById("flashMsg");
+  if(!el){
+    el=document.createElement("div");
+    el.id="flashMsg";
+    el.className="flash-msg";
+    el.setAttribute("role","status");
+    el.setAttribute("aria-live","polite");
+    b.insertBefore(el,b.firstChild);
+  }
+  return el;
+}
+function showFlashMessage(text){
+  const clean=sanitizeFlashText(text);
+  const el=ensureFlashEl();
+  if(!el)return;
+  if(flashTimeout){clearTimeout(flashTimeout);flashTimeout=null;}
+  if(!clean){el.classList.remove("show");return;}
+  el.textContent=clean;
+  el.classList.add("show");
+  flashTimeout=setTimeout(()=>{el.classList.remove("show");flashTimeout=null;},FLASH_DURATION_MS);
 }
 /* A hard-sync from another tab's broadcast — used to catch this tab up
    (initial load, or one that missed a live command) rather than to drive

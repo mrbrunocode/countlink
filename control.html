@@ -13,9 +13,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="assets/style.css?v=182590e2" as="style">
-<link rel="stylesheet" href="assets/style.css?v=182590e2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/style.css?v=182590e2"></noscript>
+<link rel="preload" href="assets/style.css?v=429674f2" as="style">
+<link rel="stylesheet" href="assets/style.css?v=429674f2" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=429674f2"></noscript>
 </head>
 <body>
 <header class="chassis">
@@ -36,6 +36,12 @@
         <button class="btn" id="ctrlStopBtn">Stop</button>
       </div>
       <div class="hint" style="margin-top:16px">This updates the countdown on every screen that has it open — the classroom display, and anyone else's copy of the link.</div>
+      <label for="flashInput" style="margin-top:22px">Flash a message</label>
+      <input type="text" id="flashInput" maxlength="60" placeholder="e.g. 5 minutes left">
+      <div class="stage-btns" style="margin-top:10px">
+        <button class="btn primary" id="flashSendBtn">Send</button>
+      </div>
+      <div class="hint" id="flashHint" style="margin-top:8px">Blinks briefly on every connected screen, then disappears on its own.</div>
     </div>
   </section>
 </main>
