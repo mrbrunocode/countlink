@@ -1157,10 +1157,14 @@ const fmtDate = (iso) =>
 
 // Shared shell for the guide index and article pages. `rel` is the asset path
 // prefix ("" for the root-level /guides index, "../" for /guides/<slug>).
-/* noAds omits the AdSense loader (and its overlay guard) entirely. Only the
-   404 page passes it: an error page carries no publisher content, so there is
-   nothing for an ad to sit beside, and leaving the library loaded there just
-   invites auto ads onto an empty screen. Guarded by test/ad-placement.test.mjs. */
+/* noAds omits the AdSense loader. Only the 404 page passes it: an error page
+   carries no publisher content, so there is nothing for an ad to sit beside,
+   and leaving the library loaded there just invites auto ads onto an empty
+   screen. Guarded by test/ad-placement.test.mjs.
+
+   It deliberately does NOT drop the overlay guard, which lives at the top of
+   <head> for every page. That guard is a redirect, not ad code, and an
+   ?overlay=1 request that lands on a 404 should still end up at /embed/. */
 const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks, noAds = false }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
