@@ -1058,7 +1058,7 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-<link rel="apple-touch-icon" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/icons/icon-180.png">
 <link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="${THEME_COLORS[p.theme] || "#1c1c1a"}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1209,7 +1209,7 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
 <link rel="icon" type="image/svg+xml" href="${rel}assets/favicon.svg">
-<link rel="apple-touch-icon" href="${rel}assets/favicon.svg">
+<link rel="apple-touch-icon" href="${rel}assets/icons/icon-180.png">
 <link rel="manifest" href="${rel}manifest.json">
 <meta name="theme-color" content="#1c1c1a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
