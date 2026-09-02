@@ -127,6 +127,72 @@ this is done by token scoping — `:root` aliases the old dark-surface names
 (`--paper-text`, `--panel`, `--board-deep`…) to panel values, and `.board`
 re-declares them dark for its own subtree.
 
+## Ads, and where they are not
+
+One ad unit per page, and it sits **below** the setup panel — never between the
+board and its own controls, which is where it used to sit and what put the
+duration controls 282px below the fold. `test/ad-placement.test.mjs` fails if it
+moves back up, if a second unit appears, or if any ad code returns to `404.html`.
+
+`?overlay=1` screens carry no ad code at all. That took three attempts and is
+worth reading before touching any of it: see `docs/overlay-ads.md`, and note
+that removing the `<ins>` and skipping the `push()` is **not** sufficient on its
+own — the AdSense library injects its own auto-ad `<ins>` afterwards.
+
+## Stopwatch laps
+
+A count-up board grows a **Lap** button and a split list. Laps are recorded on
+the screen that pressed the button and stay there — the link carries one
+instant, and a lap happens after that instant, so there is nothing to encode.
+The page says so rather than implying laps are shared; every other promise this
+site makes about the link is literally true and this one could not be.
+
+Splits are derived from the marks on every read rather than stored, so the list
+cannot disagree with itself. Pure functions (`lapRows`, `fmtLap`,
+`lapExtremes`) are exported and covered by `test/laps.test.mjs`; the click flow
+is covered cross-browser in `e2e/overlay-and-laps.spec.mjs`.
+
+## "Your time"
+
+The board's `ends at` / `started at` line names the reader's own zone, and adds
+a day when the instant is not on their today. The end of a countdown was always
+an absolute instant rendered per-device — this just says so, which is the
+sentence that matters for the webinar, Zoom and study-group pages.
+`localEndLabel` is pure and takes `now` explicitly, so `test/local-time.test.mjs`
+can pin both sides of a midnight boundary without touching the clock.
+
+## The embed builder
+
+The one feature here whose point is off-site. Width, height, board style and
+fixed-vs-fluid, producing a live-updating `<iframe>` snippet — now on the
+homepage too, which previously had no embed feature at all despite being 66% of
+pageviews.
+
+Two things must not drift, both covered by `test/embed-builder.test.mjs`:
+
+- the frame is served from **`/embed/`**, the only path `_headers` exempts from
+  `X-Frame-Options: DENY` (the widget silently failed to load on every
+  third-party site until that was found) and the only copy with no ad or
+  analytics tags;
+- the attribution `<a>` sits **outside** the iframe. A link inside a frame is
+  attributed to the frame's own document, so an iframe alone earns no link
+  back — and referring domains are the single metric that has never moved for
+  this domain.
+
+`?style=` on `/embed/` applies a board style without writing to localStorage:
+the host page picked it, not the reader, and an embedded board must never change
+the style of the full site in the same browser.
+
+## The agenda run of show
+
+`/timers/agenda-timer` renders a printable table of the running order — segment,
+length, and the wall-clock window each one occupies, in the reader's own
+timezone. Derived from the same segment list and the same `boundaries()` the
+timer itself uses, so the sheet and the clock cannot disagree;
+`test/run-sheet.test.mjs` asserts that property directly rather than just
+checking the numbers match. `@media print` drops the builder, nav and ad and
+leaves the table.
+
 ## Tests
 
 Two layers, run separately:

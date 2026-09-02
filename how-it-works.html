@@ -13,9 +13,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -153,6 +153,52 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 
     <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">CountLink's approach</h2>
     <p style="margin-bottom:16px">Instead of a server tracking how much time is left, CountLink calculates the one fact that matters — the exact moment the countdown should hit zero — the instant you press Start, and writes it into the URL as a timestamp. Anyone who opens that link, on any device, reads the same timestamp and subtracts it from their own clock. No round trip to a server is needed, because the link already contains the answer.</p>
+
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 214" role="img" aria-labelledby="figSyncTitle figSyncDesc" style="color:var(--paper-text)">
+        <title id="figSyncTitle">How a CountLink link stays in sync</title>
+        <desc id="figSyncDesc">One browser works out the moment the countdown should hit zero and writes it into the URL. That one URL is opened on a phone, a laptop and a room screen. Each of the three subtracts the same timestamp from its own clock, so all three show the same time remaining, with no server between them.</desc>
+        <g fill="none" stroke="currentColor" stroke-width="1.25">
+          <rect x="8" y="46" width="180" height="74"/>
+          <rect x="408" y="18" width="224" height="46"/>
+          <rect x="408" y="84" width="224" height="46"/>
+          <rect x="408" y="150" width="224" height="46"/>
+        </g>
+        <g font-family="var(--mono,ui-monospace,monospace)" font-size="10" fill="currentColor" opacity="0.6" letter-spacing="0.08em">
+          <text x="8" y="38">YOU PRESS START</text>
+          <text x="408" y="12">ANYONE WHO OPENS THAT LINK</text>
+          <text x="196" y="52">the whole message:</text>
+          <text x="196" y="104">copied, pasted, or scanned</text>
+        </g>
+        <g font-family="var(--mono,ui-monospace,monospace)" font-size="12" fill="currentColor">
+          <text x="22" y="76">zero happens at</text>
+          <text x="22" y="98">17:30:00</text>
+          <text x="422" y="47">phone</text>
+          <text x="422" y="113">laptop</text>
+          <text x="422" y="179">room screen</text>
+          <text x="196" y="70" font-size="11" opacity="0.85">#t=1783378107213</text>
+        </g>
+        <g font-family="var(--mono,ui-monospace,monospace)" font-size="13" fill="var(--signal)">
+          <text x="556" y="47">12:00</text>
+          <text x="556" y="113">12:00</text>
+          <text x="556" y="179">12:00</text>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="1.25">
+          <path d="M188 83 H370"/>
+          <path d="M370 41 V173"/>
+          <path d="M370 41 H408"/>
+          <path d="M370 107 H408"/>
+          <path d="M370 173 H408"/>
+        </g>
+        <g fill="currentColor">
+          <path d="M408 41 l-7 -3.5 v7 z"/>
+          <path d="M408 107 l-7 -3.5 v7 z"/>
+          <path d="M408 173 l-7 -3.5 v7 z"/>
+        </g>
+      </svg>
+      <figcaption>Every screen is doing the same subtraction against the same number — the moment it read out of the link, minus its own clock. Nothing is pushed to them and nothing is held open for them, which is why there is no viewer limit and nothing that can go down mid-countdown.</figcaption>
+    </figure>
 
     <h2 style="font-family:var(--display);font-weight:400;font-size:1.2rem;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 10px;color:var(--paper-text)">Step by step</h2>
     <ol style="margin:0 0 16px 1.2em;line-height:1.9">

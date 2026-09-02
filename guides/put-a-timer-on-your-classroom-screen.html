@@ -3,6 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
 <title>How to put a timer on your classroom screen | CountLink</title>
 <meta name="description" content="Getting a countdown onto the interactive whiteboard, a smart TV, a projector, a Chromebook or an iPad — what actually works on each, and what to do when the screen keeps sleeping.">
 <link rel="canonical" href="https://countlink.app/guides/put-a-timer-on-your-classroom-screen">
@@ -22,9 +50,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="../assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -138,6 +166,22 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <h2>iPads and tablets</h2>
     <p>Open in Safari and use the timer fullscreen. On iPads the thing that bites is auto-lock: the screen dims and sleeps partway through a task, which is maddening when it's the class clock. Two fixes — either add the timer to the home screen so it runs as an installed app, or set Auto-Lock to Never in Display &amp; Brightness for lessons where a tablet is acting as the display. The site also requests a screen wake lock where the browser supports it, which handles this automatically on most modern devices.</p>
 
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <caption>What actually works on each screen, and what bites</caption>
+        <thead>
+          <tr><th scope="col">Screen</th><th scope="col">Best route</th><th scope="col">The thing that catches people out</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Interactive whiteboard</th><td>Open the link in the board's own browser, then fullscreen</td><td>The embedded browser is often several versions old. If it struggles, display from the teaching laptop already connected to it instead.</td></tr>
+          <tr><th scope="row">Smart TV</th><td>The TV's own browser, fullscreen</td><td>Casting a tab means the room loses the timer the moment the laptop sleeps or you switch tabs. Opening it on the TV avoids that entirely.</td></tr>
+          <tr><th scope="row">Projector</th><td>Extend, don't mirror — timer on the projector, your own notes on the laptop</td><td>Mirroring puts everything you do on the wall, including the email you just opened.</td></tr>
+          <tr><th scope="row">Chromebook</th><td>Open the link, press fullscreen</td><td>Managed devices often force sleep on a policy you cannot change from the device; keep it plugged in and see the sleep section below.</td></tr>
+          <tr><th scope="row">iPad or tablet</th><td>Open the link and add it to the home screen</td><td>Auto-lock dims to black mid-lesson. Guided Access or a longer auto-lock is the fix, not tapping the screen every two minutes.</td></tr>
+          <tr><th scope="row">Pupils' own devices</th><td>Share the same link, or show the QR code</td><td>Nothing to install and no account, so this works on whatever they happen to have — and every device lands on the identical second.</td></tr>
+        </tbody>
+      </table>
+    </div>
     <h2>When the screen keeps going to sleep</h2>
     <p>This is the single most common complaint about any web-based classroom timer, and it isn't the timer's fault: operating systems dim and sleep displays to save power, and a page that isn't being touched looks idle to them. Modern browsers expose a wake lock that a page can request to prevent exactly this, which is what this timer does while a countdown is running. Where that isn't supported — older whiteboard browsers, mostly — set the device's own sleep timeout longer for the lesson, or keep the display awake by other means.</p>
     <p>Worth knowing: even if a screen does sleep, nothing is lost. The countdown's end time is fixed in the link rather than tracked by a running process, so waking the screen shows the correct remaining time immediately. It cannot drift or lose its place while the display is off.</p>
@@ -165,7 +209,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
          data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
 </main>
 </div>

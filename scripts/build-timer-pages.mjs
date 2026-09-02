@@ -92,11 +92,19 @@ const CLASSROOM_EXTRA = `
         <div class="obs-extra">
           <h3>What to time, by grade band</h3>
           <p>The right countdown length changes a lot between a first-grader and a senior — a timer that's motivating at one age reads as either patronizing or impossibly long at another.</p>
-          <ol>
-            <li><b>Elementary (K–5):</b> short bursts — 2–5 minutes for a transition between activities, 60 seconds for "clean up your table." Long countdowns lose younger students; several short ones hold attention better than one 20-minute block.</li>
-            <li><b>Middle school (6–8):</b> 10–15 minutes for group work or a worksheet, with the board visible the whole time so students self-pace instead of asking "how much longer" every few minutes.</li>
-            <li><b>High school (9–12):</b> 20–50 minutes for sustained work or a full quiz — the Light board style (below) reads clearly from the back of a large room, and a projected countdown removes the need to interrupt the class with a verbal time check.</li>
-          </ol>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <caption>Countdown lengths that hold attention, by grade band</caption>
+              <thead>
+                <tr><th scope="col">Band</th><th scope="col">Transition</th><th scope="col">Task or group work</th><th scope="col">Why that length</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Elementary (K–5)</th><td class="num">60s</td><td class="num">2–5 min</td><td>Long countdowns lose younger students. Several short ones hold attention better than one twenty-minute block — a minute for "clean up your table" lands where ten would not.</td></tr>
+                <tr><th scope="row">Middle school (6–8)</th><td class="num">2–3 min</td><td class="num">10–15 min</td><td>Long enough to get into a worksheet, short enough that the end stays in sight. Keep the board visible throughout so students self-pace instead of asking how much longer every few minutes.</td></tr>
+                <tr><th scope="row">High school (9–12)</th><td class="num">3–5 min</td><td class="num">20–50 min</td><td>Sustained work or a full quiz. Use the Light board style (below) — it reads from the back of a large room, and a projected countdown removes the need to interrupt the class with a verbal time check.</td></tr>
+              </tbody>
+            </table>
+          </div>
           <p>Whatever the length, the mechanism is the same: project the board at the front, and if students have devices, share the same link — everyone counts down to the identical second, so "how much time is left" stops being a question anyone needs to ask you.</p>
         </div>`;
 
@@ -384,7 +392,10 @@ export function buildEmbedHtml(rootHtml) {
     .replace(/<script>window\.dataLayer[\s\S]*?<\/script>\s*/g, "")
     .replace(/<script async src="https:\/\/pagead2\.googlesyndication\.com[^"]*"[^>]*><\/script>\s*/g, "")
     .replace(/<ins class="adsbygoogle"[\s\S]*?<\/ins>\s*/g, "")
-    .replace(/<script>\(adsbygoogle[\s\S]*?<\/script>\s*/g, "")
+    .replace(/<script>if\(!window\.__CL_OVERLAY\)\(adsbygoogle[\s\S]*?<\/script>\s*/g, "")
+    // The overlay ad-suppression guard that sits just above the loader tag.
+    // /embed/ carries no ad code at all, so the guard has nothing to guard.
+    .replace(/<script>\/\* \?overlay=1 renders[\s\S]*?<\/script>\s*/g, "")
     /* Grow (faves.grow.me). Caught only by loading the deployed /embed/ in a
        real browser and listing document.scripts — it injects its own floating
        share button and a "you might also like" recommendation card, both of
@@ -592,13 +603,22 @@ export const PAGES = [
     extra: ivExtra(30, 15, 10) + `
         <div class="obs-extra">
           <h3>Standard protocols</h3>
-          <p>Set any of these in the work/rest/rounds fields above — the shared-link mechanic is identical whichever you pick.</p>
-          <ul>
-            <li><b>Tabata — 20s work, 10s rest, 8 rounds</b> (about 4 minutes). Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training: short enough to sustain near-maximal effort, with just enough rest to repeat it eight times. Change the 20/10 ratio and it stops being strictly Tabata, but it still works.</li>
-            <li><b>Boxing — 3 min work, 1 min rest, 12 rounds.</b> The standard professional format. Amateur bouts and other combat sports often use shorter rounds — set work to 120 seconds for 2-minute rounds.</li>
-            <li><b>Muay Thai — 3 min work, 2 min rest.</b> Longer rests than boxing; set the round count to however many the bout runs.</li>
-            <li><b>Back-to-back sets — rest 0.</b> Each round runs straight into the next work phase with no pause, for a fixed number of consecutive timed sets.</li>
-          </ul>
+          <p>Set any of these in the work/rest/rounds fields above — the shared-link mechanic is identical whichever you pick. The numbers are the whole difference between them, so here they are as numbers.</p>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <caption>Work / rest / rounds for the common protocols</caption>
+              <thead>
+                <tr><th scope="col">Protocol</th><th scope="col">Work</th><th scope="col">Rest</th><th scope="col">Rounds</th><th scope="col">Total</th><th scope="col">Notes</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Tabata</th><td class="num">20s</td><td class="num">10s</td><td class="num">8</td><td class="num">4:00</td><td>Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training — short enough to sustain near-maximal effort, with just enough rest to repeat it eight times. Change the 20/10 ratio and it stops being strictly Tabata, but it still works.</td></tr>
+                <tr><th scope="row">Boxing (professional)</th><td class="num">3 min</td><td class="num">1 min</td><td class="num">12</td><td class="num">48:00</td><td>The standard professional format.</td></tr>
+                <tr><th scope="row">Boxing (amateur)</th><td class="num">2 min</td><td class="num">1 min</td><td class="num">3–4</td><td class="num">8:00–12:00</td><td>Amateur bouts and several other combat sports use the shorter round.</td></tr>
+                <tr><th scope="row">Muay Thai</th><td class="num">3 min</td><td class="num">2 min</td><td class="num">3–5</td><td class="num">14:00–24:00</td><td>Longer rests than boxing; set the round count to however many the bout runs.</td></tr>
+                <tr><th scope="row">Back-to-back sets</th><td class="num">any</td><td class="num">0s</td><td class="num">any</td><td class="num">—</td><td>Each round runs straight into the next work phase with no pause, for a fixed number of consecutive timed sets.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>`,
     faq: [
       { q: "Can I run a classic Tabata on this?", a: "Yes — set work to 20 seconds, rest to 10, and rounds to 8. That's Dr. Izumi Tabata's original protocol from a 1996 study on high-intensity interval training, and it comes to about four minutes total." },
@@ -786,7 +806,7 @@ const multiDashboardSection = `
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
          data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
 
 // Agenda timer: an ORDERED sequence of named segments that auto-advances —
@@ -825,6 +845,24 @@ const agendaDashboardSection = `
         </div>
         <div class="sync-note"><span class="dot" id="agendaSyncDot"></span><span id="agendaSyncMsg">Anyone opening this link sees the identical agenda, in sync.</span></div>
       </div>
+      <!-- The run of show. Rendered from the same segment list that drives the
+           timer, so the sheet and the clock can never disagree. Printing is
+           the point: @media print in style.css drops the builder, the nav and
+           the ad and leaves this table on the page. -->
+      <div class="runsheet" id="runSheet" style="display:none">
+        <div class="lap-head">
+          <h2>Run of show</h2>
+          <button type="button" class="pro-link" id="runSheetPrint">Print this sheet</button>
+        </div>
+        <table>
+          <caption id="runSheetTotal"></caption>
+          <thead>
+            <tr><th scope="col">#</th><th scope="col">Segment</th><th scope="col">Length</th><th scope="col">Starts</th><th scope="col">Ends</th></tr>
+          </thead>
+          <tbody id="runSheetBody"></tbody>
+        </table>
+        <div class="hint">Times are shown in your own timezone, worked out from the agenda's start instant — send the link and each person reads the sheet in their own local time.</div>
+      </div>
     </div>
   </section>
 
@@ -832,7 +870,7 @@ const agendaDashboardSection = `
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
          data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
 
 const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : p.agendaTimer ? agendaDashboardSection : `
@@ -853,6 +891,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="btn primary" id="boardStartBtn">Start countdown</button>
         <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
+        <button class="btn" id="lapBtn" style="display:none">Lap</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
         <label class="alarm-tone-picker" for="alarmToneSelect">
@@ -866,14 +905,18 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
       </div>
       <div class="sync-note"><span class="dot" id="syncDot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
+  
+    <!-- Laps are recorded on THIS screen only — see the "stopwatch laps" block
+         in assets/app.js for why they can't be part of the shared link. -->
+    <div class="lap-panel" id="lapPanel" style="display:none">
+      <div class="lap-head">
+        <h2>Laps</h2>
+        <button type="button" class="pro-link" id="lapClearBtn">Clear laps</button>
+      </div>
+      <ol class="lap-list" id="lapList"></ol>
+      <div class="hint">Recorded on this screen only. The shared link carries the start instant, so everyone's clock matches — but a lap is pressed after that instant, so there is nothing in the link to carry it.</div>
+    </div>
   </section>
-
-  <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block;min-height:90px"
-         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
-         data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
-  </div>
 
   <section class="setup-section">
     <div class="panel">
@@ -919,12 +962,48 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
       </div>
       <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
       <div id="embedWrap" style="display:none;margin-top:10px">
-        <textarea id="embedCode" readonly rows="3" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
+        <div class="embed-builder">
+          <div class="stack2">
+            <div>
+              <label for="embedW">Width (px)</label>
+              <input id="embedW" type="number" min="160" max="1600" step="10" value="400">
+            </div>
+            <div>
+              <label for="embedH">Height (px)</label>
+              <input id="embedH" type="number" min="80" max="900" step="10" value="160">
+            </div>
+          </div>
+          <label for="embedStyle">Board style</label>
+          <select id="embedStyle">
+            <option value="board">Board — dark split-flap</option>
+            <option value="minimal">Minimal — plain digits</option>
+            <option value="light">Light — dark-on-white</option>
+          </select>
+          <label class="check" style="margin-top:12px">
+            <input type="checkbox" id="embedResponsive" checked>
+            <span>Scale to fit the column it sits in</span>
+          </label>
+        </div>
+        <textarea id="embedCode" readonly rows="5" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical;margin-top:10px"></textarea>
         <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
-        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same code streamers use for an OBS overlay works as a plain &lt;iframe&gt; on any page.</div>
+        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same widget streamers use as an OBS overlay works as a plain &lt;iframe&gt; on any page. It loads no ads, no analytics and no third-party scripts onto your site.</div>
       </div>
     </div>
   </section>
+
+  <!-- The ad sits BELOW the setup panel, never between the board and its own
+       controls. It used to sit directly under the board, which put ~90px of
+       ad between the countdown and the "Change the countdown" panel — the one
+       thing a visitor reaches for next. That is both a usability problem (it
+       is what pushed the duration controls 282px below the fold, the finding
+       that drove the settable board) and the placement AdSense treats as
+       interfering with content. Guarded by test/ad-placement.test.mjs. -->
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
 
   <!-- Rendered from localStorage by app.js; hidden until at least one timer
        has been started or opened in this browser. -->
@@ -941,6 +1020,34 @@ return `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
 <title>${p.h1} | ${BRAND}</title>
 <meta name="description" content="${p.meta}">
 <link rel="canonical" href="${SITE_URL}${hrefFor(p.slug)}">
@@ -959,9 +1066,9 @@ return `<!DOCTYPE html>
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="../assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1036,7 +1143,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=2b6d7438" defer></script>
+<script src="../assets/app.js?v=62749e52" defer></script>
 </body>
 </html>
 `; };
@@ -1050,11 +1157,43 @@ const fmtDate = (iso) =>
 
 // Shared shell for the guide index and article pages. `rel` is the asset path
 // prefix ("" for the root-level /guides index, "../" for /guides/<slug>).
-const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks }) => `<!DOCTYPE html>
+/* noAds omits the AdSense loader (and its overlay guard) entirely. Only the
+   404 page passes it: an error page carries no publisher content, so there is
+   nothing for an ad to sit beside, and leaving the library loaded there just
+   invites auto ads onto an empty screen. Guarded by test/ad-placement.test.mjs. */
+const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks, noAds = false }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
 <title>${title} | ${NAME}</title>
 <meta name="description" content="${description}">
 <link rel="canonical" href="${SITE_URL}${canonicalPath}">
@@ -1074,14 +1213,14 @@ const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", m
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 ${headJsonLd}
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+${noAds ? "" : `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>`}
 ${growScript()}
 </head>
 <body>
@@ -1227,7 +1366,7 @@ const guidePage = (a) => {
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
          data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>`;
   return guideShell({ rel: "../", title: a.title, description: a.description, canonicalPath: `/guides/${a.slug}`, headJsonLd: jsonLd, main, footLinks: timersForGuide(a.slug) });
 };
@@ -1273,6 +1412,7 @@ const notFoundPage = () => guideShell({
   description: "That page doesn't exist. Browse the timers or start a new countdown.",
   canonicalPath: "/404",
   headJsonLd: `<meta name="robots" content="noindex">`,
+  noAds: true,
   main: `
 <article class="article">
   <h1>Page not found</h1>

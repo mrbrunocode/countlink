@@ -3,6 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
 <title>The Pomodoro Technique, explained — solo and as a group | CountLink</title>
 <meta name="description" content="The Pomodoro Technique in practice: why 25-minute focus blocks work, how to run them, common mistakes, and how to keep a whole study group or team in sync.">
 <link rel="canonical" href="https://countlink.app/guides/the-pomodoro-technique">
@@ -22,9 +50,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="../assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -129,6 +157,25 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <li>Every fourth cycle, take a longer break.</li>
     </ol>
 
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <caption>One full pomodoro set, start to finish</caption>
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Phase</th><th scope="col">Length</th><th scope="col">Running total</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Focus</td><td class="num">25 min</td><td class="num">0:25</td></tr>
+          <tr><td class="num">2</td><td>Short break</td><td class="num">5 min</td><td class="num">0:30</td></tr>
+          <tr><td class="num">3</td><td>Focus</td><td class="num">25 min</td><td class="num">0:55</td></tr>
+          <tr><td class="num">4</td><td>Short break</td><td class="num">5 min</td><td class="num">1:00</td></tr>
+          <tr><td class="num">5</td><td>Focus</td><td class="num">25 min</td><td class="num">1:25</td></tr>
+          <tr><td class="num">6</td><td>Short break</td><td class="num">5 min</td><td class="num">1:30</td></tr>
+          <tr><td class="num">7</td><td>Focus</td><td class="num">25 min</td><td class="num">1:55</td></tr>
+          <tr><td class="num">8</td><td>Long break</td><td class="num">15–30 min</td><td class="num">2:10–2:25</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Two hours and change for four pomodoros is the number worth internalising, because it is the one that makes the technique plannable: an afternoon holds two sets, not five, and a day that needs six sets is a day that was never going to work.</p>
     <h2>Why 25 minutes works</h2>
     <p>The length isn't arbitrary. Twenty-five minutes is long enough to make real progress but short enough that starting doesn't feel like a commitment — which is the whole battle, because the hardest part of focused work is usually beginning. "I'll work for 25 minutes" is a much easier promise to make yourself than "I'll work on this until it's done." The fixed end also creates a mild, useful urgency: a deadline you can see tends to pull attention forward and keep it from wandering. And the enforced breaks matter as much as the focus blocks — they're what make the method sustainable across a whole day instead of burning you out by lunch.</p>
 
@@ -158,7 +205,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <ins class="adsbygoogle" style="display:block;min-height:90px"
          data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
          data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
 </main>
 </div>

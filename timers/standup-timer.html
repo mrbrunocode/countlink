@@ -3,6 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
 <title>Standup Timer — Keep Daily Standups Short | CountLink</title>
 <meta name="description" content="A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.">
 <link rel="canonical" href="https://countlink.app/timers/standup-timer">
@@ -21,9 +49,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="../assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=b187c34e"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -138,6 +166,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
         <button class="btn primary" id="boardStartBtn">Start countdown</button>
         <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
+        <button class="btn" id="lapBtn" style="display:none">Lap</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
         <label class="alarm-tone-picker" for="alarmToneSelect">
@@ -151,14 +180,18 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       </div>
       <div class="sync-note"><span class="dot" id="syncDot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
+  
+    <!-- Laps are recorded on THIS screen only — see the "stopwatch laps" block
+         in assets/app.js for why they can't be part of the shared link. -->
+    <div class="lap-panel" id="lapPanel" style="display:none">
+      <div class="lap-head">
+        <h2>Laps</h2>
+        <button type="button" class="pro-link" id="lapClearBtn">Clear laps</button>
+      </div>
+      <ol class="lap-list" id="lapList"></ol>
+      <div class="hint">Recorded on this screen only. The shared link carries the start instant, so everyone's clock matches — but a lap is pressed after that instant, so there is nothing in the link to carry it.</div>
+    </div>
   </section>
-
-  <div class="ad-slot">
-    <ins class="adsbygoogle" style="display:block;min-height:90px"
-         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
-         data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
-  </div>
 
   <section class="setup-section">
     <div class="panel">
@@ -204,12 +237,48 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       </div>
       <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
       <div id="embedWrap" style="display:none;margin-top:10px">
-        <textarea id="embedCode" readonly rows="3" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical"></textarea>
+        <div class="embed-builder">
+          <div class="stack2">
+            <div>
+              <label for="embedW">Width (px)</label>
+              <input id="embedW" type="number" min="160" max="1600" step="10" value="400">
+            </div>
+            <div>
+              <label for="embedH">Height (px)</label>
+              <input id="embedH" type="number" min="80" max="900" step="10" value="160">
+            </div>
+          </div>
+          <label for="embedStyle">Board style</label>
+          <select id="embedStyle">
+            <option value="board">Board — dark split-flap</option>
+            <option value="minimal">Minimal — plain digits</option>
+            <option value="light">Light — dark-on-white</option>
+          </select>
+          <label class="check" style="margin-top:12px">
+            <input type="checkbox" id="embedResponsive" checked>
+            <span>Scale to fit the column it sits in</span>
+          </label>
+        </div>
+        <textarea id="embedCode" readonly rows="5" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical;margin-top:10px"></textarea>
         <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
-        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same code streamers use for an OBS overlay works as a plain &lt;iframe&gt; on any page.</div>
+        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same widget streamers use as an OBS overlay works as a plain &lt;iframe&gt; on any page. It loads no ads, no analytics and no third-party scripts onto your site.</div>
       </div>
     </div>
   </section>
+
+  <!-- The ad sits BELOW the setup panel, never between the board and its own
+       controls. It used to sit directly under the board, which put ~90px of
+       ad between the countdown and the "Change the countdown" panel — the one
+       thing a visitor reaches for next. That is both a usability problem (it
+       is what pushed the duration controls 282px below the fold, the finding
+       that drove the settable board) and the placement AdSense treats as
+       interfering with content. Guarded by test/ad-placement.test.mjs. -->
+  <div class="ad-slot">
+    <ins class="adsbygoogle" style="display:block;min-height:90px"
+         data-ad-client="ca-pub-2653891546345771" data-ad-slot="9745719960"
+         data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>if(!window.__CL_OVERLAY)(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+  </div>
 
   <!-- Rendered from localStorage by app.js; hidden until at least one timer
        has been started or opened in this browser. -->
@@ -276,6 +345,6 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 </footer>
 
 <script>window.COUNTLINK_DEFAULT={"minutes":10,"label":"Standup over"};</script>
-<script src="../assets/app.js?v=2b6d7438" defer></script>
+<script src="../assets/app.js?v=62749e52" defer></script>
 </body>
 </html>

@@ -1023,10 +1023,65 @@ body.overlay-mode .tiles{gap:8px}
   .idx-in{columns:1}
 }
 
+/* ---------- stopwatch laps ----------
+   Sits on the panel ground, below the board, not inside it: the board is the
+   instrument and stays uncluttered. Rows are a fixed three-track grid so the
+   times line up as a column you can read down. */
+.lap-panel{margin-top:18px;border-top:1px solid var(--panel-line);padding-top:14px}
+.lap-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.lap-head h2{font-size:1rem;margin:0}
+.lap-list{list-style:none;margin:10px 0;padding:0;max-height:280px;overflow-y:auto}
+.lap-row{display:grid;grid-template-columns:2.5rem 1fr auto;gap:12px;align-items:baseline;
+  padding:6px 0;border-bottom:1px solid var(--panel-line);font-variant-numeric:tabular-nums}
+.lap-n{font-family:var(--mono,ui-monospace,monospace);font-size:.75rem;opacity:.6}
+.lap-split{font-family:var(--mono,ui-monospace,monospace);font-size:.95rem}
+.lap-total{font-family:var(--mono,ui-monospace,monospace);font-size:.8rem;opacity:.6}
+.lap-tag{margin-left:8px;font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;
+  padding:1px 5px;border:1px solid currentColor}
+.lap-fast{color:var(--signal,#c0392b)}
+.lap-slow{opacity:.55}
+
+/* ---------- embed builder ----------
+   Field rows for the width/height/style controls. Reuses .stack2 for the
+   number pair; this only has to style the wrapper and the select. */
+.embed-builder{border:1px solid var(--panel-line);padding:14px;margin-bottom:4px}
+.embed-builder select{width:100%;padding:8px;font:inherit;font-size:.9rem;
+  border:1px solid var(--panel-line);background:var(--panel,#fff);color:inherit;border-radius:0}
+
+/* ---------- run-of-show (agenda print sheet) ---------- */
+.runsheet{margin-top:18px;border-top:1px solid var(--panel-line);padding-top:14px}
+.runsheet table{width:100%;border-collapse:collapse;font-size:.9rem}
+.runsheet th,.runsheet td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--panel-line)}
+.runsheet th{font-family:var(--mono,ui-monospace,monospace);font-size:.7rem;
+  text-transform:uppercase;letter-spacing:.08em;opacity:.7}
+.runsheet td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- content tables (guides + timer pages) ----------
+   Real tables, not prose lists pretending to be comparisons. Scrolls inside
+   its own box on narrow screens so the page body never scrolls sideways. */
+.data-table-wrap{overflow-x:auto;margin:18px 0}
+.data-table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:420px}
+.data-table caption{text-align:left;font-family:var(--mono,ui-monospace,monospace);
+  font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;opacity:.7;padding-bottom:8px}
+.data-table th,.data-table td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--panel-line);vertical-align:top}
+.data-table thead th{border-bottom:2px solid var(--panel-line);white-space:nowrap}
+.data-table td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- figures ----------
+   Diagrams are inline SVG so they inherit the page's ink and need no request. */
+.fig{margin:22px 0;border:1px solid var(--panel-line);padding:16px}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{margin-top:10px;font-size:.82rem;opacity:.75}
+
 /* Print: the board is the only thing worth putting on paper. */
 @media print{
   .rig-index,.chassis-nav,.chassis-spec,.ad-slot,.affiliate-card,
-  .skip-link,.style-toggle,.stage-btns{display:none!important}
+  .skip-link,.style-toggle,.stage-btns,.agenda-builder,.embed-builder,
+  #embedWrap,#qrWrap,.lap-head button{display:none!important}
+  /* …and the agenda run sheet, which exists to be printed and handed out. */
+  .runsheet{border:0;padding:0}
+  .runsheet table{page-break-inside:auto}
+  .runsheet tr{page-break-inside:avoid}
   .rig{display:block}
   .rig-main{padding:0}
   .board{background:#fff!important;border:1px solid #000}

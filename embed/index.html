@@ -22,9 +22,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="/assets/style.css?v=429674f2" as="style">
-<link rel="stylesheet" href="/assets/style.css?v=429674f2" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/assets/style.css?v=429674f2"></noscript>
+<link rel="preload" href="/assets/style.css?v=b187c34e" as="style">
+<link rel="stylesheet" href="/assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/assets/style.css?v=b187c34e"></noscript>
 
 <script type="application/ld+json">
 {
@@ -237,15 +237,24 @@
         <button class="btn primary" id="shareBtn" style="display:none">Copy sync link</button>
         <button class="btn" id="downloadBtn" style="display:none">Download offline copy</button>
         <button class="btn" id="stopBtn" style="display:none">Stop</button>
+        <button class="btn" id="lapBtn" style="display:none">Lap</button>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
       </div>
       <div class="sync-note"><span class="dot" id="syncDot"></span><span id="syncMsg">Anyone opening your link right now sees exactly this.</span></div>
     </div>
-  </section>
-
-  <div class="ad-slot">
+  
+    <!-- Laps are recorded on THIS screen only — see the "stopwatch laps" block
+         in assets/app.js for why they can't be part of the shared link. -->
+    <div class="lap-panel" id="lapPanel" style="display:none">
+      <div class="lap-head">
+        <h2>Laps</h2>
+        <button type="button" class="pro-link" id="lapClearBtn">Clear laps</button>
+      </div>
+      <ol class="lap-list" id="lapList"></ol>
+      <div class="hint">Recorded on this screen only. The shared link carries the start instant, so everyone's clock matches — but a lap is pressed after that instant, so there is nothing in the link to carry it.</div>
     </div>
+  </section>
 
   <!-- ============ SETUP ============ -->
   <section class="setup-section">
@@ -298,6 +307,34 @@
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
       </div>
+      <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
+      <div id="embedWrap" style="display:none;margin-top:10px">
+        <div class="embed-builder">
+          <div class="stack2">
+            <div>
+              <label for="embedW">Width (px)</label>
+              <input id="embedW" type="number" min="160" max="1600" step="10" value="400">
+            </div>
+            <div>
+              <label for="embedH">Height (px)</label>
+              <input id="embedH" type="number" min="80" max="900" step="10" value="160">
+            </div>
+          </div>
+          <label for="embedStyle">Board style</label>
+          <select id="embedStyle">
+            <option value="board">Board — dark split-flap</option>
+            <option value="minimal">Minimal — plain digits</option>
+            <option value="light">Light — dark-on-white</option>
+          </select>
+          <label class="check" style="margin-top:12px">
+            <input type="checkbox" id="embedResponsive" checked>
+            <span>Scale to fit the column it sits in</span>
+          </label>
+        </div>
+        <textarea id="embedCode" readonly rows="5" aria-label="Embed code for this countdown" style="width:100%;font-family:monospace;font-size:13px;resize:vertical;margin-top:10px"></textarea>
+        <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
+        <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same widget streamers use as an OBS overlay works as a plain &lt;iframe&gt; on any page. It loads no ads, no analytics and no third-party scripts onto your site.</div>
+      </div>
       <!-- updateControlLinkUI() in app.js toggles this — only visible once a
            countdown with phone control actually has a live session. -->
       <div id="controlLinkWrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--panel-line)">
@@ -319,6 +356,16 @@
       </div>
     </div>
   </section>
+
+  <!-- The ad sits BELOW the setup panel, never between the board and its own
+       controls. It used to sit directly under the board, which put ~90px of
+       ad between the countdown and the panel a visitor reaches for next —
+       both a usability problem (it is what pushed the duration controls 282px
+       below the fold, the finding that drove the settable board) and the
+       placement AdSense treats as interfering with content.
+       Guarded by test/ad-placement.test.mjs. -->
+  <div class="ad-slot">
+    </div>
 
   <!-- Rendered from localStorage by app.js; hidden until at least one timer
        has been started or opened in this browser. -->
@@ -425,6 +472,6 @@
 
 <script src="/assets/realtime-config.js" defer></script>
 <script src="/assets/realtime.js" defer></script>
-<script src="/assets/app.js?v=2b6d7438" defer></script>
+<script src="/assets/app.js?v=62749e52" defer></script>
 </body>
 </html>

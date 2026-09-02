@@ -46,6 +46,22 @@ export const ARTICLES = [
     <h2>iPads and tablets</h2>
     <p>Open in Safari and use the timer fullscreen. On iPads the thing that bites is auto-lock: the screen dims and sleeps partway through a task, which is maddening when it's the class clock. Two fixes — either add the timer to the home screen so it runs as an installed app, or set Auto-Lock to Never in Display &amp; Brightness for lessons where a tablet is acting as the display. The site also requests a screen wake lock where the browser supports it, which handles this automatically on most modern devices.</p>
 
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <caption>What actually works on each screen, and what bites</caption>
+        <thead>
+          <tr><th scope="col">Screen</th><th scope="col">Best route</th><th scope="col">The thing that catches people out</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Interactive whiteboard</th><td>Open the link in the board's own browser, then fullscreen</td><td>The embedded browser is often several versions old. If it struggles, display from the teaching laptop already connected to it instead.</td></tr>
+          <tr><th scope="row">Smart TV</th><td>The TV's own browser, fullscreen</td><td>Casting a tab means the room loses the timer the moment the laptop sleeps or you switch tabs. Opening it on the TV avoids that entirely.</td></tr>
+          <tr><th scope="row">Projector</th><td>Extend, don't mirror — timer on the projector, your own notes on the laptop</td><td>Mirroring puts everything you do on the wall, including the email you just opened.</td></tr>
+          <tr><th scope="row">Chromebook</th><td>Open the link, press fullscreen</td><td>Managed devices often force sleep on a policy you cannot change from the device; keep it plugged in and see the sleep section below.</td></tr>
+          <tr><th scope="row">iPad or tablet</th><td>Open the link and add it to the home screen</td><td>Auto-lock dims to black mid-lesson. Guided Access or a longer auto-lock is the fix, not tapping the screen every two minutes.</td></tr>
+          <tr><th scope="row">Pupils' own devices</th><td>Share the same link, or show the QR code</td><td>Nothing to install and no account, so this works on whatever they happen to have — and every device lands on the identical second.</td></tr>
+        </tbody>
+      </table>
+    </div>
     <h2>When the screen keeps going to sleep</h2>
     <p>This is the single most common complaint about any web-based classroom timer, and it isn't the timer's fault: operating systems dim and sleep displays to save power, and a page that isn't being touched looks idle to them. Modern browsers expose a wake lock that a page can request to prevent exactly this, which is what this timer does while a countdown is running. Where that isn't supported — older whiteboard browsers, mostly — set the device's own sleep timeout longer for the lesson, or keep the display awake by other means.</p>
     <p>Worth knowing: even if a screen does sleep, nothing is lost. The countdown's end time is fixed in the link rather than tracked by a running process, so waking the screen shows the correct remaining time immediately. It cannot drift or lose its place while the display is off.</p>
@@ -155,6 +171,25 @@ export const ARTICLES = [
       <li>Every fourth cycle, take a longer break.</li>
     </ol>
 
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <caption>One full pomodoro set, start to finish</caption>
+        <thead>
+          <tr><th scope="col">#</th><th scope="col">Phase</th><th scope="col">Length</th><th scope="col">Running total</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Focus</td><td class="num">25 min</td><td class="num">0:25</td></tr>
+          <tr><td class="num">2</td><td>Short break</td><td class="num">5 min</td><td class="num">0:30</td></tr>
+          <tr><td class="num">3</td><td>Focus</td><td class="num">25 min</td><td class="num">0:55</td></tr>
+          <tr><td class="num">4</td><td>Short break</td><td class="num">5 min</td><td class="num">1:00</td></tr>
+          <tr><td class="num">5</td><td>Focus</td><td class="num">25 min</td><td class="num">1:25</td></tr>
+          <tr><td class="num">6</td><td>Short break</td><td class="num">5 min</td><td class="num">1:30</td></tr>
+          <tr><td class="num">7</td><td>Focus</td><td class="num">25 min</td><td class="num">1:55</td></tr>
+          <tr><td class="num">8</td><td>Long break</td><td class="num">15–30 min</td><td class="num">2:10–2:25</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Two hours and change for four pomodoros is the number worth internalising, because it is the one that makes the technique plannable: an afternoon holds two sets, not five, and a day that needs six sets is a day that was never going to work.</p>
     <h2>Why 25 minutes works</h2>
     <p>The length isn't arbitrary. Twenty-five minutes is long enough to make real progress but short enough that starting doesn't feel like a commitment — which is the whole battle, because the hardest part of focused work is usually beginning. "I'll work for 25 minutes" is a much easier promise to make yourself than "I'll work on this until it's done." The fixed end also creates a mild, useful urgency: a deadline you can see tends to pull attention forward and keep it from wandering. And the enforced breaks matter as much as the focus blocks — they're what make the method sustainable across a whole day instead of burning you out by lunch.</p>
 

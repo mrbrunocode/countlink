@@ -14,6 +14,7 @@ let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up) | "inter
                       // the other way; "interval" additionally derives which phase/round is
                       // current from elapsed time, rather than counting to one fixed deadline.
 let ivWork=20,ivRest=10,ivRounds=8; // interval mode: work/rest seconds per round, total rounds
+let lapMarks=[];      // stopwatch laps: elapsed-ms marks, this screen only (see "stopwatch laps")
 /* Which work/rest phase draw() last rendered, as "<round><w|r>" — the only
    thing that tells a 250ms frame it has crossed a round boundary and owes a
    beep. null means "nothing rendered yet", which suppresses the cue on the
@@ -75,9 +76,12 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     fmt2: fmt2, charsFor: charsFor, numOr: numOr, validTimestamp: validTimestamp,
     pickMinutes: pickMinutes, modeForHash: modeForHash, intervalPhase: intervalPhase,
+    lapRows: lapRows, fmtLap: fmtLap, lapExtremes: lapExtremes,
+    localEndLabel: localEndLabel, zoneAbbrev: zoneAbbrev,
     downUrgency: downUrgency,
     remoteStateAction: remoteStateAction, esc: esc, sanitizeFlashText: sanitizeFlashText,
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
+    runSheetRows: runSheetRows,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
     alarmTones: alarmTones,
     clampAdjustedEnd: clampAdjustedEnd, clampAdjustedRemaining: clampAdjustedRemaining,
@@ -426,6 +430,10 @@ function setState(s){
   // below (standalone offline export block). /timers/ pages don't have a
   // downloadBtn in their DOM at all, so this is a no-op there either way.
   show("downloadBtn",live&&(direction==="down"||direction==="up"));
+  // Laps belong to the shared stopwatch and nothing else — a countdown has no
+  // splits to take. Kept alongside the other show() calls so the visibility
+  // rules for every stage button live in one place.
+  show("lapBtn",direction==="up"&&s==="running");
   show("stopBtn",s!=="ready");
   show("syncDot",live);
   const dot=$("syncDot");if(dot)dot.classList.toggle("is-paused",s==="paused");
@@ -452,6 +460,7 @@ function setState(s){
 function start(ms,lab){
   direction="down";
   end=Date.now()+ms;label=lab;fired=false;total=ms;prevValues=null;
+  resetLaps(); // a new run always starts with an empty split list
   /* Tile layout (how many digit tiles are on screen) is fixed once, from the
      STARTING duration — not recomputed each tick. Otherwise an hour+ countdown
      would silently drop from 6 tiles to 4 the moment it crosses under 60
@@ -475,6 +484,7 @@ function start(ms,lab){
 function startUp(lab){
   direction="up";
   end=Date.now();label=lab;fired=false;total=0;prevValues=null;
+  resetLaps(); // a new run always starts with an empty split list
   controlSession=null;pausedRemaining=0; // phone control is down-mode only
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
   location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
@@ -493,6 +503,7 @@ function startUp(lab){
 function startInterval(workSec,restSec,rounds,lab){
   direction="interval";
   end=Date.now();label=lab;fired=false;prevValues=null;
+  resetLaps(); // a new run always starts with an empty split list
   controlSession=null;pausedRemaining=0; // phone control is down-mode only
   ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
   mode="ms";
@@ -512,6 +523,7 @@ function startInterval(workSec,restSec,rounds,lab){
    explicit broadcast rather than the passive link-timestamp mechanic. */
 function stopTimer(){
   const hadControl=!!controlSession;
+  resetLaps();
   clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;ivPhaseKey=null;
   history.replaceState(null,"",location.pathname+location.search);
   document.body.classList.remove("viewing");
@@ -1276,6 +1288,83 @@ function charsFor(left,modeOverride){
   ]};
 }
 
+/* ================= "your time" =================
+   The end of a countdown is an absolute instant, so every device already
+   renders it in its own local zone — that has always been true, but the board
+   never said so. For the audience these pages are actually written for (a
+   webinar, a Zoom call, a study group spread across countries) the useful
+   sentence is not "ends at 15:04", it is "15:04 YOUR time" — plus the zone
+   name, and a day when the instant does not land on the reader's today.
+
+   Pure, and takes `now` explicitly so tests can pin both sides of a midnight
+   boundary without touching the clock. See test/local-time.test.mjs. */
+function zoneAbbrev(d,locale){
+  try{
+    // The short timeZoneName part ("WEST", "GMT+2", "PDT") — read off the
+    // formatted parts rather than parsed out of a string, which differs
+    // between engines.
+    const parts=new Intl.DateTimeFormat(locale,{timeZoneName:"short"}).formatToParts(d);
+    const z=parts.find(p=>p.type==="timeZoneName");
+    return z?z.value:"";
+  }catch(e){return "";}
+}
+function localEndLabel(endMs,nowMs,locale){
+  const d=new Date(endMs),now=new Date(nowMs);
+  const time=d.toLocaleTimeString(locale||[],{hour:"2-digit",minute:"2-digit"});
+  const zone=zoneAbbrev(d,locale);
+  // "Tomorrow"/a weekday only when the instant is not on the reader's today —
+  // a New Year countdown ending in four months should not read as a time of
+  // day with no date attached.
+  const sameDay=d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate();
+  let day="";
+  if(!sameDay){
+    const t=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+    const tomorrow=d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();
+    day=tomorrow?"tomorrow":d.toLocaleDateString(locale||[],{weekday:"short",day:"numeric",month:"short"});
+  }
+  return {time:time,zone:zone,day:day};
+}
+/* The one-line rendering of the above. Kept separate so the label logic stays
+   testable without HTML in the assertions. */
+function localEndHtml(endMs,nowMs){
+  const l=localEndLabel(endMs,nowMs);
+  return `<b>${esc(l.time)}</b>${l.zone?` ${esc(l.zone)}`:""} your time${l.day?`, ${esc(l.day)}`:""}`;
+}
+
+/* ================= stopwatch laps =================
+   A shared stopwatch with no split list is just a clock. Laps are recorded on
+   the screen that pressed the button and stay there: the sync mechanic carries
+   one instant in the URL, and a lap happens after that instant, so there is
+   nothing to encode and nothing to broadcast. Saying that plainly beats
+   pretending laps are shared — every other promise this site makes about the
+   link is literally true, and this one could not be.
+
+   The model is a list of elapsed-milliseconds marks. Splits are derived, never
+   stored, so the list can never disagree with itself. Pure and exported;
+   see test/laps.test.mjs. */
+function lapRows(marks){
+  const rows=[];
+  for(let i=0;i<marks.length;i++){
+    rows.push({n:i+1,total:marks[i],split:marks[i]-(i>0?marks[i-1]:0)});
+  }
+  // Newest first: the row you just created is the one you want to read.
+  return rows.reverse();
+}
+function fmtLap(ms){
+  const t=Math.max(0,Math.round(ms/10)); // centiseconds
+  const cs=t%100,sec=Math.floor(t/100)%60,min=Math.floor(t/6000)%60,hr=Math.floor(t/360000);
+  const p=(n)=>String(n).padStart(2,"0");
+  return (hr?hr+":":"")+p(min)+":"+p(sec)+"."+p(cs);
+}
+/* Fastest and slowest are only meaningful once there are at least two splits
+   to compare — with one lap they'd both point at the same row, which reads as
+   a bug rather than as information. */
+function lapExtremes(rows){
+  if(rows.length<2)return{fastest:null,slowest:null};
+  const splits=rows.map(r=>r.split);
+  return{fastest:Math.min(...splits),slowest:Math.max(...splits)};
+}
+
 /* ================= settable board: the duration model =================
    The ready board is an INPUT, not just a readout — you set the countdown on
    the flaps themselves (see setSettable/buildTiles below). Everything here is
@@ -1476,7 +1565,7 @@ function draw(){
     else updateTiles(c.tiles);
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
     lastSecond=curSecond;
-    $("subLine").innerHTML=`started at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
+    $("subLine").innerHTML=`started at ${localEndHtml(end,Date.now())} — synced on every screen with this link`;
     $("shareUrl").textContent=makeLink();
     return;
   }
@@ -1576,7 +1665,7 @@ function draw(){
   const urgency=downUrgency(left,total);
   setUrgent(urgency.final,urgency.warn);
   announceLeft(left);
-  $("subLine").innerHTML=`ends at <b>${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</b> — synced on every screen with this link`;
+  $("subLine").innerHTML=`ends at ${localEndHtml(end,Date.now())} — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";
   $("shareUrl").textContent=makeLink();
 }
@@ -1792,30 +1881,83 @@ if($("howBtn"))$("howBtn").addEventListener("click",()=>{
 if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
   const u=new URL(makeLink());
   u.searchParams.set("overlay","1");
+  /* Serve it from /embed/, exactly as the general embed snippet below does.
+     Same reasons, and one more: an overlay pasted into a Browser Source is a
+     screen with no publisher content, so it must carry no ad code at all —
+     /embed/ is built with the ad and analytics tags stripped out entirely
+     (see buildEmbedHtml in scripts/build-timer-pages.mjs). Overlay links
+     already handed out point at this page with ?overlay=1 and must keep
+     working; the __CL_OVERLAY guard in <head> is what makes those safe. */
+  u.pathname="/embed/";
   const done=flashCopyResult($("overlayBtn"),"Overlay link copied — paste into OBS","Couldn't copy — add ?overlay=1 to the sync link");
   done(await copyText(u.toString()));
 });
-/* General-purpose embed: the exact same ?overlay=1 mechanism the OBS button
-   above uses, generalized into a plain <iframe> snippet for any website —
-   the chrome-stripped view was already built for streamers; this just gives
-   everyone else a copy-pasteable embed code instead of a bare link. */
-if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
-  const showing=$("embedWrap").style.display!=="none";
-  if(showing){$("embedWrap").style.display="none";$("embedBtn").textContent="Embed on your site →";return;}
+/* ---------- embed builder ----------
+   The same ?overlay=1 mechanism the OBS button above uses, generalized into a
+   copy-pasteable <iframe> snippet for any website — size, board style, and
+   fixed-vs-fluid, with a live-updating snippet.
+
+   This is the one feature on the site whose point is off-site: every embed
+   plants an attribution link on a page we don't own, and links are the single
+   metric that has never moved for this domain (one referring domain, static
+   since it was first measured). So the attribution <a> deliberately sits
+   OUTSIDE the iframe — a link inside a frame is attributed to the frame's own
+   document (countlink.app), not to the host page, so an iframe on its own
+   earns no link back. That line is the whole reason this exists.
+
+   Guarded by test/embed-builder.test.mjs. */
+function embedSrc(){
   const u=new URL(makeLink());
   u.searchParams.set("overlay","1");
+  const st=$("embedStyle")?$("embedStyle").value:"board";
+  /* "board" is the default, so leave it out of the URL rather than pinning it
+     — a snippet with no ?style= keeps working if the default ever changes. */
+  if(st&&st!=="board")u.searchParams.set("style",st);
   /* Serve the overlay from /embed/ rather than the site root. _headers sends
      X-Frame-Options: DENY for the whole site — which silently made every
      embed of this widget fail on other people's pages — and that header can
      only be lifted per-path, not per-query-string. /embed/ is the same
-     document with the framing exemption applied. */
-  u.pathname = "/embed/";
-  /* The <a> deliberately sits OUTSIDE the iframe: a link inside a frame is
-     attributed to the frame's own document (countlink.app), not to the host
-     page, so an iframe on its own earns no link back. This line is the only
-     part of the snippet that does. */
-  $("embedCode").value=`<iframe src="${u.toString()}" width="400" height="160" style="border:0" title="${label||"Countdown"} — CountLink" loading="lazy"></iframe>\n<p style="font-size:13px"><a href="https://countlink.app/">Shared countdown by CountLink</a></p>`;
+     document with the framing exemption applied, and it is built with the ad
+     and analytics tags stripped out entirely (see buildEmbedHtml). */
+  u.pathname="/embed/";
+  return u.toString();
+}
+function clampNum(el,dflt){
+  const n=Math.round(Number(el&&el.value));
+  if(!isFinite(n)||n<=0)return dflt;
+  return Math.min(Number(el.max)||n,Math.max(Number(el.min)||1,n));
+}
+function renderEmbedCode(){
+  if(!$("embedCode"))return;
+  /* makeLink() encodes `end` into the hash, and `end` is null until a
+     countdown has actually been started — an unguarded snippet here would
+     hand out "#t=null", an iframe that renders a dead board on someone
+     else's page. Say so plainly instead. */
+  if(!end){
+    $("embedCode").value="Start a countdown first — the embed code carries that countdown's end time in its link.";
+    return;
+  }
+  const w=clampNum($("embedW"),400),h=clampNum($("embedH"),160);
+  const fluid=$("embedResponsive")?$("embedResponsive").checked:false;
+  const title=`${label||"Countdown"} — CountLink`;
+  const src=embedSrc();
+  /* Fluid uses an aspect-ratio box rather than a bare percentage height:
+     a percentage height on an iframe resolves against a parent that usually
+     has no height of its own, which collapses the frame to nothing on most
+     sites. max-width keeps it from stretching past the size that was chosen. */
+  const frame=fluid
+    ? `<div style="position:relative;width:100%;max-width:${w}px;aspect-ratio:${w}/${h}">\n  <iframe src="${src}" title="${title}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>\n</div>`
+    : `<iframe src="${src}" width="${w}" height="${h}" title="${title}" loading="lazy" style="border:0"></iframe>`;
+  $("embedCode").value=`${frame}\n<p style="font-size:13px"><a href="https://countlink.app/">Shared countdown by CountLink</a></p>`;
+}
+if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
+  const showing=$("embedWrap").style.display!=="none";
+  if(showing){$("embedWrap").style.display="none";$("embedBtn").textContent="Embed on your site →";return;}
+  renderEmbedCode();
   $("embedWrap").style.display="block";$("embedBtn").textContent="Hide embed code";
+});
+["embedW","embedH","embedStyle","embedResponsive"].forEach(id=>{
+  if($(id))$(id).addEventListener("input",renderEmbedCode);
 });
 if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{
   const done=flashCopyResult($("embedCopyBtn"),"Copied ✓","Couldn't copy — select the code above");
@@ -1841,6 +1983,40 @@ if($("alarmToneSelect")){
   });
 }
 
+/* ---------- stopwatch laps: UI ---------- */
+function renderLaps(){
+  const panel=$("lapPanel");
+  if(!panel)return;
+  // The panel only exists for a running/finished count-up. A countdown has
+  // nothing to split, and an idle board has nothing to show.
+  const applicable=direction==="up"&&lapMarks.length>0;
+  panel.style.display=applicable?"":"none";
+  // Empty the list on the way out, not just hide the panel around it. Hiding
+  // alone leaves the old rows in the DOM, where a screen reader and anything
+  // scripting the page can still read splits from a stopwatch that no longer
+  // exists — the same "hidden is not gone" mistake the sealed board is built
+  // to avoid. Caught by e2e/overlay-and-laps.spec.mjs.
+  if(!applicable){$("lapList").innerHTML="";return;}
+  const rows=lapRows(lapMarks);
+  const {fastest,slowest}=lapExtremes(rows);
+  $("lapList").innerHTML=rows.map(r=>{
+    const tag=r.split===fastest?'<span class="lap-tag lap-fast">fastest</span>'
+      :r.split===slowest?'<span class="lap-tag lap-slow">slowest</span>':"";
+    return `<li class="lap-row"><span class="lap-n">${r.n}</span>`+
+           `<span class="lap-split">${fmtLap(r.split)}${tag}</span>`+
+           `<span class="lap-total">${fmtLap(r.total)}</span></li>`;
+  }).join("");
+}
+function resetLaps(){lapMarks=[];renderLaps();}
+if($("lapBtn"))$("lapBtn").addEventListener("click",()=>{
+  if(direction!=="up"||!end)return;
+  lapMarks.push(Date.now()-end);
+  renderLaps();
+  announce(`Lap ${lapMarks.length} at ${fmtLap(lapMarks[lapMarks.length-1])}`);
+});
+if($("lapClearBtn"))$("lapClearBtn").addEventListener("click",resetLaps);
+if($("runSheetPrint"))$("runSheetPrint").addEventListener("click",()=>window.print());
+
 /* ---------- board style: a per-viewer local preference, never part of the shared link ---------- */
 function applyStyle(name){
   const board=$("boardEl");
@@ -1853,16 +2029,47 @@ function applyStyle(name){
   });
   try{localStorage.setItem("samesecond_style",name)}catch(e){}
 }
+/* Same visual switch, no persistence — see the ?style= note below. */
+function applyStyleNoSave(name){
+  const board=$("boardEl");
+  if(!board)return;
+  board.classList.toggle("style-minimal",name==="minimal");
+  board.classList.toggle("style-light",name==="light");
+}
 document.querySelectorAll(".style-toggle button").forEach(b=>b.addEventListener("click",()=>applyStyle(b.dataset.style)));
+/* ?style= overrides the stored preference, and is the one case where the style
+   is NOT a per-viewer choice: an embed is furniture on someone else's page, so
+   whoever pasted the snippet picks how it looks, not each visitor's
+   localStorage. It deliberately does not write back to localStorage — an
+   embedded board must never change the style of the full site in the same
+   browser. Only the three known names are honoured; anything else falls
+   through to the stored preference. */
+const STYLE_NAMES=["board","minimal","light"];
 let savedStyle="board";
 try{savedStyle=localStorage.getItem("samesecond_style")||"board"}catch(e){}
-applyStyle(savedStyle);
+const urlStyle=new URLSearchParams(location.search).get("style");
+if(STYLE_NAMES.indexOf(urlStyle)!==-1){
+  applyStyleNoSave(urlStyle);
+}else{
+  applyStyle(savedStyle);
+}
 
 /* OBS/streaming Browser Source support — see docs/battle-plan-sharemytimer.md §2.
    ?overlay=1 strips the page to a transparent-background board so only the
    digits sit over the video capture. Applied before first render so there's
    no flash of the normal chrome. */
-if(new URLSearchParams(location.search).get("overlay"))document.body.classList.add("overlay-mode");
+if(new URLSearchParams(location.search).get("overlay")){
+  document.body.classList.add("overlay-mode");
+  /* Remove the ad container from the DOM rather than leaving CSS to hide it.
+     An overlay is a transparent, chrome-free screen with no publisher content
+     on it, and AdSense treats both "ads on a screen with no content" and
+     "an ad unit hidden with CSS" as policy problems in their own right. The
+     inline push() beside each <ins> is already skipped via window.__CL_OVERLAY
+     (set in <head>, before the loader runs) so no ad is ever requested; this
+     takes the empty markup out too, so there is nothing left to hide.
+     Guarded by test/overlay-ads.test.mjs. */
+  document.querySelectorAll(".ad-slot").forEach(n=>n.remove());
+}
 
 function bootFromHash(){
   // A device opening someone else's shared link never calls start(), so the
@@ -1999,6 +2206,24 @@ function boundaries(segments){
   let acc=0;
   return segments.map(seg=>{acc+=seg.minutes*60000;return acc;});
 }
+/* The printable run of show: for each segment, the wall-clock window it
+   occupies given the agenda's start instant. Facilitators asked to "send the
+   running order round beforehand" have to rebuild this by hand today — the
+   site already knows every number in it.
+
+   Pure, and takes `start` explicitly so a sheet can be produced for an agenda
+   that has not been started yet (using a planned start time) as well as for
+   one already running. See test/run-sheet.test.mjs. */
+function runSheetRows(segments,start){
+  const bounds=boundaries(segments);
+  return segments.map((seg,i)=>({
+    n:i+1,
+    label:seg.label||("Segment "+(i+1)),
+    minutes:seg.minutes,
+    startsAt:start+(i===0?0:bounds[i-1]),
+    endsAt:start+bounds[i],
+  }));
+}
 function fmtAgenda(ms){
   const s=Math.max(0,Math.ceil(ms/1000));
   const m=Math.floor(s/60),sec=s%60;
@@ -2033,10 +2258,35 @@ function initAgendaDashboard(){
         <button type="button" class="agenda-item-btn" data-down="${i}" ${i===agendaSegments.length-1?"disabled":""} aria-label="Move down">↓</button>
         <button type="button" class="agenda-item-btn" data-remove="${i}" aria-label="Remove">×</button>
       </li>`).join("") || `<li class="hint" style="list-style:none">No segments yet — add one above.</li>`;
+    // Show the sheet while still building, based on starting now — that is
+    // what makes it useful for planning rather than only for recording.
+    renderRunSheet(agendaSegments,Date.now());
+  }
+
+  /* Wall-clock times are rendered with the same "your time" treatment the
+     board uses — a run sheet mailed round a distributed team is read in as
+     many zones as there are readers. */
+  function renderRunSheet(segments,start){
+    const wrap=$("runSheet");
+    if(!wrap)return;
+    if(!segments||!segments.length){wrap.style.display="none";return;}
+    const rows=runSheetRows(segments,start);
+    const t=(ms)=>esc(localEndLabel(ms,start).time);
+    const totalMin=segments.reduce((a,seg)=>a+seg.minutes,0);
+    $("runSheetBody").innerHTML=rows.map(r=>`<tr>
+        <td class="num">${r.n}</td>
+        <td>${esc(r.label)}</td>
+        <td class="num">${r.minutes} min</td>
+        <td class="num">${t(r.startsAt)}</td>
+        <td class="num">${t(r.endsAt)}</td>
+      </tr>`).join("");
+    $("runSheetTotal").textContent=`${segments.length} segment${segments.length===1?"":"s"} · ${totalMin} min · ${t(rows[0].startsAt)}–${t(rows[rows.length-1].endsAt)}`;
+    wrap.style.display="";
   }
 
   function renderRunning(segments,start){
     const {bounds,total,elapsed,idx}=computeAgendaState(segments,start,Date.now());
+    renderRunSheet(segments,start);
 
     runningListEl.innerHTML=segments.map((seg,i)=>{
       const state=idx===-1||i<idx?"done":i===idx?"current":"upcoming";
