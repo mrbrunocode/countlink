@@ -553,6 +553,30 @@ test("create_timer's plain setup link and overlay link carry no .ics", () => {
   assert.equal(callTool("create_timer", { duration: "10m", for_obs_overlay: true }).structuredContent.ics, undefined);
 });
 
+test("REGRESSION: .ics has a valid DTSTAMP with no `now` argument at all — the real production call shape", () => {
+  // Every other .ics test in this file passes FIXED_NOW explicitly for
+  // determinism, which is exactly how a real bug shipped and reached
+  // production undetected: three call sites passed the raw, unresolved
+  // `now` parameter straight to buildIcs() instead of a resolved timestamp,
+  // and `now` is `undefined` on every real request — onRequest() calls
+  // handleRpc(payload) with no third argument, only tests supply one. The
+  // result was a live DTSTAMP:NaNNaNNaNTNaNNaNNaNZ, caught by fetching the
+  // live endpoint after deploy rather than by node --test. This test calls
+  // exactly the way production does — no `now` — so it cannot pass again.
+  for (const args of [
+    { duration: "25m", label: "Focus", start_now: true },
+    { duration: "25m", label: "Focus", embed_on_website: true },
+    { segments: [{ duration: "10m", label: "Intro" }] },
+  ]) {
+    const tool = args.segments ? "create_agenda" : "create_timer";
+    const ics = callTool(tool, args).structuredContent.ics; // no third argument
+    assert.ok(ics, tool);
+    assert.doesNotMatch(ics, /NaN/, `${tool}: ${ics}`);
+    const stamp = ics.match(/DTSTAMP:(\d{8}T\d{6}Z)/);
+    assert.ok(stamp, `${tool}: DTSTAMP is not the expected shape — ${ics}`);
+  }
+});
+
 test("create_timer's start_now and embed_on_website both carry a matching .ics", () => {
   for (const variant of [{ start_now: true }, { embed_on_website: true }]) {
     const r = callTool("create_timer", { duration: "25m", label: "Focus", ...variant }, FIXED_NOW);

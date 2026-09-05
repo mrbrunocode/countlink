@@ -1667,7 +1667,10 @@ function icsFold(line){
    the same input. CRLF line endings throughout, per RFC 5545 §3.1 — some
    importers reject bare LF. */
 function buildIcs(events,now){
-  const stamp=icsTimestamp(now);
+  // Matches functions/mcp.js's copy of this guard — a defensive backstop in
+  // case a future caller here forgets Date.now() the way three of that
+  // file's call sites did in production for a day (see its own comment).
+  const stamp=icsTimestamp(typeof now==="number"?now:Date.now());
   const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CountLink//countlink.app//EN","METHOD:PUBLISH"];
   for(const ev of events){
     lines.push("BEGIN:VEVENT");

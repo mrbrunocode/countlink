@@ -287,7 +287,14 @@ function icsFold(line) {
   return out.join("\r\n");
 }
 export function buildIcs(events, now) {
-  const stamp = icsTimestamp(now);
+  // Same guard every *Url builder in this file already has (shareUrl,
+  // embedTargetUrl, setupUrl) — `now` is `undefined` on every real
+  // production call (only the tests pass a fixed one for determinism), and
+  // without this DTSTAMP silently rendered as DTSTAMP:NaNNaNNaNTNaNNaNNaNZ
+  // in production for a day before being caught. Every callTool() call site
+  // now resolves this itself before calling buildIcs too, but this is the
+  // backstop for the next one that doesn't.
+  const stamp = icsTimestamp(typeof now === "number" ? now : Date.now());
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CountLink//countlink.app//EN", "METHOD:PUBLISH"];
   for (const ev of events) {
     lines.push("BEGIN:VEVENT");
@@ -710,8 +717,13 @@ export function callTool(name, args, now) {
       // The same fixed instant embedTargetUrl() just minted into the #t= it
       // emitted — recomputed rather than parsed back out of `src`, since the
       // arithmetic (now + clampSeconds(seconds)*1000) is one line either way.
-      const endMs = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
-      const ics = buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url: src }], now);
+      const nowMs = typeof now === "number" ? now : Date.now();
+      const endMs = nowMs + clampSeconds(seconds) * 1000;
+      // DTSTAMP must be a real instant, not the raw `now` argument — that is
+      // `undefined` on every real production call (only the tests pass a
+      // fixed one), and new Date(undefined) is an Invalid Date, which
+      // rendered as a live DTSTAMP:NaNNaNNaNTNaNNaNNaNZ before this fix.
+      const ics = buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url: src }], nowMs);
       const text =
         `Here is a ${pretty} countdown${label ? ` called "${label}"` : ""} to embed on a ` +
         `website, as an <iframe>:\n\n${html}\n\n` +
@@ -773,7 +785,7 @@ export function callTool(name, args, now) {
     // pressed), and an overlay's whole point is restarting per viewer — the
     // opposite of a single event with a fixed time.
     const ics = startNow
-      ? buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url }], now)
+      ? buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url }], nowMs)
       : null;
 
     return {
@@ -815,13 +827,18 @@ export function callTool(name, args, now) {
     // that lists "Intro 09:00–09:10, Talk 09:10–09:40, Q&A 09:40–09:50" is
     // more useful than one event spanning the whole agenda with no internal
     // structure.
+    // DTSTAMP needs the resolved `start`, not the raw `now` argument — that
+    // is `undefined` on every real production call (only the tests pass a
+    // fixed one), and new Date(undefined) renders as a live, broken
+    // DTSTAMP:NaNNaNNaNTNaNNaNNaNZ. Same bug, same fix, as create_timer's
+    // two .ics call sites above.
     const ics = buildIcs(sheet.map((r) => ({
       uid: icsUid(r.endsAt, `${start}-${r.n}-${r.label}`),
       summary: r.label,
       startMs: r.startsAt,
       endMs: r.endsAt,
       url,
-    })), now);
+    })), start);
 
     const text =
       `Started a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}. ` +
