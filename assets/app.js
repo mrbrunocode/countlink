@@ -91,6 +91,8 @@ if (typeof module !== "undefined" && module.exports) {
     totalFromFields: totalFromFields, needsHours: needsHours,
     parseKeypadDigits: parseKeypadDigits, bumpTotal: bumpTotal,
     parsePastedDuration: parsePastedDuration, maxSettable: maxSettable,
+    // the URL contract: #t= (running) vs #for= (setup) — see that block below
+    parseSetupHash: parseSetupHash, labelFromHash: labelFromHash,
     // standalone offline export + "how this works" panel (see the blocks
     // right after parsePastedDuration above)
     buildStandaloneTimerHtml: buildStandaloneTimerHtml, standaloneFilename: standaloneFilename,
@@ -316,7 +318,7 @@ function readHash(){
   const m=new URLSearchParams(location.hash.slice(1));
   const t=validTimestamp(m.get("t"));
   if(t!==null){
-    end=t;label=decodeURIComponent(m.get("l")||"");
+    end=t;label=labelFromHash(location.hash);
     if(m.get("d")==="up")direction="up";
     else if(m.get("d")==="iv"){
       direction="interval";
@@ -1434,6 +1436,75 @@ function parsePastedDuration(txt){
   return null;
 }
 
+/* ================= the URL contract =================
+   Two shapes of link, and the difference between them is the whole product:
+
+     #t=<epoch ms>   a RUNNING countdown. One fixed instant, so every screen
+                     that opens it agrees to the second. Produced by makeLink()
+                     once somebody presses start.
+     #for=<duration> a SETUP link. Preloads the board at a duration and stops
+                     there, ready, for one person to start.
+
+   A setup link deliberately does NOT auto-start. If it did, three people
+   opening the same #for=25m at three different times would get three
+   different countdowns — which is the per-visitor "evergreen countdown"
+   deliberately rejected in docs (it is the opposite of this app's premise).
+   The setup link exists so a duration can be written down in advance — by a
+   chat assistant answering "give me a 25 minute shared timer", by a bookmark,
+   a calendar invite, a lesson plan, an OBS scene — none of which can know the
+   current epoch time. The human who opens it presses start, and start is what
+   mints the #t= link everyone else gets. */
+
+/* URLSearchParams already percent-decodes, so `decodeURIComponent(m.get("l"))`
+   decoded the label TWICE. Two ways that bit, both on the shared-link path
+   that is the entire point of the site:
+     - a label containing a literal % ("50% done", "20% off") made the second
+       pass throw URIError. readHash() is called bare at boot, so the throw
+       propagated out and the recipient of the link got a board that never
+       rendered at all.
+     - URLSearchParams also turns "+" into a space, mangling "C++ review".
+   Read the label straight out of the raw hash and decode exactly once,
+   tolerating a malformed escape instead of throwing. */
+function labelFromHash(hashStr){
+  const m=String(hashStr==null?"":hashStr).replace(/^#/,"").match(/(?:^|&)l=([^&]*)/);
+  if(!m)return "";
+  try{return decodeURIComponent(m[1]);}catch(e){return m[1];}
+}
+
+/* Pure half of the setup link. Returns {seconds,label} or null — null meaning
+   "this is not a setup link", which is the common case and must stay cheap.
+   Shares parsePastedDuration()'s grammar rather than inventing a second one,
+   so `#for=1h30m` and pasting "1h30m" onto the board are guaranteed to mean
+   the same thing, and llms.txt only has to teach one syntax. */
+function parseSetupHash(hashStr){
+  const s=String(hashStr==null?"":hashStr).replace(/^#/,"");
+  const m=new URLSearchParams(s);
+  // A running countdown always wins: #t= is a real deadline someone is
+  // already watching, and must never be reinterpreted as a fresh setup.
+  if(validTimestamp(m.get("t"))!==null)return null;
+  const raw=m.get("for");
+  if(raw==null||raw==="")return null;
+  const seconds=parsePastedDuration(raw);
+  // 0 is reachable ("0m", "0:00") and is not a timer — treat it as garbage
+  // rather than booting a board that is already over.
+  if(seconds===null||seconds<=0)return null;
+  /* &go=1 is the ONE way a link starts itself, and it is opt-in precisely so
+     that "a link you share never auto-starts" stays a rule rather than a
+     per-page exception nobody can see.
+
+     It exists for the OBS/stream overlay, which is the one place per-viewer
+     starting is correct: a Browser Source is furniture in a single scene on a
+     single machine, with every control stripped out and no link to copy from
+     it — there is no second viewer to fall out of sync with. (The stream's
+     audience sees rendered video, not this page. Mods and co-streamers get the
+     regular sync link, which is a #t= and always has been.)
+
+     Documented consequence, and the desirable one for a "starting soon"
+     scene: OBS keeps the configured URL, so every scene reload starts the
+     countdown fresh rather than resuming a deadline that has since passed. */
+  return {seconds:seconds,label:labelFromHash(s),autostart:m.get("go")==="1"};
+}
+
 /* ================= standalone offline export =================
    "Download this timer as one HTML file" — not a copy of this app, a
    separate, minimal, fully self-contained page. The wedge this whole family
@@ -2392,27 +2463,62 @@ if(readHash()){
        the NEXT occurrence is computed client-side at load, so the page never
        goes stale when the date passes — no yearly rebuild needed. */
   const d=window.COUNTLINK_DEFAULT||{minutes:10,label:""};
-  if($("evtName")&&!$("evtName").value)$("evtName").value=d.label;
-  if($("customMin")&&d.minutes)$("customMin").value=d.minutes;
-  if(d.direction==="up"){
-    const up=document.querySelector('.dir-toggle .q[data-dir="up"]');
-    if(up)up.click(); // runs the toggle handler, which ends in renderReady()
-  }else if(d.untilMonthDay){
-    const now=new Date();
-    let t=new Date(now.getFullYear(),d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
-    if(t<=now)t=new Date(now.getFullYear()+1,d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
-    const p=n=>String(n).padStart(2,"0");
-    $("untilTime").value=`${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}T00:00`;
-    $("untilTime").dataset.dirty=1; // Start uses the date field, not custom minutes
-    renderReady(0,$("evtName")?$("evtName").value:d.label,t-now);
+  /* A setup link (#for=25m) overrides the page's advertised default — it is
+     someone arriving with a duration already in mind, so honour it on
+     whichever page they landed on. Ready, never running: see the URL-contract
+     block above parseSetupHash() for why auto-starting would break sync. */
+  const setup=parseSetupHash(location.hash);
+  if(setup){
+    if($("evtName"))$("evtName").value=setup.label||d.label||"";
+    /* #customMin is minutes-only and is just the fallback path in
+       startFromForm(); the exact seconds ride on boardTotal, which
+       renderReady() seeds from the msOverride below. Round rather than
+       floor so "#for=90s" doesn't leave a 0 in the form field. */
+    if($("customMin"))$("customMin").value=Math.max(1,Math.round(setup.seconds/60));
+    if(setup.autostart){
+      // start() mints the #t= deadline and takes over the hash from here.
+      start(setup.seconds*1000,$("evtName")?$("evtName").value:"");
+    }else{
+      renderReady(0,$("evtName")?$("evtName").value:"",setup.seconds*1000);
+    }
   }else{
-    renderReady(d.minutes,$("evtName")?$("evtName").value:d.label);
+    if($("evtName")&&!$("evtName").value)$("evtName").value=d.label;
+    if($("customMin")&&d.minutes)$("customMin").value=d.minutes;
+    if(d.direction==="up"){
+      const up=document.querySelector('.dir-toggle .q[data-dir="up"]');
+      if(up)up.click(); // runs the toggle handler, which ends in renderReady()
+    }else if(d.untilMonthDay){
+      const now=new Date();
+      let t=new Date(now.getFullYear(),d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
+      if(t<=now)t=new Date(now.getFullYear()+1,d.untilMonthDay[0]-1,d.untilMonthDay[1],0,0,0);
+      const p=n=>String(n).padStart(2,"0");
+      $("untilTime").value=`${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}T00:00`;
+      $("untilTime").dataset.dirty=1; // Start uses the date field, not custom minutes
+      renderReady(0,$("evtName")?$("evtName").value:d.label,t-now);
+    }else{
+      renderReady(d.minutes,$("evtName")?$("evtName").value:d.label);
+    }
   }
 }
 renderRecent();
 /* Recent-timer links point at this same page with a different hash — no page
-   load happens, so re-boot the board on hashchange. */
-window.addEventListener("hashchange",()=>{if(readHash())bootFromHash();});
+   load happens, so re-boot the board on hashchange. Setup links (#for=) get
+   the same treatment: swapping one for another is a navigation as far as the
+   user is concerned, and leaving the old duration on screen would be the
+   board lying about what its own URL says. Never re-render a setup link over
+   a countdown that is already running — that would wipe a live board mid-use
+   for anyone whose URL still carries a stale #for=. */
+window.addEventListener("hashchange",()=>{
+  if(readHash()){bootFromHash();return;}
+  if(state==="running"||state==="paused")return;
+  const s=parseSetupHash(location.hash);
+  if(s){
+    if($("evtName"))$("evtName").value=s.label||$("evtName").value||"";
+    if($("customMin"))$("customMin").value=Math.max(1,Math.round(s.seconds/60));
+    if(s.autostart)start(s.seconds*1000,$("evtName")?$("evtName").value:"");
+    else renderReady(0,$("evtName")?$("evtName").value:"",s.seconds*1000);
+  }
+});
 
 }
 

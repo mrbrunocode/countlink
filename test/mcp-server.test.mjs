@@ -1,0 +1,489 @@
+// The MCP server (functions/mcp.js), served at /mcp.
+//
+// This endpoint exists so an AI assistant can hand someone a working CountLink
+// link instead of telling them to go and make one. That makes it, in practice,
+// a machine-facing API whose only client is a language model — so the failure
+// modes worth testing are protocol-shaped (does a real MCP client's handshake
+// succeed?) and grammar-shaped (does "25m" mean the same thing here as it does
+// on the board?), not visual.
+//
+// functions/mcp.js is an ES module that ships to Cloudflare Pages as-is. Node
+// won't `import` a .js file as ESM without "type":"module" in package.json —
+// which this project deliberately doesn't set — so it's loaded through a
+// data: URL instead. That runs the exact bytes that deploy, with no shim, no
+// build step and no second copy to drift.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { loadDuration } from "./helpers/load-app.mjs";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const src = readFileSync(join(ROOT, "functions", "mcp.js"), "utf8");
+const mcp = await import("data:text/javascript," + encodeURIComponent(src));
+
+const {
+  handleRpc, callTool, parseDuration, setupUrl, shareUrl,
+  compactDuration, describeUrl, humanDuration, labelOf, TOOLS,
+} = mcp;
+
+const rpc = (method, params, id = 1) => handleRpc({ jsonrpc: "2.0", id, method, params });
+const FIXED_NOW = 1757000000000; // any fixed instant; keeps time out of the assertions
+
+/* ======================= protocol ======================= */
+
+test("initialize echoes a protocol version the client asked for", () => {
+  // Version negotiation is the one part of the handshake that silently breaks
+  // a real client: answer with a version it doesn't speak and it disconnects.
+  const r = rpc("initialize", { protocolVersion: "2025-06-18" });
+  assert.equal(r.result.protocolVersion, "2025-06-18");
+  assert.equal(r.jsonrpc, "2.0");
+  assert.equal(r.id, 1);
+});
+
+test("initialize falls back to our newest version for one we don't know", () => {
+  assert.equal(rpc("initialize", { protocolVersion: "1999-01-01" }).result.protocolVersion, "2025-06-18");
+  assert.equal(rpc("initialize", {}).result.protocolVersion, "2025-06-18");
+  assert.equal(rpc("initialize").result.protocolVersion, "2025-06-18");
+});
+
+test("initialize still supports the older protocol versions it advertises", () => {
+  for (const v of ["2025-03-26", "2024-11-05"]) {
+    assert.equal(rpc("initialize", { protocolVersion: v }).result.protocolVersion, v, v);
+  }
+});
+
+test("initialize declares tools and identifies the server", () => {
+  const { capabilities, serverInfo, instructions } = rpc("initialize", {}).result;
+  assert.ok(capabilities.tools, "must declare the tools capability or no tool is ever listed");
+  assert.equal(capabilities.tools.listChanged, false,
+    "the tool list is a constant — promising notifications we never send would be a lie");
+  assert.equal(serverInfo.name, "countlink");
+  assert.ok(serverInfo.version);
+  assert.match(instructions, /shared countdown/i);
+});
+
+test("notifications get no response at all", () => {
+  // notifications/initialized is sent by every client right after the
+  // handshake. Answering it (or throwing on it) breaks the session.
+  assert.equal(handleRpc({ jsonrpc: "2.0", method: "notifications/initialized" }), null);
+  assert.equal(handleRpc({ jsonrpc: "2.0", method: "notifications/cancelled", params: {} }), null);
+});
+
+test("ping answers, because clients use it as a liveness check", () => {
+  assert.deepEqual(rpc("ping").result, {});
+});
+
+test("unknown methods return -32601 rather than throwing", () => {
+  assert.equal(rpc("does/not/exist").error.code, -32601);
+});
+
+test("malformed messages return -32600 instead of crashing the worker", () => {
+  for (const bad of [null, undefined, "hello", 42, []]) {
+    assert.equal(handleRpc(bad).error.code, -32600, JSON.stringify(bad));
+  }
+});
+
+test("resources/list and prompts/list answer empty instead of erroring", () => {
+  // Clients probe for these during discovery; a -32601 here reads as a broken
+  // server in some UIs even though tools work fine.
+  assert.deepEqual(rpc("resources/list").result, { resources: [] });
+  assert.deepEqual(rpc("prompts/list").result, { prompts: [] });
+});
+
+/* ======================= tools/list ======================= */
+
+test("every tool is shaped the way the MCP spec requires", () => {
+  const tools = rpc("tools/list").result.tools;
+  assert.ok(tools.length >= 1);
+  for (const t of tools) {
+    assert.equal(typeof t.name, "string", "name");
+    assert.ok(t.name.length, `${t.name}: non-empty name`);
+    assert.ok(t.description && t.description.length > 40,
+      `${t.name}: a model picks tools off this description — it has to actually describe`);
+    assert.equal(t.inputSchema.type, "object", `${t.name}: inputSchema must be an object schema`);
+    assert.ok(t.inputSchema.properties, `${t.name}: properties`);
+    for (const req of t.inputSchema.required || []) {
+      assert.ok(t.inputSchema.properties[req],
+        `${t.name}: requires "${req}" but never declares it — the model cannot supply it`);
+    }
+    for (const [k, v] of Object.entries(t.inputSchema.properties)) {
+      assert.ok(v.description, `${t.name}.${k}: every argument needs a description`);
+    }
+  }
+});
+
+test("tools are annotated read-only, which is the honest answer", () => {
+  // CountLink has no backend: creating a timer is string arithmetic over a
+  // duration. If a tool ever does gain a side effect, this test should fail
+  // and force the annotation to be revisited rather than left stale.
+  for (const t of TOOLS) {
+    assert.equal(t.annotations.readOnlyHint, true, t.name);
+    assert.equal(t.annotations.destructiveHint, false, t.name);
+  }
+});
+
+/* ======================= create_timer ======================= */
+
+test("create_timer returns a setup link by default", () => {
+  // The default must not be a running countdown: a #t= link minted here starts
+  // ticking the moment the tool runs, so as a default it would hand people
+  // timers that had already been running for however long the reply took.
+  const r = rpc("tools/call", { name: "create_timer", arguments: { duration: "25m" } });
+  const { url, started, durationSeconds } = r.result.structuredContent;
+  assert.equal(url, "https://countlink.app/#for=25m");
+  assert.equal(started, false);
+  assert.equal(durationSeconds, 1500);
+  assert.ok(!r.result.isError);
+});
+
+test("create_timer with start_now mints a fixed-instant share link", () => {
+  const r = callTool("create_timer", { duration: "10m", start_now: true }, FIXED_NOW);
+  assert.equal(r.structuredContent.url, `https://countlink.app/#t=${FIXED_NOW + 600000}`);
+  assert.equal(r.structuredContent.started, true);
+});
+
+test("a label rides along, on both link shapes", () => {
+  assert.equal(
+    callTool("create_timer", { duration: "5m", label: "Break" }).structuredContent.url,
+    "https://countlink.app/#for=5m&l=Break"
+  );
+  assert.equal(
+    callTool("create_timer", { duration: "5m", label: "Break", start_now: true }, FIXED_NOW)
+      .structuredContent.url,
+    `https://countlink.app/#t=${FIXED_NOW + 300000}&l=Break`
+  );
+});
+
+test("labels are encoded so a link with punctuation still parses", () => {
+  // "50% done" is the exact shape that used to crash the board on open (see
+  // test/setup-link.test.mjs) — a link this server emits must survive it.
+  const url = callTool("create_timer", { duration: "5m", label: "50% done" }).structuredContent.url;
+  assert.ok(url.includes("50%25%20done"), url);
+  assert.equal(describeUrl(url).label, "50% done", "round-trips back out");
+});
+
+test("an OBS overlay link points at /embed/ and starts itself", () => {
+  const r = callTool("create_timer", { duration: "10m", for_obs_overlay: true });
+  assert.equal(r.structuredContent.url, "https://countlink.app/embed/?overlay=1#for=10m&go=1");
+  assert.equal(r.structuredContent.overlay, true);
+  assert.match(r.content[0].text, /Browser/, "the OBS recipe is the point of this flag");
+});
+
+test("an overlay link never points at a page that loads ad code", () => {
+  // THE ADSENSE INVARIANT. /?overlay=1 renders the same board, but it gets
+  // there by redirecting from a page whose preload scanner has already queued
+  // the AdSense and gtag scripts — and Google-served ads on a screen with no
+  // publisher content is the exact violation this site was fixed for once
+  // already (docs/overlay-ads.md). /embed/ is built with those tags stripped.
+  // Handing out the wrong one of these two URLs at AI scale would reintroduce
+  // that violation on every stream that used it.
+  for (const args of [
+    { duration: "10m", for_obs_overlay: true },
+    { duration: "1h", for_obs_overlay: true, label: "Starting soon" },
+    { duration: "90s", for_obs_overlay: true, start_now: true },
+  ]) {
+    const url = callTool("create_timer", args).structuredContent.url;
+    assert.ok(url.startsWith("https://countlink.app/embed/?overlay=1"), url);
+    assert.ok(!url.startsWith(`${'https://countlink.app'}/?overlay=1`), `must not use the redirecting form: ${url}`);
+  }
+});
+
+test("for_obs_overlay wins over start_now instead of minting a doomed deadline", () => {
+  // A #t= in an OBS source expires the first time the scene is reloaded after
+  // it runs out; the overlay's own &go=1 restart is the behaviour that works.
+  const r = callTool("create_timer", { duration: "10m", for_obs_overlay: true, start_now: true });
+  assert.ok(r.structuredContent.url.includes("#for="), r.structuredContent.url);
+  assert.equal(r.structuredContent.started, false);
+});
+
+test("a plain timer link is never the overlay one", () => {
+  for (const args of [{ duration: "10m" }, { duration: "10m", start_now: true }]) {
+    const url = callTool("create_timer", args).structuredContent.url;
+    assert.ok(!url.includes("/embed/"), url);
+    assert.ok(!url.includes("go=1"), `a shared link must never auto-start: ${url}`);
+  }
+});
+
+test("an over-long label is trimmed rather than rejected", () => {
+  const r = callTool("create_timer", { duration: "5m", label: "x".repeat(200) });
+  assert.equal(r.structuredContent.label.length, 60);
+});
+
+test("an unreadable duration is a tool error the model can recover from", () => {
+  // isError, not a JSON-RPC error: a protocol error surfaces to the user as a
+  // broken app, where this should read as "I need a duration" and be retried.
+  for (const bad of ["", "soon", "abc", "0m", "later today", undefined, null, {}, []]) {
+    const r = callTool("create_timer", { duration: bad });
+    assert.equal(r.isError, true, JSON.stringify(bad));
+    assert.match(r.content[0].text, /duration/i);
+  }
+});
+
+test("a bare number is accepted as minutes even when sent as a number", () => {
+  // The schema says string, but models do send `duration: 5`. "5" already
+  // means five minutes in this grammar, so coercing is strictly more useful
+  // than erroring — this leniency is deliberate, not an accident.
+  assert.equal(callTool("create_timer", { duration: 5 }).structuredContent.durationSeconds, 300);
+});
+
+test("create_timer's prose tells the user what to actually do next", () => {
+  const setup = callTool("create_timer", { duration: "25m" }).content[0].text;
+  assert.match(setup, /press start/i, "a setup link is useless if nobody knows to start it");
+  assert.match(setup, /countlink\.app/);
+  const started = callTool("create_timer", { duration: "25m", start_now: true }).content[0].text;
+  assert.match(started, /share/i);
+});
+
+test("unknown tool names are a protocol error", () => {
+  assert.equal(rpc("tools/call", { name: "nope", arguments: {} }).error.code, -32602);
+});
+
+test("tools/call survives missing or malformed arguments", () => {
+  assert.equal(rpc("tools/call", { name: "create_timer" }).result.isError, true);
+  assert.equal(callTool("create_timer", null).isError, true);
+  assert.equal(callTool("create_timer", "nonsense").isError, true);
+});
+
+/* ======================= describe_timer_link ======================= */
+
+test("describe_timer_link reads back both link shapes", () => {
+  const setup = describeUrl("https://countlink.app/#for=25m&l=Focus", FIXED_NOW);
+  assert.equal(setup.kind, "setup");
+  assert.equal(setup.durationSeconds, 1500);
+  assert.equal(setup.label, "Focus");
+
+  const share = describeUrl(`https://countlink.app/#t=${FIXED_NOW + 600000}`, FIXED_NOW);
+  assert.equal(share.kind, "share");
+  assert.equal(share.remainingSeconds, 600);
+  assert.equal(share.expired, false);
+});
+
+test("a finished countdown reports as expired, not as negative time left", () => {
+  const past = describeUrl(`https://countlink.app/#t=${FIXED_NOW - 60000}`, FIXED_NOW);
+  assert.equal(past.expired, true);
+  assert.equal(past.remainingSeconds, 0, "never negative");
+});
+
+test("describe_timer_link rejects things that aren't timer links", () => {
+  for (const bad of ["https://countlink.app/", "https://example.com/#t=1", "not a url", "", null]) {
+    assert.equal(describeUrl(bad, FIXED_NOW), null, JSON.stringify(bad));
+  }
+  assert.equal(callTool("describe_timer_link", { url: "https://countlink.app/" }).isError, true);
+});
+
+test("what create_timer emits, describe_timer_link can always read back", () => {
+  // The two tools are the two directions of one contract; a round-trip failure
+  // means a link this server hands out is one it cannot itself explain.
+  for (const d of ["25m", "1h30m", "90s", "5:00", "45"]) {
+    for (const variant of [{}, { start_now: true }, { for_obs_overlay: true }]) {
+      const url = callTool("create_timer", { duration: d, label: "T", ...variant }, FIXED_NOW)
+        .structuredContent.url;
+      const back = describeUrl(url, FIXED_NOW);
+      const what = `${d} ${JSON.stringify(variant)}`;
+      assert.ok(back, `${what}: ${url}`);
+      assert.equal(back.label, "T", what);
+      const seconds = variant.start_now ? back.remainingSeconds : back.durationSeconds;
+      assert.equal(seconds, parseDuration(d), what);
+    }
+  }
+});
+
+/* ======================= the drift guard ======================= */
+
+test("the MCP duration grammar matches the board's, value for value", () => {
+  // functions/mcp.js re-implements assets/app.js's parsePastedDuration()
+  // because a Worker cannot import a browser script that touches the DOM.
+  // Two copies of a grammar drift; this is the test that stops it silently.
+  // If it fails, the fix is to change BOTH, not to loosen this assertion.
+  const { parsePastedDuration } = loadDuration();
+  const corpus = [
+    "25m", "1h30m", "90s", "5:00", "1:30:00", "45", "1", "0", "0m", "0:00",
+    "2h", "2h5m", "2h5m30s", "10:30", "00:30", "99:59:59", "200h", "1000m",
+    "", " ", "abc", "10x", "--", "1h30", "NaN", "1e3", "90ms", "  10m  ",
+    "10M", "1H30M", "5 m", "1 h 30 m", "999", "9999",
+  ];
+  for (const raw of corpus) {
+    assert.equal(parseDuration(raw), parsePastedDuration(raw),
+      `disagreement on ${JSON.stringify(raw)} — app.js and functions/mcp.js must parse alike`);
+  }
+});
+
+test("compactDuration emits a string the board's own grammar accepts", () => {
+  // The value in #for= is round-tripped through the board's parser on open,
+  // so anything this emits must parse back to the identical number of seconds.
+  const { parsePastedDuration } = loadDuration();
+  for (const seconds of [1, 59, 60, 90, 300, 1500, 3600, 5400, 5430, 86399, 359999]) {
+    const compact = compactDuration(seconds);
+    assert.equal(parsePastedDuration(compact), seconds,
+      `${seconds}s → "${compact}" → ${parsePastedDuration(compact)}`);
+  }
+});
+
+test("a setup URL this server builds is one the board will actually boot", () => {
+  // The end-to-end invariant across both halves of the feature: the server
+  // writes the link, app.js's parseSetupHash reads it.
+  const { parseSetupHash } = loadDuration();
+  for (const d of ["25m", "1h30m", "90s", "5:00", "45"]) {
+    const url = setupUrl(parseDuration(d), "Standup");
+    const hash = new URL(url).hash;
+    const parsed = parseSetupHash(hash);
+    assert.ok(parsed, `${d}: board refused ${hash}`);
+    assert.equal(parsed.seconds, parseDuration(d), d);
+    assert.equal(parsed.label, "Standup", d);
+  }
+});
+
+/* ======================= helpers ======================= */
+
+test("humanDuration reads naturally at every scale", () => {
+  assert.equal(humanDuration(0), "0s");
+  assert.equal(humanDuration(30), "30s");
+  assert.equal(humanDuration(60), "1m");
+  assert.equal(humanDuration(90), "1m 30s");
+  assert.equal(humanDuration(1500), "25m");
+  assert.equal(humanDuration(3600), "1h");
+  assert.equal(humanDuration(5430), "1h 30m 30s");
+});
+
+test("durations are clamped to what the board can display", () => {
+  const MAX = 99 * 3600 + 59 * 60 + 59;
+  assert.equal(parseDuration("200h"), MAX);
+  assert.equal(shareUrl(1e9, "", FIXED_NOW), `https://countlink.app/#t=${FIXED_NOW + MAX * 1000}`);
+});
+
+/* ======================= it has to actually deploy ======================= */
+//
+// The endpoint is worthless if it doesn't ship, and the way it would fail to
+// ship is silent: .github/workflows/deploy.yml builds dist/ with a DENY-LIST
+// rsync, so anyone adding "functions" to that list — it sits right next to
+// "scripts", "test" and "docs", which all genuinely are private — would take
+// /mcp off the internet with nothing failing anywhere. This project has been
+// bitten by exactly this shape of bug twice (guides/ served index.html at 200
+// for weeks; /embed/ served 200 with 404'd assets), so it gets a guard.
+
+test("the deploy does not exclude functions/ from dist", () => {
+  const workflow = readFileSync(join(ROOT, ".github", "workflows", "deploy.yml"), "utf8");
+  assert.ok(
+    !/--exclude\s+'functions'/.test(workflow),
+    "deploy.yml excludes functions/ — Pages Functions only run from dist/functions, " +
+      "so /mcp would 404 in production while every test here still passed"
+  );
+});
+
+test("mcp.js sits where Pages routes /mcp, with a .js extension", () => {
+  // Pages Functions maps functions/mcp.js → /mcp. The extension matters: the
+  // docs do not commit to .mjs being routed, so this file deliberately uses
+  // .js and is loaded here through a data: URL instead of being imported.
+  assert.ok(existsSync(join(ROOT, "functions", "mcp.js")), "functions/mcp.js must exist");
+});
+
+test("the server module is self-contained, so the bundler has nothing to resolve", () => {
+  // No imports means no build step, no path that can break between here and
+  // Cloudflare, and no second file that could be left out of dist/.
+  assert.ok(!/^\s*import\s/m.test(src), "functions/mcp.js must not import anything");
+});
+
+/* ======================= the HTTP shell ======================= */
+//
+// handleRpc above is the logic; onRequest is what Cloudflare actually calls.
+// Node has had Request/Response as globals since 18, so the deployed handler
+// runs here unmodified — worth doing, because every bug in this layer (a
+// missing CORS header, a 200 where a 202 belongs) presents to a client as
+// "the server is broken" with nothing in the body to explain it.
+
+const post = (body, headers) =>
+  mcp.onRequest({
+    request: new Request("https://countlink.app/mcp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(headers || {}) },
+      body: typeof body === "string" ? body : JSON.stringify(body),
+    }),
+  });
+
+test("POST returns JSON-RPC and is never cached", () => {
+  return post({ jsonrpc: "2.0", id: 1, method: "tools/list" }).then(async (res) => {
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("Content-Type"), "application/json");
+    assert.match(res.headers.get("Cache-Control"), /no-store/,
+      "a cached MCP response would pin a stale tool list");
+    const body = await res.json();
+    assert.ok(body.result.tools.length);
+  });
+});
+
+test("a notification gets 202 and an empty body, not a JSON-RPC reply", async () => {
+  const res = await post({ jsonrpc: "2.0", method: "notifications/initialized" });
+  assert.equal(res.status, 202);
+  assert.equal(await res.text(), "");
+});
+
+test("a batch answers only the messages that have ids", async () => {
+  const res = await post([
+    { jsonrpc: "2.0", id: 1, method: "ping" },
+    { jsonrpc: "2.0", method: "notifications/initialized" },
+    { jsonrpc: "2.0", id: 2, method: "tools/list" },
+  ]);
+  const body = await res.json();
+  assert.equal(body.length, 2, "the notification must not produce an entry");
+  assert.deepEqual(body.map((m) => m.id), [1, 2]);
+});
+
+test("a batch of nothing but notifications is 202 with no body", async () => {
+  const res = await post([{ jsonrpc: "2.0", method: "notifications/initialized" }]);
+  assert.equal(res.status, 202);
+  assert.equal(await res.text(), "");
+});
+
+test("malformed JSON is a parse error, not a 500", async () => {
+  const res = await post("{not json");
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error.code, -32700);
+});
+
+test("the CORS preflight advertises the headers MCP clients actually send", async () => {
+  const res = await mcp.onRequest({
+    request: new Request("https://countlink.app/mcp", { method: "OPTIONS" }),
+  });
+  assert.equal(res.status, 204);
+  assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
+  const allowed = res.headers.get("Access-Control-Allow-Headers");
+  // Spec-compliant clients send MCP-Protocol-Version on every post-handshake
+  // request; leaving it out of the preflight fails the whole session in a
+  // browser, and does so invisibly from the server's side.
+  assert.match(allowed, /MCP-Protocol-Version/i);
+  assert.match(allowed, /Content-Type/i);
+});
+
+test("every response carries CORS, not just the preflight", async () => {
+  const res = await post({ jsonrpc: "2.0", id: 1, method: "ping" });
+  assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
+});
+
+test("GET returns something a human can read instead of a dead SSE stream", async () => {
+  // This server has nothing unprompted to say, so it never opens the
+  // transport's optional server-initiated stream. Someone (or a health check)
+  // pasting /mcp into a browser should still get a useful answer.
+  const res = await mcp.onRequest({
+    request: new Request("https://countlink.app/mcp", { method: "GET" }),
+  });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.name, "countlink");
+  assert.ok(body.tools.includes("create_timer"));
+  assert.ok(body.protocolVersions.includes("2025-06-18"));
+});
+
+test("other verbs are refused with a readable reason", async () => {
+  const res = await mcp.onRequest({
+    request: new Request("https://countlink.app/mcp", { method: "DELETE" }),
+  });
+  assert.equal(res.status, 405);
+});
+
+test("labelOf decodes exactly once and tolerates a broken escape", () => {
+  assert.equal(labelOf("t=1&l=" + encodeURIComponent("C++ review")), "C++ review");
+  assert.equal(labelOf("t=1&l=100%"), "100%");
+  assert.equal(labelOf("t=1&intl=Nope"), "", "a key ending in 'l' is not the label");
+});

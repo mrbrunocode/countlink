@@ -73,6 +73,12 @@ const OBS_OVERLAY_EXTRA = `
           </ol>
           <button class="pro-link" id="overlayBtn" style="margin-top:6px">Copy OBS overlay link →</button>
           <div class="hint" style="margin-top:6px">The overlay link is the same countdown with the background made transparent and every button/menu stripped out — just the digits, ready to sit on top of your scene.</div>
+
+          <h3>Or write the URL yourself</h3>
+          <p>The button above copies a link to the countdown currently on the board. You don't have to use it — an overlay URL can be typed from scratch, which is handy for a scene you set up once and reuse, or a duration you'd rather not set by hand first:</p>
+          <p><code class="obs-url">https://countlink.app/embed/?overlay=1#for=10m&amp;go=1</code></p>
+          <p>Change <code>10m</code> to whatever you need — <code>5m</code>, <code>1h30m</code>, <code>90s</code>, <code>25m</code>. The <code>go=1</code> on the end is what makes it start counting the moment the scene loads, which is what you want for a "starting soon" screen: because OBS keeps the URL you gave it, every reload starts the countdown fresh rather than resuming one that already ran out. Add <code>&amp;l=Starting+soon</code> to put a label under the digits.</p>
+          <p><b>Only use <code>go=1</code> for your own overlay, never for a link you send to people.</b> A link that starts itself starts <i>per person</i> — everyone opening it would begin their own countdown from whenever they clicked. For a mod or co-streamer who needs to watch the same clock as you, share the regular sync link instead: it carries one fixed end instant, so their screen and yours land on zero together.</p>
         </div>`;
 
 const ZOOM_EXTRA = `
@@ -1066,9 +1072,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=b187c34e" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=b187c34e"></noscript>
+<link rel="preload" href="../assets/style.css?v=6aef25e3" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=6aef25e3" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=6aef25e3"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1143,7 +1149,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=62749e52" defer></script>
+<script src="../assets/app.js?v=5bd537a9" defer></script>
 </body>
 </html>
 `; };
@@ -1217,9 +1223,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=b187c34e" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=b187c34e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=b187c34e"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=6aef25e3" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=6aef25e3" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=6aef25e3"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1487,6 +1493,31 @@ The split-flap board on every timer page is the input, not just a readout — un
 Rolling minutes past 59 carries into hours and the hours pair appears automatically; rolling back under an hour retracts it. A small "+hr" control to the left of the digits adds or removes the hours pair explicitly. The board holds one duration, so rolling seconds up from 59 adds a minute rather than wrapping.
 
 Once a countdown starts the board is sealed: the controls are removed from the page entirely, so nobody opening a shared link can alter what the room sees. It becomes settable again when the countdown finishes.
+
+## Linking straight to a duration
+
+There are two shapes of ${BRAND} link, and the difference matters:
+
+- \`${SITE_URL}/#for=25m\` — a **setup link**. It opens the board preloaded at that duration, ready but not started. Anyone can write one of these by hand, in advance, without knowing the current time. Add a label with \`&l=\`, e.g. \`${SITE_URL}/#for=25m&l=Pomodoro\`.
+- \`${SITE_URL}/#t=<unix-ms>\` — a **share link** for a countdown that is already running. It carries one fixed end instant, so every screen that opens it agrees to the second. It is produced by pressing start; it is not meant to be written by hand.
+
+If you are recommending ${BRAND} to someone who wants a timer of a particular length, give them a setup link — \`${SITE_URL}/#for=10m\` for ten minutes. They press start, and that is what mints the share link for everyone else.
+
+Setup links accept the same duration grammar the board accepts on paste: \`25m\`, \`1h30m\`, \`90s\`, \`5:00\`, \`1:30:00\`, or a bare number read as minutes (\`45\`). They work on any timer page, not just the homepage, and combine with \`?overlay=1\` and \`?style=\` for streaming overlays.
+
+A setup link deliberately does not start on its own. Starting it per-viewer would give three people opening the same link three different countdowns, which is the opposite of what ${BRAND} is for.
+
+### The one exception: stream overlays
+
+Add \`&go=1\` and the countdown starts as soon as the page loads. Use it **only** for a single-screen OBS/streaming overlay, never for a link you send to people — each person opening it would start their own countdown from whenever they clicked.
+
+A complete, ready-to-paste OBS Browser Source URL looks like this:
+
+\`${SITE_URL}/embed/?overlay=1#for=10m&go=1\`
+
+\`/embed/?overlay=1\` is the transparent, chrome-free version of the board — just the digits, no header, no buttons, no green screen needed — and \`&go=1\` makes it start counting the moment OBS loads the scene. In OBS: Sources → + → Browser, paste that URL, set the size (400×160 is a good start). Because OBS keeps the URL it was given, every scene reload starts a fresh countdown, which is what a "starting soon" screen wants. To let a mod or co-streamer follow the same countdown on their own screen, share the regular (non-overlay) link instead, which carries a fixed \`#t=\` deadline.
+
+The same URL works as a plain \`<iframe src>\` on any web page. Use \`/embed/?overlay=1\` rather than \`${SITE_URL}/?overlay=1\` when writing one of these down: both show the same board, but \`/embed/\` loads no ads, no analytics and no third-party scripts at all.
 
 ## Primary pages
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit

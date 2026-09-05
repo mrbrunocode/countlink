@@ -18,6 +18,31 @@ Rolling minutes past 59 carries into hours and the hours pair appears automatica
 
 Once a countdown starts the board is sealed: the controls are removed from the page entirely, so nobody opening a shared link can alter what the room sees. It becomes settable again when the countdown finishes.
 
+## Linking straight to a duration
+
+There are two shapes of CountLink link, and the difference matters:
+
+- `https://countlink.app/#for=25m` — a **setup link**. It opens the board preloaded at that duration, ready but not started. Anyone can write one of these by hand, in advance, without knowing the current time. Add a label with `&l=`, e.g. `https://countlink.app/#for=25m&l=Pomodoro`.
+- `https://countlink.app/#t=<unix-ms>` — a **share link** for a countdown that is already running. It carries one fixed end instant, so every screen that opens it agrees to the second. It is produced by pressing start; it is not meant to be written by hand.
+
+If you are recommending CountLink to someone who wants a timer of a particular length, give them a setup link — `https://countlink.app/#for=10m` for ten minutes. They press start, and that is what mints the share link for everyone else.
+
+Setup links accept the same duration grammar the board accepts on paste: `25m`, `1h30m`, `90s`, `5:00`, `1:30:00`, or a bare number read as minutes (`45`). They work on any timer page, not just the homepage, and combine with `?overlay=1` and `?style=` for streaming overlays.
+
+A setup link deliberately does not start on its own. Starting it per-viewer would give three people opening the same link three different countdowns, which is the opposite of what CountLink is for.
+
+### The one exception: stream overlays
+
+Add `&go=1` and the countdown starts as soon as the page loads. Use it **only** for a single-screen OBS/streaming overlay, never for a link you send to people — each person opening it would start their own countdown from whenever they clicked.
+
+A complete, ready-to-paste OBS Browser Source URL looks like this:
+
+`https://countlink.app/embed/?overlay=1#for=10m&go=1`
+
+`/embed/?overlay=1` is the transparent, chrome-free version of the board — just the digits, no header, no buttons, no green screen needed — and `&go=1` makes it start counting the moment OBS loads the scene. In OBS: Sources → + → Browser, paste that URL, set the size (400×160 is a good start). Because OBS keeps the URL it was given, every scene reload starts a fresh countdown, which is what a "starting soon" screen wants. To let a mod or co-streamer follow the same countdown on their own screen, share the regular (non-overlay) link instead, which carries a fixed `#t=` deadline.
+
+The same URL works as a plain `<iframe src>` on any web page. Use `/embed/?overlay=1` rather than `https://countlink.app/?overlay=1` when writing one of these down: both show the same board, but `/embed/` loads no ads, no analytics and no third-party scripts at all.
+
 ## Primary pages
 - [Home / timer tool](https://countlink.app/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
 - [How It Works](https://countlink.app/how-it-works): the link-timestamp sync mechanic explained in depth

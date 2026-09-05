@@ -853,6 +853,14 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
 .obs-extra p:last-child{margin-bottom:0}
 .obs-extra ol{margin:0 0 10px 1.2em;font-size:.86rem;color:var(--paper-dim);line-height:1.7}
 .obs-extra ol li::marker{color:var(--amber);font-family:var(--mono)}
+/* Inline code in the overlay panels. `code` is otherwise only styled inside
+   .article, so without this the copy-paste URL renders as unstyled body text
+   and reads as prose rather than as the thing you are meant to copy. */
+.obs-extra code{font-family:var(--mono);font-size:.85em;background:var(--board-deep);border:1px solid var(--panel-line);border-radius:4px;padding:.1em .35em;color:var(--paper-text)}
+/* The URL itself is the payload of this panel, so it gets to be its own
+   block — and it must wrap rather than overflow, since it is longer than a
+   phone is wide (the mobile-overflow bug this site has already had once). */
+.obs-extra .obs-url{display:block;padding:.55em .7em;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;user-select:all}
 
 /* ============ FOOTER (also carries the internal SEO links — see docs/monetization.md) ============ */
 footer{border-top:1px solid var(--panel-line);padding:24px 0 28px;margin-top:34px}

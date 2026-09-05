@@ -72,6 +72,65 @@ URL on any other device reads the same timestamp and counts down to it using
 the device's own clock — so there's nothing to host, nothing to keep running,
 and no possibility of the "server" going down.
 
+## The URL contract: `#t=` vs `#for=`
+
+There are two shapes of link, and the difference is the product:
+
+| Shape | Means | Written by |
+|---|---|---|
+| `#t=<epoch ms>` | a **running** countdown, one fixed instant every screen agrees on | `makeLink()`, when someone presses start |
+| `#for=<duration>` | a **setup** link — the board opens preloaded at that duration, ready but not started | anyone, in advance, by hand |
+
+`#for=` exists because until it did, **only a human in a browser who had
+already pressed start could produce a working CountLink URL** — the share link
+carries an absolute timestamp, so nothing that doesn't know the current epoch
+time could write one. That ruled out every context that wants to write a timer
+down in advance: an AI assistant answering "give me a 25 minute shared timer"
+(the largest traffic channel this site has), a bookmark, a calendar invite, a
+lesson plan, a saved OBS scene.
+
+It accepts the same grammar the board accepts on paste — `25m`, `1h30m`,
+`90s`, `5:00`, `1:30:00`, `45` — by calling the very same
+`parsePastedDuration()`, so there is only one duration syntax on the whole
+site. Add a label with `&l=`. Works on any timer page.
+
+**A setup link deliberately does not start itself.** If it did, three people
+opening the same `#for=25m` would each get their own countdown from whenever
+they clicked — the per-visitor "evergreen countdown" deliberately rejected in
+`docs/` and the exact opposite of "one fixed instant, identical on every
+screen". `e2e/setup-link.spec.mjs` fails if that ever changes.
+
+The one exception is **`&go=1`**, which starts on load. It is opt-in precisely
+so "a shared link never auto-starts" stays a visible rule rather than a hidden
+per-page exception, and it exists for the OBS overlay — a Browser Source is one
+scene on one machine with every control stripped out and no link to copy from
+it, so there is no second viewer to fall out of sync with. The full overlay URL
+is `/embed/?overlay=1#for=10m&go=1`; **both halves matter** — `/embed/` is the
+ad-and-analytics-free build, `?overlay=1` is what actually makes it
+transparent. Never hand out `/?overlay=1` (see `docs/overlay-ads.md`: it
+redirects to `/embed/` too late to stop the preload scanner queueing the ad
+scripts, and ads on a content-free screen is a live AdSense violation).
+
+## The MCP server (`/mcp`)
+
+`functions/mcp.js` is a Cloudflare Pages Function exposing CountLink over the
+Model Context Protocol, so an assistant can *hand someone a working link*
+rather than telling them to go and make one. Two tools, both genuinely
+read-only (there is no backend — a timer is string arithmetic over a
+duration): `create_timer` and `describe_timer_link`.
+
+Deliberately one self-contained file with no imports: Pages routes
+`functions/mcp.js` → `/mcp`, and keeping the logic in the same module means
+`test/mcp-server.test.mjs` exercises the exact bytes that deploy, with no
+build step and no second copy to drift. It re-implements
+`parsePastedDuration()` because a Worker can't import a browser script that
+touches the DOM — a drift risk that is covered by a test running a shared
+corpus through both implementations.
+
+`.github/workflows/deploy.yml` builds `dist/` with a **deny-list** rsync, so
+`functions/` ships by default; a test asserts it is never added to that list,
+because doing so would take `/mcp` off the internet with nothing failing.
+
 ## Phone control (opt-in, currently dark)
 
 `assets/realtime.js` + `control.html` add an optional layer on top of the
