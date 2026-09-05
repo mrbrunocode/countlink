@@ -526,10 +526,31 @@ test("describe_timer_link's agenda reading agrees with app.js's computeAgendaSta
   const { computeAgendaState } = loadDuration();
   const segs = [{ label: "A", minutes: 10 }, { label: "B", minutes: 20 }];
   const url = agendaUrl(segs, FIXED_NOW);
-  for (const offsetMin of [0, 5, 10, 25, 30, 40]) {
+  // Negative offsets included: a not-yet-started agenda (from start_at) must
+  // resolve to the same -2 sentinel on both sides of the URL contract, not
+  // just once it's actually running.
+  for (const offsetMin of [-120, -5, 0, 5, 10, 25, 30, 40]) {
     const at = FIXED_NOW + offsetMin * 60000;
     assert.equal(describeUrl(url, at).currentIndex, computeAgendaState(segs, FIXED_NOW, at).idx, `${offsetMin} min in`);
   }
+});
+
+test("describe_timer_link reports a not-yet-started agenda distinctly, not as mid-segment-1", () => {
+  const url = agendaUrl([{ label: "Intro", minutes: 10 }, { label: "Talk", minutes: 20 }], FIXED_NOW);
+  const info = describeUrl(url, FIXED_NOW - 5 * 60000); // 5 minutes before start
+  assert.equal(info.currentIndex, -2);
+  assert.equal(info.started, false);
+  assert.equal(info.finished, false);
+  assert.equal(info.startsInSeconds, 300);
+  // Not inflated: 5 min of waiting is not folded into a "5 min already
+  // elapsed in a 10-min segment" reading — remainingSeconds is total run
+  // length (30 min) PLUS the wait (5 min), i.e. time to the whole thing
+  // finishing, which is the one consistent meaning across every state.
+  assert.equal(info.remainingSeconds, 30 * 60 + 5 * 60);
+  const prose = callTool("describe_timer_link", { url }, FIXED_NOW - 5 * 60000).content[0].text;
+  assert.match(prose, /scheduled/i);
+  assert.match(prose, /not running yet/i);
+  assert.doesNotMatch(prose, /segment 1/i, "must not read as already on segment 1");
 });
 
 test("an agenda link with no valid segments is not a timer link", () => {
@@ -542,6 +563,62 @@ test("an agenda link with no valid segments is not a timer link", () => {
 test("create_agenda is listed alongside the other tools", () => {
   const names = rpc("tools/list").result.tools.map((t) => t.name);
   assert.ok(names.includes("create_agenda"), names.join(", "));
+});
+
+/* ======================= create_agenda: start_at ======================= */
+
+test("create_agenda defaults to starting now, unchanged from before start_at existed", () => {
+  const r = callTool("create_agenda", { segments: [{ duration: "10m" }] }, FIXED_NOW);
+  assert.equal(r.structuredContent.start, FIXED_NOW);
+  assert.equal(r.structuredContent.started, true);
+  assert.equal(r.structuredContent.startsInSeconds, undefined);
+  assert.doesNotMatch(r.content[0].text, /scheduled/i);
+});
+
+test("a future start_at mints a link with that instant, marked not-yet-started", () => {
+  const startAt = new Date(FIXED_NOW + 3600000).toISOString(); // 1 hour ahead
+  const r = callTool("create_agenda", { segments: [{ duration: "10m" }], start_at: startAt }, FIXED_NOW);
+  assert.equal(r.structuredContent.start, FIXED_NOW + 3600000);
+  assert.equal(r.structuredContent.started, false);
+  assert.equal(r.structuredContent.startsInSeconds, 3600);
+  assert.equal(r.structuredContent.url, agendaUrl([{ label: "", minutes: 10 }], FIXED_NOW + 3600000));
+  assert.match(r.content[0].text, /scheduled/i);
+  assert.match(r.content[0].text, /in 1h/);
+});
+
+test("a start_at already in the past is just an already-running agenda", () => {
+  const startAt = new Date(FIXED_NOW - 5 * 60000).toISOString(); // 5 min ago
+  const r = callTool("create_agenda", { segments: [{ duration: "10m" }], start_at: startAt }, FIXED_NOW);
+  assert.equal(r.structuredContent.started, true);
+  assert.equal(r.structuredContent.startsInSeconds, undefined);
+  assert.doesNotMatch(r.content[0].text, /scheduled/i);
+});
+
+test("an unparsable start_at is a tool error, not a broken link", () => {
+  const r = callTool("create_agenda", { segments: [{ duration: "10m" }], start_at: "next tuesday-ish" });
+  assert.equal(r.isError, true);
+  assert.match(r.content[0].text, /date\/time/i);
+});
+
+test("start_at accepts a bare date and a local-offset instant, not just Z", () => {
+  for (const startAt of ["2026-09-08", "2026-09-08T09:15:00+01:00", "2026-09-08T09:15:00.000Z"]) {
+    const r = callTool("create_agenda", { segments: [{ duration: "10m" }], start_at: startAt }, FIXED_NOW);
+    assert.equal(r.isError, undefined, `${startAt}: ${r.content?.[0]?.text}`);
+  }
+});
+
+test("the agenda page's own parser boots a future-start link the same as a now-start one", () => {
+  // What create_agenda emits and what parseAgendaHash() reads must agree
+  // regardless of whether start is in the future — the URL contract itself
+  // (#ag=...&s=...) doesn't change shape for a scheduled start, only its
+  // display does (see assets/app.js's renderRunning() idx===-2 branch).
+  const { parseAgendaHash } = loadDuration();
+  const startAt = new Date(FIXED_NOW + 3600000).toISOString();
+  const r = callTool("create_agenda", { segments: [{ duration: "10m", label: "Intro" }], start_at: startAt }, FIXED_NOW);
+  const back = parseAgendaHash(new URL(r.structuredContent.url).hash.slice(1));
+  assert.ok(back);
+  assert.equal(back.start, FIXED_NOW + 3600000);
+  assert.deepEqual(back.segments, [{ label: "Intro", minutes: 10 }]);
 });
 
 /* ======================= .ics calendar export ======================= */

@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { boundaries, fmtAgenda, computeAgendaState, encodeAgendaHash, parseAgendaHash } = loadDuration();
+const { boundaries, fmtAgenda, computeAgendaState, encodeAgendaHash, parseAgendaHash, fmtStartsIn } = loadDuration();
 
 test("boundaries: cumulative end time in ms for each segment", () => {
   const segs = [{ minutes: 5 }, { minutes: 10 }, { minutes: 2 }];
@@ -64,6 +64,32 @@ test("computeAgendaState: single-segment agenda", () => {
   const segs = [{ minutes: 5 }];
   assert.equal(computeAgendaState(segs, 0, 1000).idx, 0);
   assert.equal(computeAgendaState(segs, 0, 5 * 60000).idx, -1);
+});
+
+test("computeAgendaState: a future start is idx -2 (not started), not an inflated segment 1", () => {
+  // The bug this guards against: bounds.findIndex(b => elapsed < b) resolves
+  // to 0 for ANY negative elapsed (every bound is positive), so before this
+  // sentinel existed, an agenda scheduled 5 minutes out looked identical to
+  // one already 0 seconds into segment 1 — and renderRunning() then computed
+  // that segment's remaining time as bounds[0] - elapsed, which is bounds[0]
+  // PLUS the 5-minute wait folded in as if it were already ticking.
+  const segs = [{ minutes: 10 }, { minutes: 20 }];
+  const start = 1000000;
+  const fiveMinBefore = computeAgendaState(segs, start, start - 5 * 60000);
+  assert.equal(fiveMinBefore.idx, -2);
+  assert.equal(fiveMinBefore.elapsed, -5 * 60000);
+  // The instant it starts, idx must flip cleanly to 0 — no gap, no lingering -2.
+  assert.equal(computeAgendaState(segs, start, start).idx, 0);
+  // And arbitrarily far in the future is still -2, not some other sentinel.
+  assert.equal(computeAgendaState(segs, start, start - 86400000).idx, -2);
+});
+
+test("fmtStartsIn includes hours when needed, unlike fmtAgenda", () => {
+  assert.equal(fmtStartsIn(5 * 60000), "05:00");
+  assert.equal(fmtStartsIn(59 * 60000 + 59000), "59:59");
+  assert.equal(fmtStartsIn(60 * 60000), "1:00:00");
+  assert.equal(fmtStartsIn(25 * 3600000 + 61000), "25:01:01", "no cap on the hours field");
+  assert.equal(fmtStartsIn(-500), "00:00", "never negative, same convention as fmtAgenda");
 });
 
 test("encodeAgendaHash / parseAgendaHash round-trip", () => {

@@ -1166,7 +1166,7 @@ ${instrumentIndex(p.slug)}
 </div>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=14f4ff67" defer></script>
+<script src="../assets/app.js?v=81501581" defer></script>
 </body>
 </html>
 `; };
@@ -1545,7 +1545,7 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 \`${SITE_URL}/mcp\` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like \`#t=…\` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Four tools:
 
 - **\`create_timer\`** — given a duration (and optionally a label), returns a working \`${SITE_URL}\` link. \`start_now: true\` returns a countdown already running; \`for_obs_overlay: true\` returns the OBS Browser Source URL described above; **\`embed_on_website: true\` returns ready-to-paste \`<iframe>\` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional \`embed_width\`/\`embed_height\`/\`embed_style\`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above. Whenever the result has a fixed end instant (\`start_now\` or \`embed_on_website\`), \`structuredContent.ics\` is a ready-to-use \`.ics\` calendar file for it.
-- **\`create_agenda\`** — given an ordered list of \`{ duration, label? }\` segments, returns a link on \`${SITE_URL}/timers/agenda-timer\` that starts now and advances through every segment on every screen, plus a run sheet with each segment's start and end, and \`structuredContent.ics\` (one calendar event per segment). If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
+- **\`create_agenda\`** — given an ordered list of \`{ duration, label? }\` segments, returns a link on \`${SITE_URL}/timers/agenda-timer\` that starts now (or at an optional \`start_at\` ISO-8601 instant, for something scheduled ahead) and advances through every segment on every screen, plus a run sheet with each segment's start and end, and \`structuredContent.ics\` (one calendar event per segment). A scheduled agenda shows a live "starts in" countdown until the instant arrives, then switches over on its own. If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
 - **\`create_badge\`** — for places \`embed_on_website\`'s \`<iframe>\` cannot go: a GitHub README, a forum post, anywhere only Markdown or a bare \`<img>\` is allowed. Returns a Markdown snippet and an HTML snippet, image always wrapped in a link to the live countdown (never a bare image — the link is what makes it a real attribution). Shows coarse time remaining ("3d 04h left"), not a live tick — most embedding contexts fetch and cache images server-side, so a ticking promise would be false.
 - **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL (single timer or agenda), explains what it is (setup or running, label, time left, which segment is live).
 

@@ -251,15 +251,25 @@ here, stop and ask rather than guessing.
   ingest. Fixed at the source in `build-timer-pages.mjs`; see the guard
   test below so it can't recur.
 
-### 1c — NEW, deferred: planned-start agendas (app.js UI change)
+### 1c — SHIPPED 2026-09-05. Planned-start agendas
 
-To support "agenda starting at 9:15": add a pre-start state to
-`renderRunning()` when `elapsed < 0` ("Starts in 04:32", segments all
-"upcoming"), then let `create_agenda` accept an optional `start_at`
-(ISO-8601) and mint `s=` at that instant. The encoding already supports it
-— only the display doesn't. Do the app.js half first, with a Playwright
-test that a future-`s` link shows a countdown-to-start rather than an
-inflated segment 1; only then expose the parameter.
+Built in the order this section originally specified: the `app.js` display
+half first (`computeAgendaState()` gained an `idx === -2` "not started"
+sentinel — every segment boundary being positive meant *any* negative
+elapsed used to resolve to segment 0, folding the wait into that segment's
+remaining time; `renderRunning()` now shows "Starts soon" with a
+`fmtStartsIn()` countdown and every segment "upcoming"), verified with
+`e2e/agenda.spec.mjs` (a link 2 seconds from its scheduled start actually
+ticking over into the running view live, no reload, across all 5 browser
+projects) — only then was `create_agenda`'s `start_at` (ISO-8601) parameter
+exposed. `functions/mcp.js`'s `describeUrl()` mirrors the same `-2` sentinel,
+cross-checked against `computeAgendaState()` for negative offsets too, not
+just the previously-covered non-negative ones.
+
+Value case: without this, an assistant asked "set up my workshop, it starts
+at 9:15 tomorrow" could only start the agenda immediately — wrong — or
+decline. That's the same gap `#for=` setup links closed for single timers on
+day one of this whole `/mcp` effort; agendas had been left behind it.
 
 ### 1b — SHIPPED. `.ics` export
 

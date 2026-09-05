@@ -83,6 +83,7 @@ if (typeof module !== "undefined" && module.exports) {
     encodeAgendaHash: encodeAgendaHash, parseAgendaHash: parseAgendaHash,
     runSheetRows: runSheetRows,
     boundaries: boundaries, fmtAgenda: fmtAgenda, computeAgendaState: computeAgendaState,
+    fmtStartsIn: fmtStartsIn,
     alarmTones: alarmTones,
     clampAdjustedEnd: clampAdjustedEnd, clampAdjustedRemaining: clampAdjustedRemaining,
     computeResumeEnd: computeResumeEnd, genSessionId: genSessionId,
@@ -2469,8 +2470,28 @@ function computeAgendaState(segments,start,now){
   const bounds=boundaries(segments);
   const total=bounds[bounds.length-1];
   const elapsed=now-start;
-  const idx=bounds.findIndex(b=>elapsed<b);
+  // idx===-2 means "not started yet" (a create_agenda start_at in the
+  // future). Without this sentinel, bounds.findIndex(b=>elapsed<b) returns 0
+  // for any negative elapsed too — every bound is positive, so the first one
+  // always "wins" — which used to make renderRunning() treat a not-yet-
+  // started agenda as already mid-segment-1, with the lead time folded into
+  // that segment's remaining time (a 10-minute segment 5 minutes from start
+  // showed "15:00 left"). -1 (finished) is unchanged and still only reachable
+  // once every bound has passed.
+  const idx=elapsed<0?-2:bounds.findIndex(b=>elapsed<b);
   return {bounds,total,elapsed,idx};
+}
+/* "Starts in" needs an hours field fmtAgenda deliberately doesn't have (that
+   function formats time WITHIN a run — a single segment or the whole
+   agenda's remaining length — which this codebase's agendas keep short
+   enough that mm:ss has always been enough). A scheduled start can be
+   meaningfully further out, so this is a separate function rather than
+   teaching fmtAgenda a shape none of its other callers need. */
+function fmtStartsIn(ms){
+  const s=Math.max(0,Math.ceil(ms/1000));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  const mm=String(m).padStart(2,"0"),ss=String(sec).padStart(2,"0");
+  return h?`${h}:${mm}:${ss}`:`${mm}:${ss}`;
 }
 function initAgendaDashboard(){
   let agendaSegments=[];
@@ -2521,7 +2542,10 @@ function initAgendaDashboard(){
     renderRunSheet(segments,start);
 
     runningListEl.innerHTML=segments.map((seg,i)=>{
-      const state=idx===-1||i<idx?"done":i===idx?"current":"upcoming";
+      // idx===-2 (not started): every segment reads "upcoming" — none of
+      // them, including the first, is "current" until the scheduled start
+      // instant actually arrives.
+      const state=idx===-2?"upcoming":idx===-1||i<idx?"done":i===idx?"current":"upcoming";
       return `<li class="agenda-item agenda-item--${state}">
         <span class="agenda-item-order">${state==="done"?"✓":i+1}</span>
         <span class="agenda-item-label">${esc(seg.label)||"Segment "+(i+1)}</span>
@@ -2529,6 +2553,22 @@ function initAgendaDashboard(){
       </li>`;
     }).join("");
 
+    if(idx===-2){
+      // A shared link is still worth leaving open on a screen while it
+      // counts down to a scheduled start — same reasoning as the running
+      // state below, unlike the single-timer board's unstarted "ready"
+      // state, which is a configuration screen nobody is just watching yet.
+      setWakeLockActive(true);
+      $("agendaNowLabel").textContent="Starts soon";
+      $("agendaNowTime").textContent=fmtStartsIn(-elapsed);
+      // Includes the day (e.g. "tomorrow", "Tue 8 Sep") whenever the start
+      // isn't today — "starts at 09:15 your time" alone would misleadingly
+      // read as later today for a start that's actually days out.
+      const when=localEndLabel(start,Date.now());
+      $("agendaNowSub").textContent=`${segments.length} segment${segments.length===1?"":"s"} · starts ` +
+        (when.day?when.day+" ":"")+"at "+when.time+" your time";
+      return;
+    }
     if(idx===-1){
       setWakeLockActive(false);
       $("agendaNowLabel").textContent="Agenda complete";

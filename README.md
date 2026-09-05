@@ -121,12 +121,21 @@ duration): `create_timer`, `create_agenda`, `create_badge` and
 `describe_timer_link`.
 
 `create_agenda` takes an ordered list of `{ duration, label? }` segments and
-returns one link on `/timers/agenda-timer` that starts now and advances
-through every segment on every screen, plus a run sheet. It mirrors
-`encodeAgendaHash()` in `assets/app.js` byte for byte and is round-tripped
-through that page's own `parseAgendaHash()` in the tests. Start-now only for
-now — see `docs/ai-surface-expansion-plan.md` § 1c for why a planned start
-is an app.js UI change first. `describe_timer_link` reads agenda links too.
+returns one link on `/timers/agenda-timer` that starts now (or at an optional
+`start_at`) and advances through every segment on every screen, plus a run
+sheet. It mirrors `encodeAgendaHash()` in `assets/app.js` byte for byte and
+is round-tripped through that page's own `parseAgendaHash()` in the tests.
+`describe_timer_link` reads agenda links too, including a scheduled one that
+hasn't started yet.
+
+A scheduled `start_at` in the future shows a "Starts soon" countdown, not an
+inflated first segment — `computeAgendaState()`'s `idx` gained a `-2`
+("not started") sentinel alongside the existing `-1` ("finished"), because
+every segment boundary being positive meant *any* negative elapsed time used
+to resolve to segment 0, folding the wait into that segment's remaining time.
+Mirrored in `functions/mcp.js`'s `describeUrl()`. `e2e/agenda.spec.mjs`
+covers the live transition — a 2-second-out agenda actually ticking over
+into its first segment with no reload, across all 5 browser projects.
 
 `create_timer` covers three shapes with boolean flags: a plain shared link by
 default, `for_obs_overlay: true` for a self-starting OBS Browser Source, and

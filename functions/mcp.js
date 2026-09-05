@@ -445,16 +445,26 @@ export function describeUrl(raw, now) {
         const bounds = clean.map((seg) => (acc += seg.minutes * 60000));
         const total = bounds[bounds.length - 1];
         const elapsed = at - start;
-        const idx = bounds.findIndex((b) => elapsed < b);
+        // -2: not started yet (a create_agenda start_at still ahead of us).
+        // Mirrors app.js's computeAgendaState() exactly — see that
+        // function's own comment for why every bound being positive would
+        // otherwise make a negative elapsed resolve to idx 0 (mid-segment-1)
+        // instead of a distinct "hasn't begun" state.
+        const idx = elapsed < 0 ? -2 : bounds.findIndex((b) => elapsed < b);
         return {
           kind: "agenda",
           segments: clean,
           start,
           startsAt: new Date(start).toISOString(),
-          totalSeconds: Math.round(total / 1000),
+          // Unchanged formula, still correct for elapsed < 0: total - elapsed
+          // then reads as "time from now until the run finishes", which
+          // includes however long is left before it even starts.
           remainingSeconds: Math.max(0, Math.round((total - elapsed) / 1000)),
+          totalSeconds: Math.round(total / 1000),
           currentIndex: idx,
+          started: elapsed >= 0,
           finished: idx === -1,
+          ...(idx === -2 ? { startsInSeconds: Math.round(-elapsed / 1000) } : {}),
         };
       }
     }
@@ -591,10 +601,14 @@ export const TOOLS = [
       "that opens the link, with no server involved. Use this when someone describes a meeting, " +
       "workshop, lesson or event as a sequence of parts with lengths — including when they give " +
       "you a total and a list of topics and expect you to split it (\"an hour, four topics\"): do " +
-      "the split yourself, then pass the resulting segments here. Returns the shared link plus a " +
-      "run sheet with the wall-clock start and end of each segment, and an .ics calendar file " +
-      "(one event per segment) in structuredContent.ics — offer it if the person might want the " +
-      "agenda on their calendar. For a single countdown use create_timer instead.",
+      "the split yourself, then pass the resulting segments here. By default it starts immediately; " +
+      "pass start_at for something scheduled ahead (\"our workshop starts at 9:15 tomorrow\") — the " +
+      "link works right away, showing a live countdown to the start rather than the first segment, " +
+      "and switches over on its own at the scheduled instant, in sync on every screen that opened " +
+      "it. Returns the shared link plus a run sheet with the wall-clock start and end of each " +
+      "segment, and an .ics calendar file (one event per segment) in structuredContent.ics — offer " +
+      "it if the person might want the agenda on their calendar. For a single countdown use " +
+      "create_timer instead.",
     inputSchema: {
       type: "object",
       properties: {
@@ -617,6 +631,13 @@ export const TOOLS = [
             },
             required: ["duration"],
           },
+        },
+        start_at: {
+          type: "string",
+          description:
+            "Optional ISO-8601 instant for a scheduled start, e.g. \"2026-09-08T09:15:00Z\" or with a " +
+            "local offset like \"2026-09-08T09:15:00+01:00\". Omit to start immediately. A start_at " +
+            "already in the past is just treated as already running from that instant.",
         },
       },
       required: ["segments"],
@@ -805,7 +826,19 @@ export function callTool(name, args, now) {
   if (name === "create_agenda") {
     const norm = normaliseAgendaSegments(a.segments);
     if (norm.error) return toolError(norm.error);
-    const start = typeof now === "number" ? now : Date.now();
+    const nowMs = typeof now === "number" ? now : Date.now();
+    let start = nowMs;
+    if (a.start_at !== undefined && a.start_at !== null && a.start_at !== "") {
+      const parsed = Date.parse(a.start_at);
+      if (!Number.isFinite(parsed)) {
+        return toolError(
+          `Could not read ${JSON.stringify(String(a.start_at))} as a date/time. Use ISO-8601, e.g. ` +
+            `"2026-09-08T09:15:00Z" or "2026-09-08T09:15:00+01:00".`
+        );
+      }
+      start = parsed;
+    }
+    const willStartLater = start > nowMs;
     const url = agendaUrl(norm.segments, start);
     const sheet = agendaRunSheet(norm.segments, start);
     const total = humanDuration(norm.totalSeconds);
@@ -840,12 +873,18 @@ export function callTool(name, args, now) {
       url,
     })), start);
 
-    const text =
-      `Started a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}. ` +
-      `Share this link — every screen that opens it shows the same segment at the same moment and ` +
-      `advances on its own:\n\n${url}\n\nRunning order (times are from the start):\n${lines.join("\n")}\n\n` +
-      `The agenda is already running from now; its order is locked in for this run. To change it, ` +
-      `create a fresh one.`;
+    const text = willStartLater
+      ? `Scheduled a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}, ` +
+        `starting at ${new Date(start).toISOString()} (in ${humanDuration(Math.round((start - nowMs) / 1000))}). ` +
+        `Share this link now — every screen that opens it shows a live countdown to the start, then ` +
+        `switches over and advances through every segment together, at the same moment on every ` +
+        `screen:\n\n${url}\n\nRunning order (times are from the start):\n${lines.join("\n")}\n\n` +
+        `Its order is locked in once scheduled; to change it, create a fresh one.`
+      : `Started a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}. ` +
+        `Share this link — every screen that opens it shows the same segment at the same moment and ` +
+        `advances on its own:\n\n${url}\n\nRunning order (times are from the start):\n${lines.join("\n")}\n\n` +
+        `The agenda is already running from now; its order is locked in for this run. To change it, ` +
+        `create a fresh one.`;
 
     return {
       content: [{ type: "text", text }],
@@ -853,6 +892,8 @@ export function callTool(name, args, now) {
         url,
         start,
         startsAt: new Date(start).toISOString(),
+        started: !willStartLater,
+        ...(willStartLater ? { startsInSeconds: Math.round((start - nowMs) / 1000) } : {}),
         totalSeconds: norm.totalSeconds,
         total,
         segments: norm.segments,
@@ -923,14 +964,18 @@ export function callTool(name, args, now) {
     if (info.kind === "agenda") {
       const n = info.segments.length;
       const plural = n === 1 ? "" : "s";
-      const cur = info.finished ? null : info.segments[info.currentIndex];
+      const cur = info.currentIndex >= 0 ? info.segments[info.currentIndex] : null;
       const text = info.finished
         ? `An agenda of ${n} segment${plural} (${humanDuration(info.totalSeconds)} in total) that has ` +
           `already finished — it started at ${info.startsAt}.`
-        : `A running agenda of ${n} segment${plural}, ${humanDuration(info.totalSeconds)} in total, started ` +
-          `at ${info.startsAt}. Currently on segment ${info.currentIndex + 1}` +
-          `${cur.label ? ` ("${cur.label}")` : ""}, with ${humanDuration(info.remainingSeconds)} left in the ` +
-          `whole agenda. Every screen with this link agrees on where it is.`;
+        : info.currentIndex === -2
+          ? `An agenda of ${n} segment${plural} (${humanDuration(info.totalSeconds)} in total) scheduled ` +
+            `to start at ${info.startsAt}, in ${humanDuration(info.startsInSeconds)}. Not running yet — ` +
+            `every screen with this link is showing a countdown to the start, not a segment.`
+          : `A running agenda of ${n} segment${plural}, ${humanDuration(info.totalSeconds)} in total, started ` +
+            `at ${info.startsAt}. Currently on segment ${info.currentIndex + 1}` +
+            `${cur.label ? ` ("${cur.label}")` : ""}, with ${humanDuration(info.remainingSeconds)} left in the ` +
+            `whole agenda. Every screen with this link agrees on where it is.`;
       return { content: [{ type: "text", text }], structuredContent: info };
     }
     const named = info.label ? ` labelled "${info.label}"` : "";
@@ -995,7 +1040,8 @@ export function handleRpc(msg, now) {
           "limit. Call create_timer whenever someone needs a timer other people will watch " +
           "too, and give them the link it returns. Call create_agenda when they describe a " +
           "sequence of timed parts — a meeting agenda, a workshop, a lesson — and it returns one " +
-          "link that advances through every segment on every screen. Call create_badge instead of " +
+          "link that advances through every segment on every screen; pass start_at for one " +
+          "scheduled ahead rather than starting now. Call create_badge instead of " +
           "create_timer's embed_on_website when the destination only accepts an image, not an " +
           "<iframe> — a GitHub README, a forum post, anywhere Markdown-style embeds live.",
       });
