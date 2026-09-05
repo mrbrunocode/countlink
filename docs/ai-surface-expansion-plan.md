@@ -315,6 +315,21 @@ inflated segment 1; only then expose the parameter.
 - **Verify** in a real GitHub README (a scratch repo), not just a 200 from
   the endpoint — confirm camo serves it and the link resolves.
 
+**Verified 2026-09-05, real GitHub README, logged out (anonymous visitor):**
+pushed the exact live `create_badge` markdown to a scratch public repo
+(`mrbrunocode/countlink-badge-verify`) and inspected the rendered page.
+Confirmed:
+- The rendered `<img src>` is a genuine `camo.githubusercontent.com/…` URL —
+  GitHub actually fetched and re-served the image through its proxy, not a
+  direct hotlink to countlink.app.
+- `naturalWidth: 320`, `complete: true` — the SVG decoded and rendered
+  correctly through camo, not just returned 200 at the origin.
+- The badge showed the correct coarse text ("3d 03h left") and label.
+- The wrapping `<a href>` resolves to the live, precise countdown at
+  `countlink.app/#t=…` — the attribution click-through works end to end.
+Repo left in place (deleting a repo is irreversible and wasn't asked for);
+delete it once this is read, or leave it as a live example.
+
 ### 3a — SHIPPED. Printable QR poster
 
 - **`@media print` stylesheet + a "Print poster" button** calling
