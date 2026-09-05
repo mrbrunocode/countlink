@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "app.countlink/countdown",
+  "title": "CountLink",
+  "description": "Shared countdown timers that stay in sync on every screen — no account, any number of viewers.",
+  "version": "1.0.0",
+  "repository": {
+    "url": "https://github.com/mrbrunocode/countlink",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://countlink.app/mcp"
+    }
+  ]
+}

@@ -13,3 +13,5 @@ node_modules/
 test-results/
 playwright-report/
 .playwright/
+.mcp-registry/key.pem
+.mcp-registry/private_key_hex.txt
