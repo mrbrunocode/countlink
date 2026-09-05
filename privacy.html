@@ -128,9 +128,18 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     any server operated by CountLink. There is no account system and no database.</p>
 
     <p style="margin-bottom:16px"><b>QR codes.</b> If you click "Show QR code," the current share link is sent
-    to a third-party QR generation API (goqr.me) to render the image — this is the only feature on the site
-    that makes an external request, it only ever happens if you explicitly click the button, and it only ever
-    sends the share link itself (a duration and label, not anything personal).</p>
+    to a third-party QR generation API (goqr.me) to render the image — this is the only feature of the countdown
+    itself that makes an external request, it only ever happens if you explicitly click the button, and it only
+    ever sends the share link itself (a duration and label, not anything personal).</p>
+
+    <p style="margin-bottom:16px"><b>The AI assistant endpoint (<code>/mcp</code>).</b> CountLink publishes a
+    Model Context Protocol server so an AI assistant — ChatGPT, Claude or similar — can build a timer link for
+    you when you ask it for one. It receives only what the assistant sends it: a duration, and optionally a
+    short label you chose. It has no account system, no database and no storage of any kind; it does not
+    receive, and could not store, who you are. It replies with a countlink.app URL and keeps nothing. Requests
+    are handled by Cloudflare, which keeps standard server request logs (such as IP address and timestamp) as
+    part of operating the network, under its own privacy policy. You never touch this endpoint by using the
+    website normally — only an assistant you have asked to make a timer does.</p>
 
     <p style="margin-bottom:16px"><b>Advertising.</b> This site shows, or intends to show, ads served by Google
     AdSense. Google uses cookies — including the DoubleClick cookie, now part of Google's advertising products —

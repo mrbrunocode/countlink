@@ -235,3 +235,109 @@ Still human-only: GA4 property creation, the AdSense application itself, and
 Search Console verification (Google account required for all three) — but
 once Bruno supplies the IDs, pasting them into the marked placeholders and
 redeploying is agent work (see the table at the top).
+
+---
+
+# If AdSense never comes through (researched 2026-09-05)
+
+Written because Bruno asked what the fallbacks are. Read the arithmetic first
+— it changes which question is worth asking.
+
+## The number that reframes this
+
+Real traffic, spam-filtered, 16 Aug – 5 Sept 2026: **401 sessions in 21 days
+= ~19/day, ~573/month.** At ~1.3–1.8 pageviews per session and a $2–8 RPM
+(a timer is low-value ad inventory — no commercial intent):
+
+| RPM | Revenue/month at current traffic |
+|---|---|
+| $2 | **$1.49 – $2.06** |
+| $5 | **$3.72 – $5.16** |
+| $8 | **$5.96 – $8.25** |
+
+**Approved AdSense, today, would pay two to eight dollars a month.** Reaching
+$100/mo needs ~23x current traffic; $500/mo needs ~116x.
+
+So the honest framing: **the monetization choice is worth ~$5/month. The
+traffic variable is worth 100x.** Time spent picking between ad networks is
+misallocated against time spent on traffic. AdSense approval matters mostly as
+a *signal* that the quality problem is solved — not for the money it would pay
+at this size.
+
+## Ad-network options, ranked honestly
+
+**1. Media.net — the only one that genuinely routes around Google.**
+Contextual ads on Yahoo/Bing demand, no traffic minimum. Because the demand
+source isn't Google, an AdSense "low value content" verdict doesn't
+automatically follow the domain. That makes it the most interesting fallback,
+not the biggest payer. Free to apply.
+
+**2. Ezoic — worth applying, but not the escape hatch it looks like.**
+Its "no minimum traffic" reputation is real, *but* every Ezoic publisher still
+needs **Google MCM approval** (Ad Manager account + domain approval). That is
+Google judging this domain again on the same signals that produced the
+low-value verdict. Some AdSense-rejected sites do get through; plenty don't.
+Treat it as a free lottery ticket, not a plan.
+
+**3. Adsterra / PropellerAds / PopAds — do not use these.**
+Instant approval, no minimum, and they pay in popunders and push notifications.
+At ~19 sessions/day they'd pay about the same trivial amount as everything
+else, while:
+- destroying the clean, fast, no-nonsense UX that is the entire product pitch;
+- very likely poisoning the one channel that *is* working — AI assistants cite
+  and recommend this site (218 Copilot citations, ~28% citation share on
+  "group timer"), and a popunder is exactly the signal that stops happening;
+- disqualifying the domain from AdSense, Ezoic and Mediavine later.
+
+Negative expected value. The revenue upside is a rounding error against the
+cost.
+
+## The model that actually fits: charge for value, not impressions
+
+Ads monetize *volume*. CountLink has very few users but unusually high-intent
+ones (streamers, teachers, facilitators, event organisers). Every competitor
+in this space monetizes value instead — and the audits already in memory say
+exactly what people pay for here:
+
+- **Leaderboarded: $19–39/mo, and what you're buying is branding.**
+- **ShareMyTimer: $9 one-time for a single event** (150 viewers, 15 days) —
+  event-shaped, no subscription.
+- **Stagetimer: paid, for remote control** — which CountLink already gives away
+  free, and should keep giving away free.
+
+So the paid product, if there is ever one, is **branded / white-label embeds
+and overlays**: your logo on the overlay, custom colours, no CountLink
+attribution. One-off event pricing suits a no-account tool better than a
+subscription.
+
+Note what it must *not* be: **never charge for viewers or timer count.**
+Unlimited viewers and unlimited timers are CountLink's free differentiator
+against ShareMyTimer's 3-viewer cap — putting a meter on them would sell the
+one thing the positioning is built on.
+
+**But don't build it yet.** At 19 sessions/day a paid tier converts
+approximately nobody, and Step 4 above ("don't rebuild Pro speculatively")
+still stands. The only thing that has changed architecturally is that
+`functions/mcp.js` set the Pages Functions precedent, so a small licence-check
+endpoint is no longer a novel piece of infrastructure. Revisit on demand
+signal — someone actually asking to remove the attribution — not on hope.
+
+## If you want a build, build for traffic, not revenue
+
+The highest-value build here isn't a monetization feature, because every
+monetization option is a multiplier on a number that is currently ~19/day.
+
+The constraint is authority: **1 referring domain**, which is also what drives
+the indexation wall and, very likely, the AdSense verdict itself. And the one
+mechanism on this site that compounds backlinks without per-instance outreach
+already exists — the **embed widget**, whose snippet deliberately puts the
+attribution link *outside* the iframe so it passes real equity. Every site
+that embeds a countdown leaves a real link behind.
+
+That is the same shape as `atlanticcouncil.org` → stagetimer.io: an
+organisation linking from its own event pages because it uses the tool. It
+needs the embed to be *found and used*, not more features.
+
+So: make the embed more discoverable and more obviously free to use, and let
+it do the compounding. That serves traffic, authority, indexation and the
+AdSense verdict at once — all four of the things actually blocking revenue.
