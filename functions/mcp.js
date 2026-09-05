@@ -135,6 +135,85 @@ export function shareUrl(seconds, label, now) {
   return label ? `${u}&l=${encodeURIComponent(label)}` : u;
 }
 
+/* ---------------------------------------------------------------------------
+ * Website embed (create_timer's embed_on_website: true branch).
+ *
+ * The one feature on this whole site whose entire point is off-site: it
+ * plants an attribution link on a page CountLink doesn't own. Backlinks are
+ * the single metric that has never moved for this domain (one referring
+ * domain, per docs/monetization.md and the SEO memory), and this is the only
+ * mechanism found so far that earns one without per-instance outreach — the
+ * same shape as the OBS-overlay embed builder on the homepage
+ * (renderEmbedCode() in assets/app.js), reimplemented here so an assistant
+ * can produce the same result without a human ever clicking the button.
+ *
+ * Deliberately NOT the same URL shape as for_obs_overlay:
+ *   - for_obs_overlay uses setupUrl(...,{overlay:true}) — a #for= link with
+ *     &go=1, because OBS is exactly one viewer with no Start button to press,
+ *     so the countdown has to begin itself whenever the scene loads. Fine for
+ *     a single machine; wrong for a website, where every visitor loading the
+ *     page would each get their OWN countdown starting from whenever they
+ *     happened to arrive — the "evergreen per-visitor countdown" this whole
+ *     product exists specifically not to be (see docs/monetization.md's
+ *     ShareMyTimer/CountdownShare comparison).
+ *   - A website embed needs the opposite: ONE fixed instant every visitor
+ *     agrees on, same as a normal shared link — so this reuses shareUrl()'s
+ *     #t= math, then points it at /embed/ (the ad-free, X-Frame-Options-
+ *     exempt build) with ?overlay=1 for the transparent chrome-free render.
+ *     No &go=1: a #t= link is already a fixed instant and needs no
+ *     self-start flag (that flag only exists for the #for= setup shape).
+ * ------------------------------------------------------------------------- */
+export function embedTargetUrl(seconds, label, now, style) {
+  const end = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+  let u = `${SITE_URL}/embed/?overlay=1#t=${end}`;
+  if (label) u += `&l=${encodeURIComponent(label)}`;
+  // "board" is the default the client omits too — see embedSrc() in
+  // assets/app.js's own comment for why a snippet with no ?style= should
+  // keep working if the default board style ever changes.
+  if (style && style !== "board") u += `&style=${encodeURIComponent(style)}`;
+  return u;
+}
+
+const EMBED_STYLES = new Set(["board", "minimal", "light"]);
+const EMBED_W_MIN = 160, EMBED_W_MAX = 1600, EMBED_W_DEFAULT = 400;
+const EMBED_H_MIN = 80, EMBED_H_MAX = 900, EMBED_H_DEFAULT = 160;
+
+function clampEmbedDim(n, min, max, dflt) {
+  const v = Math.round(Number(n));
+  if (!Number.isFinite(v) || v <= 0) return dflt;
+  return Math.min(max, Math.max(min, v));
+}
+
+/* The snippet is pasted verbatim onto someone else's page as raw HTML, so a
+   label carrying a literal " or < must not be able to break out of the title
+   attribute or open a tag — the one place in this file untrusted text
+   (a.label, caller-supplied) ends up inside markup rather than inside a URL
+   (which encodeURIComponent already makes safe on its own). */
+function escapeHtmlAttr(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/* Mirrors renderEmbedCode() in assets/app.js: an <iframe> at a fixed pixel
+   size, followed by a plain-text attribution paragraph whose link sits
+   OUTSIDE the <iframe> tag. That positioning is not cosmetic — a link inside
+   a frame is attributed to the frame's own document (countlink.app), so it
+   earns the embedding page nothing; only a link in the HOST page's own DOM
+   passes real link equity back to it. Guarded by test/mcp-server.test.mjs. */
+export function embedSnippet(src, label, width, height) {
+  const w = clampEmbedDim(width, EMBED_W_MIN, EMBED_W_MAX, EMBED_W_DEFAULT);
+  const h = clampEmbedDim(height, EMBED_H_MIN, EMBED_H_MAX, EMBED_H_DEFAULT);
+  const title = escapeHtmlAttr(`${label || "Countdown"} — CountLink`);
+  const iframe =
+    `<iframe src="${src}" width="${w}" height="${h}" title="${title}" loading="lazy" style="border:0"></iframe>`;
+  const attribution = `<p style="font-size:13px"><a href="${SITE_URL}/">Shared countdown by CountLink</a></p>`;
+  return { html: `${iframe}\n${attribution}`, width: w, height: h };
+}
+
 /* The value that goes in #for=. Emitted in the same grammar the board accepts
    on paste so a human reading the URL sees a duration, not a second count. */
 export function compactDuration(seconds) {
@@ -216,9 +295,10 @@ export const TOOLS = [
       "link sees the identical countdown, to the same second — no account, no sign-up, any " +
       "number of viewers. Use this whenever someone wants a timer several people or several " +
       "screens need to share: a classroom, an exam, a standup, a workshop, a webinar countdown, " +
-      "a stream overlay. By default it returns a setup link, which opens the board preloaded at " +
-      "the requested duration for the user to start themselves; pass start_now: true only if " +
-      "they want the countdown running from this moment.",
+      "a stream overlay, or a countdown embedded on someone's own website or landing page (e.g. " +
+      "\"10 days until launch\"). By default it returns a setup link, which opens the board " +
+      "preloaded at the requested duration for the user to start themselves; pass start_now: " +
+      "true only if they want the countdown running from this moment.",
     inputSchema: {
       type: "object",
       properties: {
@@ -244,8 +324,39 @@ export const TOOLS = [
             "a transparent background with just the digits, which starts counting as soon as the " +
             "scene loads. Use it when someone wants a countdown on their stream. Do not give an " +
             "overlay URL to several people to open — it starts fresh for whoever loads it; for " +
-            "that, call this again without the flag and share that link instead.",
+            "that, call this again without the flag and share that link instead. Mutually " +
+            "exclusive with embed_on_website.",
           default: false,
+        },
+        embed_on_website: {
+          type: "boolean",
+          description:
+            "True returns ready-to-paste <iframe> HTML for embedding a countdown on someone's " +
+            "OWN website or landing page — e.g. a launch-day countdown on a marketing page. " +
+            "Unlike for_obs_overlay, this is a fixed instant every visitor to that page sees " +
+            "identically (not a per-visitor restart), and free with no watermark option — the " +
+            "only requirement is a small attribution line under the widget linking back to " +
+            "CountLink, which the returned HTML already includes. Use this whenever someone asks " +
+            "for a countdown to put ON their own site/page, as opposed to a link to share with " +
+            "other people directly. Mutually exclusive with for_obs_overlay.",
+          default: false,
+        },
+        embed_width: {
+          type: "number",
+          description:
+            `Pixel width of the embedded iframe when embed_on_website is true. ${EMBED_W_MIN}–${EMBED_W_MAX}, default ${EMBED_W_DEFAULT}. Ignored otherwise.`,
+        },
+        embed_height: {
+          type: "number",
+          description:
+            `Pixel height of the embedded iframe when embed_on_website is true. ${EMBED_H_MIN}–${EMBED_H_MAX}, default ${EMBED_H_DEFAULT}. Ignored otherwise.`,
+        },
+        embed_style: {
+          type: "string",
+          enum: [...EMBED_STYLES],
+          description:
+            'Board style for embed_on_website: "board" (default, dark split-flap), "minimal" ' +
+            "(plain digits) or \"light\". Ignored otherwise.",
         },
       },
       required: ["duration"],
@@ -293,6 +404,45 @@ export function callTool(name, args, now) {
     }
     const label = typeof a.label === "string" ? a.label.trim().slice(0, 60) : "";
     const overlay = a.for_obs_overlay === true;
+    const embed = a.embed_on_website === true;
+    if (overlay && embed) {
+      return toolError(
+        "for_obs_overlay and embed_on_website are mutually exclusive — pick one. Use " +
+          "for_obs_overlay for a single OBS/streaming Browser Source; use embed_on_website for " +
+          "an <iframe> on someone's own web page."
+      );
+    }
+
+    if (embed) {
+      const style = EMBED_STYLES.has(a.embed_style) ? a.embed_style : "board";
+      const src = embedTargetUrl(seconds, label, now, style);
+      const { html, width, height } = embedSnippet(src, label, a.embed_width, a.embed_height);
+      const pretty = humanDuration(seconds);
+      const text =
+        `Here is a ${pretty} countdown${label ? ` called "${label}"` : ""} to embed on a ` +
+        `website, as an <iframe>:\n\n${html}\n\n` +
+        `Paste that HTML wherever the countdown should appear. It counts down to one fixed ` +
+        `instant, so every visitor to that page sees the same time remaining — it does not ` +
+        `restart per visitor. It is free with no watermark option; the small "Shared countdown ` +
+        `by CountLink" line under it is the only requirement, and it's a genuine link back to ` +
+        `CountLink rather than tracking of any kind — please don't ask for it to be removed or ` +
+        `hidden with CSS, that would be misrepresenting where the widget came from.`;
+      return {
+        content: [{ type: "text", text }],
+        structuredContent: {
+          url: src,
+          iframeHtml: html,
+          durationSeconds: seconds,
+          duration: pretty,
+          label,
+          width,
+          height,
+          style,
+          embed: true,
+        },
+      };
+    }
+
     // An overlay always starts itself, so start_now is meaningless alongside
     // it — honour the overlay rather than minting a #t= that OBS would reload
     // into an already-expired deadline on the next scene change.

@@ -21,7 +21,7 @@ below requires code changes; the endpoint is live and passing.
 | Transport | Streamable HTTP (JSON-RPC 2.0 over POST) |
 | Protocol versions | `2025-06-18`, `2025-03-26`, `2024-11-05` |
 | Authentication | **None.** No account, no API key, no OAuth. |
-| Tools | `create_timer`, `describe_timer_link` |
+| Tools | `create_timer` (share links, OBS overlays, **and website `<iframe>` embeds** via `embed_on_website: true`), `describe_timer_link` |
 
 No test credentials are needed — the "fully-featured demo account" requirement
 only applies to authenticated servers, and this one has no auth at all. That
@@ -93,7 +93,13 @@ Each is a prompt a reviewer can type, with what should happen.
    `https://countlink.app/embed/?overlay=1#for=5m&go=1`, a transparent
    Browser Source that starts when the scene loads.
 
-5. **"What is this link? https://countlink.app/#for=25m&l=Pomodoro"**
+5. **"Give me a countdown to embed on my landing page, 10 hours until launch."**
+   → `create_timer` with `embed_on_website: true`; returns a ready-to-paste
+   `<iframe>` snippet pointed at a fixed-instant `#t=` link (not the OBS
+   `#for=…&go=1` shape — that would restart for every visitor), plus a small
+   attribution paragraph outside the iframe.
+
+6. **"What is this link? https://countlink.app/#for=25m&l=Pomodoro"**
    → calls `describe_timer_link`; explains it is a not-yet-started setup link
    for 25 minutes, labelled Pomodoro.
 

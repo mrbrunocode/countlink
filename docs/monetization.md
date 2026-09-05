@@ -341,3 +341,14 @@ needs the embed to be *found and used*, not more features.
 So: make the embed more discoverable and more obviously free to use, and let
 it do the compounding. That serves traffic, authority, indexation and the
 AdSense verdict at once — all four of the things actually blocking revenue.
+
+**Shipped 2026-09-05:** `create_timer`'s `embed_on_website: true` flag makes
+this reachable through `/mcp`, not just the homepage's "Embed on your site →"
+button. An assistant asked for "a countdown to put on my landing page" can now
+produce the correct `<iframe>` — fixed-instant, not the OBS per-visitor-
+restart shape — with the attribution line already included, in one call. This
+targets the AI-referral channel specifically, since that's the traffic that's
+actually working; someone asking an assistant for a launch countdown is
+exactly the person who'd otherwise never have found the homepage button. See
+`functions/mcp.js`'s `embedTargetUrl`/`embedSnippet` and
+`test/mcp-server.test.mjs`'s `embed_on_website` section.

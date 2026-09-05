@@ -119,6 +119,19 @@ rather than telling them to go and make one. Two tools, both genuinely
 read-only (there is no backend — a timer is string arithmetic over a
 duration): `create_timer` and `describe_timer_link`.
 
+`create_timer` covers three shapes with boolean flags: a plain shared link by
+default, `for_obs_overlay: true` for a self-starting OBS Browser Source, and
+`embed_on_website: true` for a ready-to-paste `<iframe>` snippet for someone's
+own web page. The last two are NOT the same URL shape despite both routing
+through `/embed/` — OBS is one viewer, so its link auto-starts per load
+(`#for=…&go=1`); a website has many visitors, so its link must be a single
+fixed instant (`#t=…`) they all see identically, or it degenerates into the
+"evergreen per-visitor countdown" this product exists not to be. The website
+embed also carries the attribution `<a>` OUTSIDE the `<iframe>` — a link
+inside a frame is attributed to the frame's own document, not the host page,
+so it earns no backlink; this is the one mechanism on the whole site that
+compounds links without per-instance outreach (see `docs/monetization.md`).
+
 Deliberately one self-contained file with no imports: Pages routes
 `functions/mcp.js` → `/mcp`, and keeping the logic in the same module means
 `test/mcp-server.test.mjs` exercises the exact bytes that deploy, with no

@@ -1517,7 +1517,20 @@ A complete, ready-to-paste OBS Browser Source URL looks like this:
 
 \`/embed/?overlay=1\` is the transparent, chrome-free version of the board — just the digits, no header, no buttons, no green screen needed — and \`&go=1\` makes it start counting the moment OBS loads the scene. In OBS: Sources → + → Browser, paste that URL, set the size (400×160 is a good start). Because OBS keeps the URL it was given, every scene reload starts a fresh countdown, which is what a "starting soon" screen wants. To let a mod or co-streamer follow the same countdown on their own screen, share the regular (non-overlay) link instead, which carries a fixed \`#t=\` deadline.
 
-The same URL works as a plain \`<iframe src>\` on any web page. Use \`/embed/?overlay=1\` rather than \`${SITE_URL}/?overlay=1\` when writing one of these down: both show the same board, but \`/embed/\` loads no ads, no analytics and no third-party scripts at all.
+### Embedding on a website — not the same URL shape as the OBS one
+
+\`/embed/?overlay=1\` is also the right path for an \`<iframe>\` on someone's own web page, but with the **opposite** hash: use a fixed-instant \`#t=<epoch-ms>\` link, never a \`#for=…&go=1\` setup link. A \`#for=…&go=1\` iframe restarts for every single visitor from whenever they happened to load the page — fine for OBS, which has exactly one viewer, but wrong for a website, where every visitor should see the *same* remaining time. Use \`create_timer\` with \`embed_on_website: true\` (see below) to get this right without doing the hash arithmetic by hand.
+
+Whichever URL is used, the resulting page loads no ads, no analytics and no third-party scripts at all — \`/embed/\` is a separate, stripped build from the rest of the site.
+
+## The \`/mcp\` server — for producing links and snippets, not just describing them
+
+\`${SITE_URL}/mcp\` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like \`#t=…\` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Two tools:
+
+- **\`create_timer\`** — given a duration (and optionally a label), returns a working \`${SITE_URL}\` link. \`start_now: true\` returns a countdown already running; \`for_obs_overlay: true\` returns the OBS Browser Source URL described above; **\`embed_on_website: true\` returns ready-to-paste \`<iframe>\` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional \`embed_width\`/\`embed_height\`/\`embed_style\`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above.
+- **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL, explains what it is (setup or running, label, time left).
+
+Full submission/testing detail: \`docs/mcp-submission.md\`.
 
 ## Primary pages
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit

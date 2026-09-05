@@ -26,6 +26,7 @@ const mcp = await import("data:text/javascript," + encodeURIComponent(src));
 const {
   handleRpc, callTool, parseDuration, setupUrl, shareUrl,
   compactDuration, describeUrl, humanDuration, labelOf, TOOLS,
+  embedTargetUrl, embedSnippet,
 } = mcp;
 
 const rpc = (method, params, id = 1) => handleRpc({ jsonrpc: "2.0", id, method, params });
@@ -277,17 +278,129 @@ test("what create_timer emits, describe_timer_link can always read back", () => 
   // The two tools are the two directions of one contract; a round-trip failure
   // means a link this server hands out is one it cannot itself explain.
   for (const d of ["25m", "1h30m", "90s", "5:00", "45"]) {
-    for (const variant of [{}, { start_now: true }, { for_obs_overlay: true }]) {
+    for (const variant of [{}, { start_now: true }, { for_obs_overlay: true }, { embed_on_website: true }]) {
       const url = callTool("create_timer", { duration: d, label: "T", ...variant }, FIXED_NOW)
         .structuredContent.url;
       const back = describeUrl(url, FIXED_NOW);
       const what = `${d} ${JSON.stringify(variant)}`;
       assert.ok(back, `${what}: ${url}`);
       assert.equal(back.label, "T", what);
-      const seconds = variant.start_now ? back.remainingSeconds : back.durationSeconds;
+      // Both start_now and embed_on_website mint a fixed-instant #t= link —
+      // describe_timer_link reports those as remaining time, not a duration.
+      const seconds = (variant.start_now || variant.embed_on_website) ? back.remainingSeconds : back.durationSeconds;
       assert.equal(seconds, parseDuration(d), what);
     }
   }
+});
+
+/* ======================= embed_on_website ======================= */
+
+test("embed_on_website returns an iframe pointed at the ad-free /embed/ build", () => {
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true }, FIXED_NOW);
+  assert.equal(r.structuredContent.embed, true);
+  assert.ok(r.structuredContent.url.startsWith("https://countlink.app/embed/?overlay=1#t="), r.structuredContent.url);
+  assert.ok(r.structuredContent.iframeHtml.includes(r.structuredContent.url));
+});
+
+test("an embed link is a fixed instant, never a setup or auto-starting link", () => {
+  // The whole reason this differs from for_obs_overlay: many visitors will
+  // load this page, and they must all see the SAME remaining time, not each
+  // get their own countdown from whenever they arrived.
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true }, FIXED_NOW);
+  assert.ok(r.structuredContent.url.includes("#t="), r.structuredContent.url);
+  assert.ok(!r.structuredContent.url.includes("#for="), r.structuredContent.url);
+  assert.ok(!r.structuredContent.url.includes("go=1"), "no self-start flag on a fixed-instant link");
+});
+
+test("embed_on_website and for_obs_overlay are mutually exclusive", () => {
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true, for_obs_overlay: true });
+  assert.equal(r.isError, true);
+  assert.match(r.content[0].text, /mutually exclusive/i);
+});
+
+test("the attribution link sits outside the iframe tag, never inside it", () => {
+  // This is the entire point of the feature (see functions/mcp.js's own
+  // comment on embedSnippet): a link inside a frame is attributed to the
+  // frame's own document, not the host page, and earns nothing back.
+  const { iframeHtml: html } = callTool("create_timer", { duration: "10m", embed_on_website: true }).structuredContent;
+  const iframeEnd = html.indexOf("</iframe>");
+  const linkStart = html.indexOf("<a href=");
+  assert.ok(iframeEnd > -1 && linkStart > iframeEnd, html);
+  assert.match(html, /<a href="https:\/\/countlink\.app\/">Shared countdown by CountLink<\/a>/);
+});
+
+test("embed width/height are honoured within bounds, and clamped outside them", () => {
+  const inRange = callTool("create_timer", { duration: "10m", embed_on_website: true, embed_width: 600, embed_height: 300 }).structuredContent;
+  assert.equal(inRange.width, 600);
+  assert.equal(inRange.height, 300);
+  assert.match(inRange.iframeHtml, /width="600" height="300"/);
+
+  const tooSmall = callTool("create_timer", { duration: "10m", embed_on_website: true, embed_width: 1, embed_height: 1 }).structuredContent;
+  assert.equal(tooSmall.width, 160, "clamped to the minimum, not left at an unusable size");
+  assert.equal(tooSmall.height, 80);
+
+  const tooBig = callTool("create_timer", { duration: "10m", embed_on_website: true, embed_width: 99999, embed_height: 99999 }).structuredContent;
+  assert.equal(tooBig.width, 1600);
+  assert.equal(tooBig.height, 900);
+
+  const missing = callTool("create_timer", { duration: "10m", embed_on_website: true }).structuredContent;
+  assert.equal(missing.width, 400, "the default the client-side embed builder also uses");
+  assert.equal(missing.height, 160);
+});
+
+test("an invalid embed_style falls back to board rather than erroring", () => {
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true, embed_style: "neon" }).structuredContent;
+  assert.equal(r.style, "board");
+  assert.ok(!r.url.includes("style="), "board is the default the URL omits, same as the client builder");
+});
+
+test("a non-default embed_style is carried onto the /embed/ URL", () => {
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true, embed_style: "minimal" }).structuredContent;
+  assert.equal(r.style, "minimal");
+  assert.ok(r.url.includes("style=minimal"), r.url);
+});
+
+test("a label on an embed is carried onto the link and safely escaped in the iframe title", () => {
+  const plain = callTool("create_timer", { duration: "10m", embed_on_website: true, label: "Launch" }).structuredContent;
+  assert.ok(plain.url.includes("l=Launch"), plain.url);
+  assert.match(plain.iframeHtml, /title="Launch — CountLink"/);
+});
+
+test("a label with HTML-significant characters cannot break out of the title attribute", () => {
+  // This snippet is pasted verbatim as raw HTML onto someone else's page —
+  // unlike a URL (already made safe by encodeURIComponent), the label lands
+  // inside markup here, so a literal " or < must not escape the attribute or
+  // open a tag.
+  const hostile = '"><script>alert(1)</script>';
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true, label: hostile }).structuredContent;
+  assert.ok(!r.iframeHtml.includes("<script>"), r.iframeHtml);
+  assert.match(r.iframeHtml, /title="[^"]*&quot;&gt;&lt;script&gt;[^"]*"/);
+});
+
+test("embed_on_website's prose explains the attribution requirement, not just the HTML", () => {
+  const text = callTool("create_timer", { duration: "10m", embed_on_website: true }).content[0].text;
+  assert.match(text, /iframe/i);
+  assert.match(text, /every visitor/i);
+  assert.match(text, /attribution|shared countdown by countlink/i);
+});
+
+test("describe_timer_link can read back an embed URL, style and all", () => {
+  const created = callTool("create_timer", { duration: "10m", embed_on_website: true, label: "Focus", embed_style: "light" }, FIXED_NOW);
+  const back = describeUrl(created.structuredContent.url, FIXED_NOW);
+  assert.equal(back.kind, "share");
+  assert.equal(back.label, "Focus");
+  assert.equal(back.remainingSeconds, 600);
+});
+
+test("embedTargetUrl and embedSnippet are exported and independently testable", () => {
+  // Exercising the pure helpers directly, not just through callTool, so a
+  // regression in either one fails at the smallest possible unit.
+  const url = embedTargetUrl(300, "Break", FIXED_NOW, "board");
+  assert.equal(url, `https://countlink.app/embed/?overlay=1#t=${FIXED_NOW + 300000}&l=Break`);
+  const { html, width, height } = embedSnippet(url, "Break", 500, 250);
+  assert.equal(width, 500);
+  assert.equal(height, 250);
+  assert.match(html, /<iframe src="https:\/\/countlink\.app\/embed\/\?overlay=1#t=/);
 });
 
 /* ======================= the drift guard ======================= */
