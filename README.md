@@ -115,9 +115,17 @@ scripts, and ads on a content-free screen is a live AdSense violation).
 
 `functions/mcp.js` is a Cloudflare Pages Function exposing CountLink over the
 Model Context Protocol, so an assistant can *hand someone a working link*
-rather than telling them to go and make one. Two tools, both genuinely
+rather than telling them to go and make one. Three tools, all genuinely
 read-only (there is no backend — a timer is string arithmetic over a
-duration): `create_timer` and `describe_timer_link`.
+duration): `create_timer`, `create_agenda` and `describe_timer_link`.
+
+`create_agenda` takes an ordered list of `{ duration, label? }` segments and
+returns one link on `/timers/agenda-timer` that starts now and advances
+through every segment on every screen, plus a run sheet. It mirrors
+`encodeAgendaHash()` in `assets/app.js` byte for byte and is round-tripped
+through that page's own `parseAgendaHash()` in the tests. Start-now only for
+now — see `docs/ai-surface-expansion-plan.md` § 1c for why a planned start
+is an app.js UI change first. `describe_timer_link` reads agenda links too.
 
 `create_timer` covers three shapes with boolean flags: a plain shared link by
 default, `for_obs_overlay: true` for a self-starting OBS Browser Source, and

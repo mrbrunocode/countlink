@@ -21,7 +21,7 @@ below requires code changes; the endpoint is live and passing.
 | Transport | Streamable HTTP (JSON-RPC 2.0 over POST) |
 | Protocol versions | `2025-06-18`, `2025-03-26`, `2024-11-05` |
 | Authentication | **None.** No account, no API key, no OAuth. |
-| Tools | `create_timer` (share links, OBS overlays, **and website `<iframe>` embeds** via `embed_on_website: true`), `describe_timer_link` |
+| Tools | `create_timer` (share links, OBS overlays, **and website `<iframe>` embeds** via `embed_on_website: true`), `create_agenda` (an ordered, auto-advancing sequence of timed segments — one link), `describe_timer_link` (reads both single timers and agendas) |
 
 No test credentials are needed — the "fully-featured demo account" requirement
 only applies to authenticated servers, and this one has no auth at all. That
@@ -98,6 +98,14 @@ Each is a prompt a reviewer can type, with what should happen.
    `<iframe>` snippet pointed at a fixed-instant `#t=` link (not the OBS
    `#for=…&go=1` shape — that would restart for every visitor), plus a small
    attribution paragraph outside the iframe.
+
+5b. **"Set up my workshop: 10 min intro, 40 min exercise, 10 min debrief."**
+   → `create_agenda` with three segments; returns one link on
+   `https://countlink.app/timers/agenda-timer#ag=…&s=…` that starts now and
+   advances through every segment on every screen, plus a run sheet listing
+   each segment's start and end. Asking "what's this link?" on it afterwards
+   → `describe_timer_link` reports which segment is live and how long is
+   left overall.
 
 6. **"What is this link? https://countlink.app/#for=25m&l=Pomodoro"**
    → calls `describe_timer_link`; explains it is a not-yet-started setup link

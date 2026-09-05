@@ -2262,7 +2262,11 @@ function parseAgendaHash(hashStr){
   const raw=m.get("ag"),s=m.get("s");
   if(!raw||!s)return null;
   try{
-    const segments=JSON.parse(decodeURIComponent(raw));
+    // m.get() has already percent-decoded once. Decoding again threw URIError
+    // on any label containing a literal % ("50% done" — "% d" is not an
+    // escape) and the whole agenda link came back null. Same double-decode
+    // bug labelFromHash() was fixed for; see test/agenda.test.mjs.
+    const segments=JSON.parse(raw);
     if(!Array.isArray(segments)||!segments.length)return null;
     const clean=segments.filter(seg=>seg&&typeof seg.label==="string"&&typeof seg.minutes==="number"&&seg.minutes>0);
     if(!clean.length)return null;

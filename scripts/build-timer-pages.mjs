@@ -535,7 +535,7 @@ export const PAGES = [
     intro: "Facilitators running breakout groups or table exercises know the problem: one group finishes early, another runs long, because everyone's eyeballing their own phone clock. Share this link instead and every table counts down from the same number.",
     faq: [
       { q: "Can each table or breakout group open the link on their own device?", a: "Yes — that's the intended use. Share one link and every table's device shows the identical time remaining, so there's no ambiguity about when a segment ends." },
-      { q: "Can I set up several segments in a row (talk, break, Q&A)?", a: "Right now each link is one countdown at a time — start the next segment's timer and share its link when the previous one ends. Chained agenda sequences are on the roadmap." },
+      { q: "Can I set up several segments in a row (talk, break, Q&A)?", a: "Yes — use the agenda timer at countlink.app/timers/agenda-timer. Add each segment in order (talk, break, Q&A), press Start agenda, and share the one link it gives you: every device works out which segment is live from the shared start instant and advances together, with no server involved. Once running, the order is locked in for that run." },
       { q: "Is this suitable for a large room with many tables?", a: "Yes — there's no limit on how many devices can open the same link, so it scales to as many tables or groups as you have." },
     ] },
   { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer", affiliate: true,
@@ -545,7 +545,7 @@ export const PAGES = [
     faq: [
       { q: "Is this good for a \"study with me\" livestream?", a: "Yes — set your focus-block length, share the link in chat or your stream description, and viewers studying along with you see the identical countdown to the second." },
       { q: "Can my study group use this even if we're not all together?", a: "Yes — everyone opens the same link from wherever they are, and each device counts down to the same shared moment regardless of location." },
-      { q: "Does it support a work/break cycle automatically?", a: "Not automatically yet — start a new countdown for each focus block and each break. Chained agenda sequences are on the roadmap." },
+      { q: "Does it support a work/break cycle automatically?", a: "Yes. For a repeating cycle — the same focus length and break length, round after round — use the interval timer at countlink.app/timers/interval-timer: set work, rest and the number of rounds, and it alternates on its own, in sync on every screen. For an irregular sequence (a long block, a short break, a different block), use the agenda timer at countlink.app/timers/agenda-timer, which runs any ordered list of segments from one link." },
     ] },
   { slug: "game-night-timer", minutes: 3, label: "Time's up", eyebrow: "Game Night Timer",
     h1: "Game Night Timer — For Turns And Rounds",
@@ -1149,7 +1149,7 @@ ${instrumentIndex(p.slug)}
 </footer>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=5bd537a9" defer></script>
+<script src="../assets/app.js?v=8ebd13b2" defer></script>
 </body>
 </html>
 `; };
@@ -1528,7 +1528,8 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 \`${SITE_URL}/mcp\` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like \`#t=…\` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Two tools:
 
 - **\`create_timer\`** — given a duration (and optionally a label), returns a working \`${SITE_URL}\` link. \`start_now: true\` returns a countdown already running; \`for_obs_overlay: true\` returns the OBS Browser Source URL described above; **\`embed_on_website: true\` returns ready-to-paste \`<iframe>\` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional \`embed_width\`/\`embed_height\`/\`embed_style\`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above.
-- **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL, explains what it is (setup or running, label, time left).
+- **\`create_agenda\`** — given an ordered list of \`{ duration, label? }\` segments, returns a link on \`${SITE_URL}/timers/agenda-timer\` that starts now and advances through every segment on every screen, plus a run sheet with each segment's start and end. If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
+- **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL (single timer or agenda), explains what it is (setup or running, label, time left, which segment is live).
 
 Full submission/testing detail: \`docs/mcp-submission.md\`.
 

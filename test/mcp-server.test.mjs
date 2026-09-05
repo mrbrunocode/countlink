@@ -27,6 +27,7 @@ const {
   handleRpc, callTool, parseDuration, setupUrl, shareUrl,
   compactDuration, describeUrl, humanDuration, labelOf, TOOLS,
   embedTargetUrl, embedSnippet,
+  agendaUrl, agendaRunSheet, normaliseAgendaSegments,
 } = mcp;
 
 const rpc = (method, params, id = 1) => handleRpc({ jsonrpc: "2.0", id, method, params });
@@ -401,6 +402,145 @@ test("embedTargetUrl and embedSnippet are exported and independently testable", 
   assert.equal(width, 500);
   assert.equal(height, 250);
   assert.match(html, /<iframe src="https:\/\/countlink\.app\/embed\/\?overlay=1#t=/);
+});
+
+/* ======================= create_agenda ======================= */
+
+test("create_agenda links to the agenda page, starting now", () => {
+  // The agenda page's boot is DOM-gated — its builder/running elements only
+  // exist on /timers/agenda-timer — so a link anywhere else would silently
+  // show a blank homepage instead of an agenda.
+  const r = callTool("create_agenda", {
+    segments: [{ duration: "10m", label: "Intro" }, { duration: "20m", label: "Talk" }],
+  }, FIXED_NOW);
+  assert.ok(r.structuredContent.url.startsWith("https://countlink.app/timers/agenda-timer#ag="), r.structuredContent.url);
+  assert.ok(r.structuredContent.url.endsWith(`&s=${FIXED_NOW}`), "an agenda is running from the moment it is created");
+  assert.equal(r.structuredContent.start, FIXED_NOW);
+  assert.equal(r.structuredContent.totalSeconds, 1800);
+});
+
+test("an agenda link is never a setup or self-starting shape", () => {
+  const url = callTool("create_agenda", { segments: [{ duration: "5m" }] }, FIXED_NOW).structuredContent.url;
+  assert.ok(!url.includes("#for="), url);
+  assert.ok(!url.includes("go=1"), url);
+});
+
+test("what create_agenda emits, the agenda page's own parser reads back identically", () => {
+  // THE contract: functions/mcp.js writes the hash, app.js's parseAgendaHash
+  // reads it. Fractional minutes (90s → 1.5) and an empty label (must be ""
+  // — parseAgendaHash drops a segment whose label isn't a string) are the
+  // two encodings most likely to drift.
+  const { parseAgendaHash } = loadDuration();
+  const r = callTool("create_agenda", { segments: [
+    { duration: "10m", label: "Intro" }, { duration: "90s" }, { duration: "1h", label: "  Deep dive  " },
+  ] }, FIXED_NOW);
+  const back = parseAgendaHash(new URL(r.structuredContent.url).hash.slice(1));
+  assert.ok(back, "app.js could not parse the link this server built");
+  assert.equal(back.start, FIXED_NOW);
+  assert.deepEqual(back.segments, [
+    { label: "Intro", minutes: 10 }, { label: "", minutes: 1.5 }, { label: "Deep dive", minutes: 60 },
+  ]);
+});
+
+test("a segment label containing % survives the round trip", () => {
+  // parseAgendaHash used to decodeURIComponent a value URLSearchParams had
+  // already decoded — the same double-decode that crashed the board on a
+  // "50% done" label (see labelFromHash). "% d" is not a valid escape, so
+  // the whole agenda link came back null. This fails without the app.js fix.
+  const { parseAgendaHash } = loadDuration();
+  const r = callTool("create_agenda", { segments: [{ duration: "5m", label: "50% done" }] }, FIXED_NOW);
+  const back = parseAgendaHash(new URL(r.structuredContent.url).hash.slice(1));
+  assert.ok(back, "a % in a label must not break the link");
+  assert.equal(back.segments[0].label, "50% done");
+});
+
+test("the run sheet matches app.js's runSheetRows row for row", () => {
+  const { runSheetRows } = loadDuration();
+  const segs = [{ label: "A", minutes: 10 }, { label: "", minutes: 1.5 }, { label: "C", minutes: 60 }];
+  assert.deepEqual(agendaRunSheet(segs, FIXED_NOW), runSheetRows(segs, FIXED_NOW));
+});
+
+test("create_agenda refuses what the page cannot show, naming the segment", () => {
+  const cases = [
+    [{ segments: [] }, /non-empty/],
+    [{ segments: "10m" }, /non-empty/],
+    [{}, /non-empty/],
+    [{ segments: [{ duration: "10m" }, { duration: "soon" }] }, /Segment 2/],
+    [{ segments: Array.from({ length: 25 }, () => ({ duration: "1m" })) }, /Too many/],
+    [{ segments: [{ duration: "50h" }, { duration: "50h" }] }, /whole agenda/],
+  ];
+  for (const [args, re] of cases) {
+    const r = callTool("create_agenda", args, FIXED_NOW);
+    assert.equal(r.isError, true, JSON.stringify(args).slice(0, 80));
+    assert.match(r.content[0].text, re);
+  }
+});
+
+test("a single over-long segment clamps to the board's maximum, exactly like create_timer", () => {
+  // parseDuration() caps one value at 99h59m59s rather than refusing it, and
+  // create_timer's own tests pin that behaviour — an agenda must not quietly
+  // disagree with it. Only the SUM of segments can be refused.
+  const r = callTool("create_agenda", { segments: [{ duration: "100h" }] }, FIXED_NOW);
+  assert.equal(r.isError, undefined, r.content[0].text);
+  assert.equal(r.structuredContent.totalSeconds, 99 * 3600 + 59 * 60 + 59);
+  assert.equal(callTool("create_timer", { duration: "100h" }).structuredContent.durationSeconds, r.structuredContent.totalSeconds,
+    "agenda and single-timer clamping must agree");
+});
+
+test("agenda labels are trimmed and capped like timer labels", () => {
+  const r = callTool("create_agenda", { segments: [{ duration: "5m", label: "  " + "x".repeat(200) }] }, FIXED_NOW);
+  assert.equal(r.structuredContent.segments[0].label.length, 60);
+});
+
+test("create_agenda's prose carries the link and every segment", () => {
+  const text = callTool("create_agenda", {
+    segments: [{ duration: "10m", label: "Intro" }, { duration: "20m", label: "Q&A" }],
+  }, FIXED_NOW).content[0].text;
+  assert.match(text, /countlink\.app\/timers\/agenda-timer#ag=/);
+  assert.match(text, /1\. Intro — 10m \(from 00:00 to 10:00\)/);
+  assert.match(text, /2\. Q&A — 20m \(from 10:00 to 30:00\)/);
+});
+
+test("describe_timer_link reads an agenda link and knows where it is", () => {
+  const url = callTool("create_agenda", {
+    segments: [{ duration: "10m", label: "Intro" }, { duration: "20m", label: "Talk" }],
+  }, FIXED_NOW).structuredContent.url;
+  const atStart = describeUrl(url, FIXED_NOW);
+  assert.equal(atStart.kind, "agenda");
+  assert.equal(atStart.currentIndex, 0);
+  assert.equal(atStart.remainingSeconds, 1800);
+  const inTalk = describeUrl(url, FIXED_NOW + 15 * 60000);
+  assert.equal(inTalk.currentIndex, 1, "15 minutes in, the 10-minute intro is over");
+  assert.equal(inTalk.remainingSeconds, 900);
+  const done = describeUrl(url, FIXED_NOW + 31 * 60000);
+  assert.equal(done.finished, true);
+  assert.equal(done.currentIndex, -1);
+  assert.equal(done.remainingSeconds, 0, "never negative");
+  const prose = callTool("describe_timer_link", { url }, FIXED_NOW + 15 * 60000).content[0].text;
+  assert.match(prose, /segment 2/i);
+  assert.match(prose, /Talk/);
+});
+
+test("describe_timer_link's agenda reading agrees with app.js's computeAgendaState", () => {
+  const { computeAgendaState } = loadDuration();
+  const segs = [{ label: "A", minutes: 10 }, { label: "B", minutes: 20 }];
+  const url = agendaUrl(segs, FIXED_NOW);
+  for (const offsetMin of [0, 5, 10, 25, 30, 40]) {
+    const at = FIXED_NOW + offsetMin * 60000;
+    assert.equal(describeUrl(url, at).currentIndex, computeAgendaState(segs, FIXED_NOW, at).idx, `${offsetMin} min in`);
+  }
+});
+
+test("an agenda link with no valid segments is not a timer link", () => {
+  const page = "https://countlink.app/timers/agenda-timer";
+  assert.equal(describeUrl(`${page}#ag=${encodeURIComponent("[]")}&s=${FIXED_NOW}`, FIXED_NOW), null);
+  assert.equal(describeUrl(`${page}#ag=notjson&s=${FIXED_NOW}`, FIXED_NOW), null);
+  assert.equal(describeUrl(`${page}#ag=${encodeURIComponent('[{"label":"A","minutes":5}]')}`, FIXED_NOW), null, "no start instant");
+});
+
+test("create_agenda is listed alongside the other tools", () => {
+  const names = rpc("tools/list").result.tools.map((t) => t.name);
+  assert.ok(names.includes("create_agenda"), names.join(", "));
 });
 
 /* ======================= the drift guard ======================= */

@@ -204,3 +204,142 @@ re-deriving it.
 first (1a), cheapest-but-parity-only next (1b), a free trivial win whenever
 (3a), and the one requiring a real architecture decision last (2a) — don't
 let 2a block shipping the other three.
+
+---
+
+## Decisions log — 2026-09-05 (design pass + 1a implementation)
+
+Every open question above is now decided. An implementer should not need to
+make a judgment call on 1b, 2a or 3a — if one comes up that isn't covered
+here, stop and ask rather than guessing.
+
+### 1a — SHIPPED. `create_agenda` in `functions/mcp.js`
+
+- **Separate tool, not a `create_timer` flag.** Segments are an array; the
+  flat flag pattern would have bloated one schema past what a model reads
+  reliably.
+- **Start-now only.** Checked `computeAgendaState()` with a future start:
+  mathematically correct (negative elapsed lands on idx 0 and every boundary
+  is still crossed at the right instant) but the page has no "starts in"
+  state, so it displays segment 1 with the lead time folded into its
+  remaining time — reads as a wrong duration. Shipping that would be
+  shipping something half-right. Recorded as **1c** below.
+- **Links target `/timers/agenda-timer` only.** The agenda boot is
+  DOM-gated; an `#ag=` hash on any other page is silently ignored. A test
+  pins the path.
+- **Fractional minutes allowed** (90s → 1.5); the page multiplies by 60000.
+  Rounded to 3dp so identical agendas produce identical links.
+- **Empty label is emitted as `""`, never omitted** — `parseAgendaHash()`
+  requires `label` to be a string and drops the segment otherwise. Pinned by
+  a round-trip test through app.js's own parser.
+- **Clamping matches `create_timer`.** `parseDuration()` caps a single value
+  at 99h59m59s rather than refusing it; only the *sum* of segments can be
+  refused. A test asserts the two tools agree.
+- **`describe_timer_link` reads agenda links too** (kind `"agenda"`, current
+  segment, time left), keeping the "what create_* emits, describe can read"
+  contract whole. Cross-checked against app.js's `computeAgendaState()`.
+- **Real bug found and fixed in `assets/app.js`:** `parseAgendaHash()` ran
+  `decodeURIComponent()` over a value `URLSearchParams` had already decoded
+  — the identical double-decode that crashed the board on a "50% done"
+  label earlier. Any agenda with a `%` in a segment label returned `null`.
+  One-line fix (decode once), tests in both `test/agenda.test.mjs` and the
+  MCP round-trip. The `?v=` asset stamp was bumped as the build guard
+  requires.
+- **Stale claim fixed on `workshop-timer`:** its FAQ said chained agendas
+  were "on the roadmap" — the agenda timer had shipped. That text also
+  rendered into FAQPage JSON-LD, i.e. straight into what AI assistants
+  ingest. Fixed at the source in `build-timer-pages.mjs`; see the guard
+  test below so it can't recur.
+
+### 1c — NEW, deferred: planned-start agendas (app.js UI change)
+
+To support "agenda starting at 9:15": add a pre-start state to
+`renderRunning()` when `elapsed < 0` ("Starts in 04:32", segments all
+"upcoming"), then let `create_agenda` accept an optional `start_at`
+(ISO-8601) and mint `s=` at that instant. The encoding already supports it
+— only the display doesn't. Do the app.js half first, with a Playwright
+test that a future-`s` link shows a countdown-to-start rather than an
+inflated segment 1; only then expose the parameter.
+
+### 1b — DECIDED: `.ics` export
+
+- **Mechanism: a Blob download**, `URL.createObjectURL` + a temporary
+  `<a download="countlink.ics">`, **not** a `data:text/calendar` URI — the
+  data-URI approach is known to fail silently on iOS Safari's calendar
+  handoff. Put the button beside "Show QR code".
+- **Content: minimal RFC 5545**, hand-built (no library):
+  `BEGIN:VCALENDAR / VERSION:2.0 / PRODID / METHOD:PUBLISH / BEGIN:VEVENT /
+  UID / DTSTAMP / DTSTART / DTEND / SUMMARY / URL / END:VEVENT /
+  END:VCALENDAR`. **CRLF line endings** (RFC requires them; some importers
+  reject LF). Times in UTC with the `Z` suffix — no timezone blocks.
+  Escape `\ ; ,` and newlines in `SUMMARY` per RFC 5545 §3.3.11.
+  `UID` = `<end-ms>-<sha-ish of label>@countlink.app` so re-exporting the
+  same countdown updates rather than duplicates in most calendars.
+- **Only for links with a real end instant** (`#t=`) — a `#for=` setup link
+  has no date to export; hide the button there.
+- **Agenda:** one `VEVENT` per segment, `DTSTART`/`DTEND` from the run
+  sheet.
+- **MCP side:** add an `ics` string to `structuredContent` for
+  `create_timer` with `start_now`/`embed_on_website`, and for
+  `create_agenda`. No new tool. Share one pure `buildIcs()` implementation
+  shape across app.js and mcp.js with a cross-check corpus test, exactly as
+  the duration grammar does.
+- **Verify** by importing into Google Calendar *and* Apple Calendar. This
+  is parity, not differentiation — don't let it grow.
+
+### 2a — DECIDED: countdown badge architecture
+
+- **Server-rendered static SVG, no client script.** GitHub's camo image
+  proxy strips scripts and caches aggressively; a "live ticking" badge is
+  not achievable in READMEs and must not be promised. Coarse text is
+  honest: `3d 04h left`, `47m left`, `Ended`. Precision lives one click
+  away — the badge links to the live timer.
+- **Route: `/badge.svg`** as a Pages Function (`functions/badge.svg.js`),
+  parameters in the **query string, not the hash** — a hash never reaches
+  a server. `?t=<end-ms>&l=<label>&style=<board|minimal|light>`. Reject
+  anything that isn't a finite `t` with a small "Invalid" SVG at 400, never
+  a broken image.
+- **Caching: `Cache-Control: public, max-age=60`.** Camo will re-fetch on
+  its own schedule (roughly minutes); 60s keeps origin cost near zero while
+  staying fresh enough for day/hour granularity. Not `no-store` — that
+  fights the proxy for nothing.
+- **Escaping is mandatory**: SVG is XML. Reuse `escapeHtmlAttr()` for the
+  label text node and `<title>`. A label is the only untrusted input that
+  lands in markup here.
+- **New tool `create_badge`**, mirroring `embed_on_website`: returns
+  Markdown `[![label](https://countlink.app/badge.svg?t=…)](https://countlink.app/#t=…)`
+  and the equivalent HTML. **The wrapping link is the attribution** — a
+  badge that isn't a link earns nothing; the tool must never emit a bare
+  `<img>`. Same fixed-instant `#t=` rule as the website embed: never
+  `#for=`, never `&go=1`.
+- **Verify** in a real GitHub README (a scratch repo), not just a 200 from
+  the endpoint — confirm camo serves it and the link resolves.
+
+### 3a — DECIDED: printable QR poster
+
+- **`@media print` stylesheet + a "Print poster" button** calling
+  `window.print()`; no new route. In print: hide nav, ad slot, controls,
+  footer; show a QR at ≥60% of page width, the label, "Scan to open the
+  live countdown", and the end time in plain text (the QR already exists —
+  reuse `showQr`'s generation, don't add a second QR path).
+- **Only meaningful once a countdown is running** (a `#for=` setup link
+  would print a QR to an unstarted board); disable/hide the button before
+  start, same rule as the embed builder.
+- **Verify** with Playwright `page.emulateMedia({ media: "print" })` plus a
+  screenshot, and `page.pdf()` on Chromium — a print stylesheet that has
+  never been printed is not verified.
+
+### Guard added — FAQ claims can't go stale silently
+
+`test/faq-claims.test.mjs` fails the build if any generated page's FAQ
+contains "on the roadmap", "coming soon" or "not yet available". Those
+phrases were true once and became false without anyone noticing, and FAQ
+text is emitted verbatim into FAQPage JSON-LD — the exact surface AI
+assistants quote. If a feature genuinely is future, say so somewhere that
+isn't an FAQ answer.
+
+### `GET /mcp` now points machines at `llms.txt`
+
+The GET response gained an `llms` field alongside `docs`. An agent that
+probes the endpoint gets the machine-readable contract (URL grammar, every
+tool, the OBS-vs-website rule) instead of only a human page.

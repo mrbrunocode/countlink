@@ -115,3 +115,14 @@ test("parseAgendaHash: null if every segment is malformed", () => {
   const hash = "ag=" + encodeURIComponent(JSON.stringify(raw)) + "&s=1000";
   assert.equal(parseAgendaHash(hash), null);
 });
+
+test("parseAgendaHash: a label containing % round-trips (decode exactly once)", () => {
+  // URLSearchParams.get() already percent-decodes; decoding again threw
+  // URIError on "50% done" ("% d" is not an escape) and the whole link came
+  // back null — the same double-decode bug labelFromHash was fixed for.
+  // functions/mcp.js's create_agenda emits exactly these links.
+  const hash = encodeAgendaHash([{ label: "50% done", minutes: 5 }], 1757000000000);
+  const back = parseAgendaHash(hash);
+  assert.ok(back);
+  assert.equal(back.segments[0].label, "50% done");
+});

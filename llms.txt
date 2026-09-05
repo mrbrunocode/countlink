@@ -52,7 +52,8 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 `https://countlink.app/mcp` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like `#t=…` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Two tools:
 
 - **`create_timer`** — given a duration (and optionally a label), returns a working `https://countlink.app` link. `start_now: true` returns a countdown already running; `for_obs_overlay: true` returns the OBS Browser Source URL described above; **`embed_on_website: true` returns ready-to-paste `<iframe>` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional `embed_width`/`embed_height`/`embed_style`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above.
-- **`describe_timer_link`** — given any `https://countlink.app` URL, explains what it is (setup or running, label, time left).
+- **`create_agenda`** — given an ordered list of `{ duration, label? }` segments, returns a link on `https://countlink.app/timers/agenda-timer` that starts now and advances through every segment on every screen, plus a run sheet with each segment's start and end. If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
+- **`describe_timer_link`** — given any `https://countlink.app` URL (single timer or agenda), explains what it is (setup or running, label, time left, which segment is live).
 
 Full submission/testing detail: `docs/mcp-submission.md`.
 

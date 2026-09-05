@@ -214,6 +214,90 @@ export function embedSnippet(src, label, width, height) {
   return { html: `${iframe}\n${attribution}`, width: w, height: h };
 }
 
+/* ---------------------------------------------------------------------------
+ * Chained agenda (create_agenda).
+ *
+ * The agenda page (/timers/agenda-timer) already does ordered, auto-advancing
+ * segments, but only via its own builder UI. An assistant asked "split my
+ * hour into four topics" can do that arithmetic trivially and, until this
+ * tool, had nowhere to put the answer. This is exactly the shape of task an
+ * LLM is good at handing off — and none of the competitors audited in
+ * docs/ai-surface-expansion-plan.md can receive it at all.
+ *
+ * URL shape mirrors encodeAgendaHash() in assets/app.js byte for byte:
+ *   /timers/agenda-timer#ag=<encodeURIComponent(JSON [{label, minutes}])>&s=<start ms>
+ * The agenda page's boot is DOM-gated (its builder/running elements only
+ * exist on that page), so the link MUST target that path — the homepage
+ * would silently ignore an #ag= hash. test/mcp-server.test.mjs round-trips
+ * every link this emits through app.js's own parseAgendaHash().
+ *
+ * Start-now only, deliberately. computeAgendaState() with a future start is
+ * mathematically fine (elapsed goes negative, idx lands on 0, the boundary
+ * is still crossed at the right instant), but the page has no "starts in"
+ * state — it would show segment 1 with the lead time folded into its
+ * remaining time, which reads as a wrong duration. Supporting a planned
+ * start properly is an app.js UI change, not an MCP-side one; recorded as
+ * a follow-up in docs/ai-surface-expansion-plan.md rather than shipped
+ * half-right here.
+ *
+ * `minutes` may be fractional: the page multiplies by 60000, so 90s → 1.5
+ * is exact and renders as 01:30. parseAgendaHash() requires `label` to be a
+ * string (it filters the segment out otherwise), so an empty label is
+ * emitted as "" — never omitted — and the page falls back to "Segment N".
+ * ------------------------------------------------------------------------- */
+const AGENDA_PAGE = `${SITE_URL}/timers/agenda-timer`;
+const AGENDA_MAX_SEGMENTS = 24;
+
+export function agendaUrl(segments, start) {
+  return `${AGENDA_PAGE}#ag=${encodeURIComponent(JSON.stringify(segments))}&s=${start}`;
+}
+
+/* Same rows runSheetRows() produces in app.js — {n, label, minutes,
+   startsAt, endsAt} — so an assistant can relay the running order with
+   wall-clock times without the user opening the page. Cross-checked against
+   app.js's implementation in the tests. */
+export function agendaRunSheet(segments, start) {
+  let acc = 0;
+  return segments.map((seg, i) => {
+    const startsAt = start + acc;
+    acc += seg.minutes * 60000;
+    return { n: i + 1, label: seg.label || `Segment ${i + 1}`, minutes: seg.minutes, startsAt, endsAt: start + acc };
+  });
+}
+
+/* Turn the model's segment list into what the page expects, or explain why
+   not. Returns { segments } or { error }. */
+export function normaliseAgendaSegments(raw) {
+  if (!Array.isArray(raw) || !raw.length) {
+    return { error: "segments must be a non-empty list of { duration, label? } objects, in running order." };
+  }
+  if (raw.length > AGENDA_MAX_SEGMENTS) {
+    return { error: `Too many segments (${raw.length}); the agenda page is a readable run sheet, not a spreadsheet — keep it to ${AGENDA_MAX_SEGMENTS} or fewer.` };
+  }
+  const segments = [];
+  let total = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const s = raw[i] && typeof raw[i] === "object" ? raw[i] : {};
+    const seconds = parseDuration(s.duration);
+    if (seconds === null || seconds <= 0) {
+      return { error: `Segment ${i + 1}: could not read ${JSON.stringify(String(s.duration ?? ""))} as a duration. Try "10m", "1h", "90s" or a plain number of minutes.` };
+    }
+    // parseDuration() already clamps a single value to MAX_SECONDS, the same
+    // way create_timer does — so one over-long segment is capped, not refused.
+    // Only the SUM can exceed what the board shows, hence the total check below.
+    total += seconds;
+    const label = typeof s.label === "string" ? s.label.trim().slice(0, 60) : "";
+    // Round away float noise (100s → 1.6666…7) so the JSON in the URL stays
+    // short and two identical agendas produce identical links.
+    const minutes = Math.round((seconds / 60) * 1000) / 1000;
+    segments.push({ label, minutes });
+  }
+  if (total > MAX_SECONDS) {
+    return { error: `The whole agenda runs ${humanDuration(total)}, longer than the board can show (max ${humanDuration(MAX_SECONDS)}).` };
+  }
+  return { segments, totalSeconds: total };
+}
+
 /* The value that goes in #for=. Emitted in the same grammar the board accepts
    on paste so a human reading the URL sees a duration, not a second count. */
 export function compactDuration(seconds) {
@@ -245,6 +329,41 @@ export function describeUrl(raw, now) {
   }
   const p = new URLSearchParams(hash);
   const label = labelOf(hash);
+
+  // Agenda links — from create_agenda or the agenda page's own builder.
+  // Mirrors parseAgendaHash() in app.js: both fields required, malformed
+  // segments dropped, null if nothing valid remains. p.get() has already
+  // percent-decoded once; decoding again would be the double-decode that
+  // labelOf() exists to avoid (and that broke "50% done" labels).
+  const ag = p.get("ag"), s = p.get("s");
+  if (ag !== null && s !== null && s !== "" && Number.isFinite(+s)) {
+    let segments = null;
+    try { segments = JSON.parse(ag); } catch (e) { /* not an agenda after all */ }
+    if (Array.isArray(segments)) {
+      const clean = segments.filter(
+        (seg) => seg && typeof seg.label === "string" && typeof seg.minutes === "number" && seg.minutes > 0
+      );
+      if (clean.length) {
+        const start = +s;
+        let acc = 0;
+        const bounds = clean.map((seg) => (acc += seg.minutes * 60000));
+        const total = bounds[bounds.length - 1];
+        const elapsed = at - start;
+        const idx = bounds.findIndex((b) => elapsed < b);
+        return {
+          kind: "agenda",
+          segments: clean,
+          start,
+          startsAt: new Date(start).toISOString(),
+          totalSeconds: Math.round(total / 1000),
+          remainingSeconds: Math.max(0, Math.round((total - elapsed) / 1000)),
+          currentIndex: idx,
+          finished: idx === -1,
+        };
+      }
+    }
+    return null;
+  }
 
   const t = p.get("t");
   if (t !== null && t !== "" && Number.isFinite(+t)) {
@@ -366,6 +485,48 @@ export const TOOLS = [
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
   {
+    name: "create_agenda",
+    title: "Create a chained agenda of timed segments",
+    description:
+      "Create a CountLink agenda: an ordered sequence of named, timed segments (intro, talk, " +
+      "break, Q&A) that starts now and advances from one to the next on its own, on every screen " +
+      "that opens the link, with no server involved. Use this when someone describes a meeting, " +
+      "workshop, lesson or event as a sequence of parts with lengths — including when they give " +
+      "you a total and a list of topics and expect you to split it (\"an hour, four topics\"): do " +
+      "the split yourself, then pass the resulting segments here. Returns the shared link plus a " +
+      "run sheet with the wall-clock start and end of each segment. For a single countdown use " +
+      "create_timer instead.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        segments: {
+          type: "array",
+          minItems: 1,
+          maxItems: AGENDA_MAX_SEGMENTS,
+          description:
+            "The segments in running order. Each has a duration (same grammar as create_timer: " +
+            "\"10m\", \"1h\", \"90s\", \"5:00\", or a plain number of minutes) and an optional short " +
+            `label. 1–${AGENDA_MAX_SEGMENTS} segments; the whole agenda must fit in 99h59m59s.`,
+          items: {
+            type: "object",
+            properties: {
+              duration: { type: "string", description: DURATION_DESC },
+              label: {
+                type: "string",
+                description: "Optional name for the segment, e.g. \"Intro\" or \"Break\". Keep it short.",
+              },
+            },
+            required: ["duration"],
+          },
+        },
+      },
+      required: ["segments"],
+    },
+    // Same story as create_timer: the agenda is encoded entirely in the URL,
+    // so nothing is created or stored anywhere by calling this.
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+  },
+  {
     name: "describe_timer_link",
     title: "Explain a CountLink link",
     description:
@@ -481,6 +642,54 @@ export function callTool(name, args, now) {
     };
   }
 
+  if (name === "create_agenda") {
+    const norm = normaliseAgendaSegments(a.segments);
+    if (norm.error) return toolError(norm.error);
+    const start = typeof now === "number" ? now : Date.now();
+    const url = agendaUrl(norm.segments, start);
+    const sheet = agendaRunSheet(norm.segments, start);
+    const total = humanDuration(norm.totalSeconds);
+
+    // Offsets from the start rather than wall-clock times in the prose: the
+    // assistant relaying this may be talking to people in several time zones,
+    // and the page itself renders each viewer's local time. The ISO instants
+    // are in structuredContent for anything that wants to localise them.
+    const fmtOffset = (ms) => {
+      const s = Math.round(ms / 1000);
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      const mm = String(m).padStart(2, "0"), ss = String(sec).padStart(2, "0");
+      return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    };
+    const lines = sheet.map((r) =>
+      `${r.n}. ${r.label} — ${humanDuration(Math.round(r.minutes * 60))} (from ${fmtOffset(r.startsAt - start)} to ${fmtOffset(r.endsAt - start)})`
+    );
+    const text =
+      `Started a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}. ` +
+      `Share this link — every screen that opens it shows the same segment at the same moment and ` +
+      `advances on its own:\n\n${url}\n\nRunning order (times are from the start):\n${lines.join("\n")}\n\n` +
+      `The agenda is already running from now; its order is locked in for this run. To change it, ` +
+      `create a fresh one.`;
+
+    return {
+      content: [{ type: "text", text }],
+      structuredContent: {
+        url,
+        start,
+        startsAt: new Date(start).toISOString(),
+        totalSeconds: norm.totalSeconds,
+        total,
+        segments: norm.segments,
+        runSheet: sheet.map((r) => ({
+          n: r.n,
+          label: r.label,
+          minutes: r.minutes,
+          startsAt: new Date(r.startsAt).toISOString(),
+          endsAt: new Date(r.endsAt).toISOString(),
+        })),
+      },
+    };
+  }
+
   if (name === "describe_timer_link") {
     const info = describeUrl(a.url, now);
     if (!info) {
@@ -488,6 +697,19 @@ export function callTool(name, args, now) {
         "That does not look like a CountLink timer link. A timer link carries the countdown in " +
           "its #, e.g. https://countlink.app/#for=25m or https://countlink.app/#t=1757000000000."
       );
+    }
+    if (info.kind === "agenda") {
+      const n = info.segments.length;
+      const plural = n === 1 ? "" : "s";
+      const cur = info.finished ? null : info.segments[info.currentIndex];
+      const text = info.finished
+        ? `An agenda of ${n} segment${plural} (${humanDuration(info.totalSeconds)} in total) that has ` +
+          `already finished — it started at ${info.startsAt}.`
+        : `A running agenda of ${n} segment${plural}, ${humanDuration(info.totalSeconds)} in total, started ` +
+          `at ${info.startsAt}. Currently on segment ${info.currentIndex + 1}` +
+          `${cur.label ? ` ("${cur.label}")` : ""}, with ${humanDuration(info.remainingSeconds)} left in the ` +
+          `whole agenda. Every screen with this link agrees on where it is.`;
+      return { content: [{ type: "text", text }], structuredContent: info };
     }
     const named = info.label ? ` labelled "${info.label}"` : "";
     const text =
@@ -549,7 +771,9 @@ export function handleRpc(msg, now) {
           "CountLink makes shared countdown timers: one link, and every screen that opens it " +
           "shows the identical countdown to the same second, with no account and no viewer " +
           "limit. Call create_timer whenever someone needs a timer other people will watch " +
-          "too, and give them the link it returns.",
+          "too, and give them the link it returns. Call create_agenda when they describe a " +
+          "sequence of timed parts — a meeting agenda, a workshop, a lesson — and it returns one " +
+          "link that advances through every segment on every screen.",
       });
     }
 
@@ -615,6 +839,10 @@ export async function onRequest(context) {
       protocolVersions: SUPPORTED_PROTOCOLS,
       tools: TOOLS.map((t) => t.name),
       docs: `${SITE_URL}/how-it-works`,
+      // The machine-readable contract: URL grammar, every tool, and the
+      // OBS-vs-website rule. An agent probing this endpoint should land
+      // there, not only on a page written for people.
+      llms: `${SITE_URL}/llms.txt`,
     });
   }
 
