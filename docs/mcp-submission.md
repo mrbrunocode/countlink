@@ -21,7 +21,7 @@ below requires code changes; the endpoint is live and passing.
 | Transport | Streamable HTTP (JSON-RPC 2.0 over POST) |
 | Protocol versions | `2025-06-18`, `2025-03-26`, `2024-11-05` |
 | Authentication | **None.** No account, no API key, no OAuth. |
-| Tools | `create_timer` (share links, OBS overlays, **and website `<iframe>` embeds** via `embed_on_website: true`), `create_agenda` (an ordered, auto-advancing sequence of timed segments — one link), `describe_timer_link` (reads both single timers and agendas) |
+| Tools | `create_timer` (share links, OBS overlays, website `<iframe>` embeds via `embed_on_website: true`, and an `.ics` calendar file for any fixed-instant result), `create_agenda` (an ordered, auto-advancing sequence of timed segments — one link, plus a per-segment `.ics`), `create_badge` (a linked image badge for READMEs/forums, for where an iframe can't go), `describe_timer_link` (reads timers and agendas alike) |
 
 No test credentials are needed — the "fully-featured demo account" requirement
 only applies to authenticated servers, and this one has no auth at all. That
@@ -106,6 +106,12 @@ Each is a prompt a reviewer can type, with what should happen.
    each segment's start and end. Asking "what's this link?" on it afterwards
    → `describe_timer_link` reports which segment is live and how long is
    left overall.
+
+5c. **"Give me a badge for my GitHub README counting down to launch, 76 hours."**
+   → `create_badge`; returns a Markdown snippet
+   `[![Launch](https://countlink.app/badge.svg?t=…)](https://countlink.app/#t=…)`
+   — the image always wrapped in a link to the live countdown — showing
+   coarse time like "3d 04h left", never a live tick.
 
 6. **"What is this link? https://countlink.app/#for=25m&l=Pomodoro"**
    → calls `describe_timer_link`; explains it is a not-yet-started setup link

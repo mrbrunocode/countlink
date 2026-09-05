@@ -966,6 +966,8 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
       </div>
+      <button class="btn icon-btn" id="icsBtn" style="display:none;margin-top:10px">Add to calendar (.ics)</button>
+      <button class="btn icon-btn" id="printPosterBtn" style="display:none;margin-top:10px">Print poster</button>
       <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
       <div id="embedWrap" style="display:none;margin-top:10px">
         <div class="embed-builder">
@@ -1072,9 +1074,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=6aef25e3" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=6aef25e3" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=6aef25e3"></noscript>
+<link rel="preload" href="../assets/style.css?v=55ecef58" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=55ecef58"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1148,8 +1150,23 @@ ${instrumentIndex(p.slug)}
   </div>
 </footer>
 
+<!-- Invisible on screen (see .poster + body.print-poster in style.css);
+     shown ONLY under print, toggled by "Print poster"'s click handler right
+     before window.print(). A DIRECT CHILD OF <body> — not nested with the
+     rest of the page's content — so the print rule can hide every other
+     top-level element with one :not(.poster) selector, and so doing so
+     (via display:none, which collapses layout height to zero — the reason
+     an earlier version of this printed 4 blank pages instead of 1) can
+     never take the poster down with it. -->
+<div class="poster" id="posterBlock" aria-hidden="true">
+  <img id="posterQr" width="320" height="320" alt="QR code for the sync link">
+  <h2 id="posterLabel"></h2>
+  <p>Scan to open the live countdown</p>
+  <p id="posterEndsAt"></p>
+</div>
+
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=8ebd13b2" defer></script>
+<script src="../assets/app.js?v=bfe40688" defer></script>
 </body>
 </html>
 `; };
@@ -1223,9 +1240,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=6aef25e3" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=6aef25e3" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=6aef25e3"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=55ecef58" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=55ecef58"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1525,10 +1542,11 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 
 ## The \`/mcp\` server — for producing links and snippets, not just describing them
 
-\`${SITE_URL}/mcp\` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like \`#t=…\` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Two tools:
+\`${SITE_URL}/mcp\` is a Model Context Protocol server (JSON-RPC 2.0 over POST, no auth, no account). It exists because a link like \`#t=…\` can only be written by something that knows the current epoch time and has already pressed start — an assistant can't do either from inside a conversation. Four tools:
 
-- **\`create_timer\`** — given a duration (and optionally a label), returns a working \`${SITE_URL}\` link. \`start_now: true\` returns a countdown already running; \`for_obs_overlay: true\` returns the OBS Browser Source URL described above; **\`embed_on_website: true\` returns ready-to-paste \`<iframe>\` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional \`embed_width\`/\`embed_height\`/\`embed_style\`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above.
-- **\`create_agenda\`** — given an ordered list of \`{ duration, label? }\` segments, returns a link on \`${SITE_URL}/timers/agenda-timer\` that starts now and advances through every segment on every screen, plus a run sheet with each segment's start and end. If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
+- **\`create_timer\`** — given a duration (and optionally a label), returns a working \`${SITE_URL}\` link. \`start_now: true\` returns a countdown already running; \`for_obs_overlay: true\` returns the OBS Browser Source URL described above; **\`embed_on_website: true\` returns ready-to-paste \`<iframe>\` HTML** for a website or landing page (e.g. "10 hours until launch"), including the required attribution line, sized with optional \`embed_width\`/\`embed_height\`/\`embed_style\`. Use this instead of hand-building any of these links — it already encodes the OBS-vs-website distinction above. Whenever the result has a fixed end instant (\`start_now\` or \`embed_on_website\`), \`structuredContent.ics\` is a ready-to-use \`.ics\` calendar file for it.
+- **\`create_agenda\`** — given an ordered list of \`{ duration, label? }\` segments, returns a link on \`${SITE_URL}/timers/agenda-timer\` that starts now and advances through every segment on every screen, plus a run sheet with each segment's start and end, and \`structuredContent.ics\` (one calendar event per segment). If someone gives a total and a list of topics ("an hour, four topics"), split it yourself and pass the segments.
+- **\`create_badge\`** — for places \`embed_on_website\`'s \`<iframe>\` cannot go: a GitHub README, a forum post, anywhere only Markdown or a bare \`<img>\` is allowed. Returns a Markdown snippet and an HTML snippet, image always wrapped in a link to the live countdown (never a bare image — the link is what makes it a real attribution). Shows coarse time remaining ("3d 04h left"), not a live tick — most embedding contexts fetch and cache images server-side, so a ticking promise would be false.
 - **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL (single timer or agenda), explains what it is (setup or running, label, time left, which segment is live).
 
 Full submission/testing detail: \`docs/mcp-submission.md\`.

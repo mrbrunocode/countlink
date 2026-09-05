@@ -97,6 +97,9 @@ if (typeof module !== "undefined" && module.exports) {
     // right after parsePastedDuration above)
     buildStandaloneTimerHtml: buildStandaloneTimerHtml, standaloneFilename: standaloneFilename,
     describeLinkState: describeLinkState,
+    // .ics calendar export (see the block right after standaloneFilename)
+    icsFilename: icsFilename, icsEscapeText: icsEscapeText, icsTimestamp: icsTimestamp,
+    icsHash: icsHash, icsUid: icsUid, icsFold: icsFold, buildIcs: buildIcs,
   };
   return;
 }
@@ -432,6 +435,16 @@ function setState(s){
   // below (standalone offline export block). /timers/ pages don't have a
   // downloadBtn in their DOM at all, so this is a no-op there either way.
   show("downloadBtn",live&&(direction==="down"||direction==="up"));
+  // .ics is down-mode only, unlike the offline export above: "up" (count-up)
+  // has no fixed end at all — `end` holds its START instant — so there is no
+  // date to put in a calendar event. "interval"'s `end` is likewise a start,
+  // and its true final end needs extra arithmetic (start + rounds×cycle)
+  // this feature doesn't do — out of scope for v1, see docs/
+  // ai-surface-expansion-plan.md's 1b decision.
+  show("icsBtn",live&&direction==="down");
+  // Same "down mode, running" rule as icsBtn: a poster's whole point is a
+  // fixed instant to scan towards, which a #for= setup link doesn't have yet.
+  show("printPosterBtn",live&&direction==="down");
   // Laps belong to the shared stopwatch and nothing else — a countdown has no
   // splits to take. Kept alongside the other show() calls so the visibility
   // rules for every stage button live in one place.
@@ -1575,6 +1588,100 @@ function standaloneFilename(label){
     .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
   return (base?"countlink-"+base:"countlink-timer")+".html";
 }
+/* Same slugging rule as standaloneFilename, different extension — kept as
+   its own function rather than a shared one so each file type's naming can
+   drift independently later without one accidentally changing the other. */
+function icsFilename(label){
+  const base=String(label||"").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
+  return (base?"countlink-"+base:"countlink-timer")+".ics";
+}
+
+/* ---------------------------------------------------------------------------
+ * .ics calendar export.
+ *
+ * This is parity, not differentiation — several competitors already offer
+ * calendar export (see docs/monetization.md's fallback section) — kept
+ * deliberately small: hand-built RFC 5545, no library, one shared shape with
+ * functions/mcp.js's copy (cross-checked by a test corpus, the same
+ * discipline the duration grammar and agenda hash use elsewhere in this
+ * file), because a second implementation that quietly drifts is worse than
+ * no second implementation.
+ *
+ * Only offered for a real, fixed end instant: a #for= setup link has no
+ * date to export (nothing has been pressed yet), and count-up (direction
+ * "up") has no end at all — `end` holds its START instant, open-ended by
+ * design. See setState()'s `show("icsBtn", …)` call for where that gate is
+ * actually enforced client-side.
+ * ------------------------------------------------------------------------- */
+function icsEscapeText(s){
+  // RFC 5545 §3.3.11: backslash, semicolon and comma are structural inside a
+  // TEXT value and must be escaped; a literal newline becomes the two
+  // characters \ and n, not an actual line break (a real line break there
+  // would be a second, unintended content line).
+  return String(s==null?"":s)
+    .replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,")
+    .replace(/\r\n|\r|\n/g,"\\n");
+}
+function icsTimestamp(ms){
+  // UTC form (RFC 5545 §3.3.5, the trailing Z) rather than a timezone block:
+  // the importing calendar renders it in the viewer's own zone, the same
+  // "no single canonical local time" principle the board itself uses.
+  const d=new Date(ms);
+  const p=(n)=>String(n).padStart(2,"0");
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth()+1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`;
+}
+// Not cryptographic — just enough entropy that two different labels produce
+// different UIDs, so re-exporting the SAME countdown (same end instant, same
+// label) produces the same UID and most calendar apps update the existing
+// entry on re-import rather than duplicating it. FNV-1a: deterministic, no
+// dependency, good enough for that job.
+function icsHash(str){
+  let h=0x811c9dc5;
+  const s=String(str==null?"":str);
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193);}
+  return (h>>>0).toString(16).padStart(8,"0");
+}
+function icsUid(endMs,label){
+  return `${endMs}-${icsHash(label)}@countlink.app`;
+}
+// RFC 5545 §3.1: a content line over 75 octets must be "folded" onto
+// continuation lines, each starting with a single space. .length (UTF-16
+// code units) stands in for octets here rather than a real byte count —
+// conservative for this file's content (labels are capped at 60 chars and
+// mostly ASCII), since folding a little EARLY than strictly required is
+// always valid; only folding late is a spec violation.
+function icsFold(line){
+  if(line.length<=75)return line;
+  const out=[line.slice(0,75)];
+  let rest=line.slice(75);
+  while(rest.length>74){out.push(" "+rest.slice(0,74));rest=rest.slice(74);}
+  if(rest.length)out.push(" "+rest);
+  return out.join("\r\n");
+}
+/* One .ics file for one or more events on the same calendar — a single
+   countdown is one VEVENT, an agenda is one per segment. `now` is a
+   parameter rather than a Date.now() call so this stays deterministic and
+   testable, and so the cross-check corpus in test/mcp-server.test.mjs can
+   assert this and functions/mcp.js's copy produce byte-identical output for
+   the same input. CRLF line endings throughout, per RFC 5545 §3.1 — some
+   importers reject bare LF. */
+function buildIcs(events,now){
+  const stamp=icsTimestamp(now);
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CountLink//countlink.app//EN","METHOD:PUBLISH"];
+  for(const ev of events){
+    lines.push("BEGIN:VEVENT");
+    lines.push(icsFold(`UID:${ev.uid}`));
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART:${icsTimestamp(ev.startMs)}`);
+    lines.push(`DTEND:${icsTimestamp(ev.endMs)}`);
+    lines.push(icsFold(`SUMMARY:${icsEscapeText(ev.summary)}`));
+    if(ev.url)lines.push(icsFold(`URL:${ev.url}`));
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n")+"\r\n";
+}
 
 /* ================= "how this works" panel: read-only proof =================
    Formats the SAME live state draw()/makeLink() already read (end/label/
@@ -1889,9 +1996,56 @@ if($("downloadBtn"))$("downloadBtn").addEventListener("click",()=>{
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
-/* QR code: the one on-demand, opt-in feature that calls a third-party API
-   (goqr.me) — only fires when the viewer explicitly asks for it, and only
-   ever sends the already-public share link, never anything else. */
+/* .ics download: same Blob-and-<a download> mechanism as downloadBtn above,
+   not a data:text/calendar URI — that approach is known to fail silently on
+   iOS Safari's calendar handoff, exactly the platform this feature exists
+   for people to use on. Only wired when end is set (setState's show() call
+   above keeps the button itself hidden until then; this guard is the
+   button's own belt-and-braces, matching the downloadBtn handler above). */
+if($("icsBtn"))$("icsBtn").addEventListener("click",()=>{
+  if(!end)return;
+  const summary=label||"CountLink countdown";
+  const ics=buildIcs([{uid:icsUid(end,label),summary:summary,startMs:end,endMs:end,url:makeLink()}],Date.now());
+  const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=icsFilename(label);
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+/* Print poster: reuses the exact same QR generation call as qrBtn below (not
+   a second QR mechanism — see that handler's own comment on why this is the
+   only external request on the site), just rendered larger and printed
+   full-page instead of shown inline. Waits for the QR image to actually load
+   before calling print() — a browser's print dialog snapshots whatever is
+   on screen the instant it's invoked, so printing immediately after setting
+   .src would frequently produce a poster with a blank box where the code
+   should be. Falls back to printing anyway on a QR load failure (still-
+   readable label/time is better than a click that silently does nothing).
+   body.print-poster is removed on "afterprint" — fired once the print
+   dialog closes, whether printed or cancelled — rather than immediately
+   after calling print(), since some browsers render the print preview
+   asynchronously and would catch the class removed already. */
+if($("printPosterBtn"))$("printPosterBtn").addEventListener("click",()=>{
+  if(!end)return;
+  const data=encodeURIComponent(makeLink());
+  const img=$("posterQr");
+  $("posterLabel").textContent=label||"Countdown";
+  $("posterEndsAt").textContent="Ends "+new Date(end).toLocaleString([],{dateStyle:"medium",timeStyle:"medium"});
+  const go=()=>{
+    document.body.classList.add("print-poster");
+    window.addEventListener("afterprint",()=>document.body.classList.remove("print-poster"),{once:true});
+    window.print();
+  };
+  img.onload=()=>{img.onload=null;img.onerror=null;go();};
+  img.onerror=()=>{img.onload=null;img.onerror=null;go();};
+  img.src=`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}`;
+});
+/* QR code: the one on-demand, opt-in mechanism that calls a third-party API
+   (goqr.me) — only fires when the viewer explicitly asks for it (here, or
+   via "Print poster" above, which reuses this exact same call at a larger
+   size), and only ever sends the already-public share link, never anything
+   else. */
 if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   // Sets the label SPAN's text, not the button's, so the icon svg markup
   // (see index.html) survives every toggle instead of being wiped by a

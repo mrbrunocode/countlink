@@ -261,7 +261,7 @@ To support "agenda starting at 9:15": add a pre-start state to
 test that a future-`s` link shows a countdown-to-start rather than an
 inflated segment 1; only then expose the parameter.
 
-### 1b — DECIDED: `.ics` export
+### 1b — SHIPPED. `.ics` export
 
 - **Mechanism: a Blob download**, `URL.createObjectURL` + a temporary
   `<a download="countlink.ics">`, **not** a `data:text/calendar` URI — the
@@ -287,7 +287,7 @@ inflated segment 1; only then expose the parameter.
 - **Verify** by importing into Google Calendar *and* Apple Calendar. This
   is parity, not differentiation — don't let it grow.
 
-### 2a — DECIDED: countdown badge architecture
+### 2a — SHIPPED. Countdown badge (`functions/badge.svg.js` + `create_badge`)
 
 - **Server-rendered static SVG, no client script.** GitHub's camo image
   proxy strips scripts and caches aggressively; a "live ticking" badge is
@@ -315,7 +315,7 @@ inflated segment 1; only then expose the parameter.
 - **Verify** in a real GitHub README (a scratch repo), not just a 200 from
   the endpoint — confirm camo serves it and the link resolves.
 
-### 3a — DECIDED: printable QR poster
+### 3a — SHIPPED. Printable QR poster
 
 - **`@media print` stylesheet + a "Print poster" button** calling
   `window.print()`; no new route. In print: hide nav, ad slot, controls,

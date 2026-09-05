@@ -28,6 +28,7 @@ const {
   compactDuration, describeUrl, humanDuration, labelOf, TOOLS,
   embedTargetUrl, embedSnippet,
   agendaUrl, agendaRunSheet, normaliseAgendaSegments,
+  buildIcs, icsUid, badgeTimeTextPreview,
 } = mcp;
 
 const rpc = (method, params, id = 1) => handleRpc({ jsonrpc: "2.0", id, method, params });
@@ -541,6 +542,133 @@ test("an agenda link with no valid segments is not a timer link", () => {
 test("create_agenda is listed alongside the other tools", () => {
   const names = rpc("tools/list").result.tools.map((t) => t.name);
   assert.ok(names.includes("create_agenda"), names.join(", "));
+});
+
+/* ======================= .ics calendar export ======================= */
+
+test("create_timer's plain setup link and overlay link carry no .ics", () => {
+  // Neither has a real fixed end instant yet: a setup link has nothing
+  // pressed, and an overlay's whole point is restarting per viewer.
+  assert.equal(callTool("create_timer", { duration: "10m" }).structuredContent.ics, undefined);
+  assert.equal(callTool("create_timer", { duration: "10m", for_obs_overlay: true }).structuredContent.ics, undefined);
+});
+
+test("create_timer's start_now and embed_on_website both carry a matching .ics", () => {
+  for (const variant of [{ start_now: true }, { embed_on_website: true }]) {
+    const r = callTool("create_timer", { duration: "25m", label: "Focus", ...variant }, FIXED_NOW);
+    assert.ok(r.structuredContent.ics, JSON.stringify(variant));
+    assert.match(r.structuredContent.ics, /SUMMARY:Focus\r\n/);
+    assert.match(r.structuredContent.ics, /DTSTART:20250904T155820Z\r\n/, "the exact fixed instant for FIXED_NOW + 25m");
+    assert.equal(r.structuredContent.ics.match(/DTSTART:/g).length, 1);
+    assert.equal(r.structuredContent.ics.match(/^DTSTART:(.*)\r$/m)[1], r.structuredContent.ics.match(/^DTEND:(.*)\r$/m)[1],
+      "a countdown's calendar entry marks the single instant it ends, start===end");
+  }
+});
+
+test("create_timer's .ics mentions the link back to the countdown", () => {
+  const r = callTool("create_timer", { duration: "10m", embed_on_website: true }, FIXED_NOW);
+  assert.match(r.structuredContent.ics, new RegExp(`URL:${r.structuredContent.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\r\\n`));
+});
+
+test("create_agenda's .ics has one VEVENT per segment, matching the run sheet", () => {
+  const r = callTool("create_agenda", {
+    segments: [{ duration: "10m", label: "Intro" }, { duration: "20m", label: "Talk" }],
+  }, FIXED_NOW);
+  const ics = r.structuredContent.ics;
+  assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 2);
+  assert.match(ics, /SUMMARY:Intro\r\n/);
+  assert.match(ics, /SUMMARY:Talk\r\n/);
+  assert.ok(ics.indexOf("SUMMARY:Intro") < ics.indexOf("SUMMARY:Talk"), "segments stay in order");
+  for (const r2 of r.structuredContent.runSheet) {
+    const start = r2.startsAt.replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+    assert.ok(ics.includes(`DTSTART:${start}`), `${r2.label}: ${start} not found in ${ics}`);
+  }
+});
+
+test("app.js's buildIcs and functions/mcp.js's buildIcs agree, byte for byte", () => {
+  // A SECOND implementation of the same RFC 5545 writer, same discipline as
+  // the duration grammar and the agenda hash codec above: run one corpus
+  // through both and fail if they ever drift.
+  const { buildIcs: appBuildIcs, icsUid: appIcsUid } = loadDuration();
+  const now = FIXED_NOW;
+  const corpus = [
+    [{ uid: "a@countlink.app", summary: "Focus", startMs: now, endMs: now, url: "https://countlink.app/#t=" + now }],
+    [{ uid: "b@countlink.app", summary: "Q&A; break, review\\notes", startMs: now, endMs: now }],
+    [
+      { uid: "c@countlink.app", summary: "Intro", startMs: now, endMs: now + 600000 },
+      { uid: "d@countlink.app", summary: "", startMs: now + 600000, endMs: now + 3000000 },
+    ],
+  ];
+  for (const events of corpus) {
+    assert.equal(buildIcs(events, now), appBuildIcs(events, now), JSON.stringify(events));
+  }
+  for (const [ms, label] of [[now, "Focus"], [now, ""], [now + 1, "Focus"], [now, "Q&A; special"]]) {
+    assert.equal(icsUid(ms, label), appIcsUid(ms, label), `${ms} ${label}`);
+  }
+});
+
+/* ======================= create_badge ======================= */
+
+test("create_badge points at /badge.svg with a fixed-instant #t= page link, never #for= or go=1", () => {
+  const r = callTool("create_badge", { duration: "10m", label: "Launch" }, FIXED_NOW);
+  const sc = r.structuredContent;
+  assert.ok(sc.badgeUrl.startsWith("https://countlink.app/badge.svg?t="), sc.badgeUrl);
+  assert.ok(sc.pageUrl.startsWith("https://countlink.app/#t="), sc.pageUrl);
+  assert.ok(!sc.badgeUrl.includes("#for="));
+  assert.ok(!sc.pageUrl.includes("go=1"));
+  assert.equal(sc.style, "board");
+  assert.equal(sc.duration, "10m");
+});
+
+test("create_badge never emits a bare image — the image is always wrapped in the page link", () => {
+  // The whole point of the feature: an unlinked badge earns nothing back.
+  const r = callTool("create_badge", { duration: "10m", label: "Launch" }, FIXED_NOW);
+  assert.match(r.structuredContent.markdown, /^\[!\[.*\]\(.*\)\]\(.*\)$/, r.structuredContent.markdown);
+  assert.match(r.structuredContent.html, /^<a href="[^"]+"><img src="[^"]+"[^>]*><\/a>$/, r.structuredContent.html);
+  // And specifically: the outer link goes to the live page, the inner image
+  // to the badge — not the same URL twice, which would defeat the purpose.
+  assert.notEqual(r.structuredContent.badgeUrl, r.structuredContent.pageUrl);
+  assert.ok(r.structuredContent.markdown.includes(r.structuredContent.pageUrl));
+  assert.ok(r.structuredContent.markdown.includes(r.structuredContent.badgeUrl));
+});
+
+test("a badge_style is carried onto the badge URL, board being the omitted default", () => {
+  const light = callTool("create_badge", { duration: "10m", badge_style: "light" }).structuredContent;
+  assert.ok(light.badgeUrl.includes("style=light"), light.badgeUrl);
+  const board = callTool("create_badge", { duration: "10m", badge_style: "board" }).structuredContent;
+  assert.ok(!board.badgeUrl.includes("style="), board.badgeUrl);
+  const invalid = callTool("create_badge", { duration: "10m", badge_style: "neon" }).structuredContent;
+  assert.equal(invalid.style, "board");
+});
+
+test("a label with a literal ] cannot break out of the Markdown image syntax", () => {
+  // ![alt](url) — an unescaped ] in alt closes the bracket early and splices
+  // whatever follows into a second, attacker-chosen link when this is pasted
+  // into a real README.
+  const hostile = "x](https://evil.example/)[y";
+  const r = callTool("create_badge", { duration: "10m", label: hostile }).structuredContent;
+  assert.ok(!r.markdown.includes("](https://evil.example/)["), r.markdown);
+  assert.match(r.markdown, /^\[!\[x\\\]\(https:\/\/evil\.example\/\)\\\[y\]/);
+});
+
+test("a label with HTML-significant characters cannot break out of the HTML alt attribute", () => {
+  const hostile = '"><script>alert(1)</script>';
+  const r = callTool("create_badge", { duration: "10m", label: hostile }).structuredContent;
+  assert.ok(!r.html.includes("<script>"), r.html);
+  assert.match(r.html, /alt="[^"]*&quot;&gt;&lt;script&gt;[^"]*"/);
+});
+
+test("create_badge's prose previews the same coarse text the image will actually show", () => {
+  const text = callTool("create_badge", { duration: "47m" }, FIXED_NOW).content[0].text;
+  assert.match(text, /47m left/);
+});
+
+test("badgeTimeTextPreview agrees with functions/badge.svg.js's own badgeTimeText", async () => {
+  const badgeSrc = readFileSync(join(ROOT, "functions", "badge.svg.js"), "utf8");
+  const badgeMod = await import("data:text/javascript," + encodeURIComponent(badgeSrc));
+  for (const s of [0, 1, 30, 59, 60, 61, 3599, 3600, 3661, 86399, 86400, 86400 * 3 + 3600 * 4, -10]) {
+    assert.equal(badgeTimeTextPreview(s), badgeMod.badgeTimeText(s), s);
+  }
 });
 
 /* ======================= the drift guard ======================= */

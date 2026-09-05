@@ -1095,3 +1095,32 @@ body.overlay-mode .tiles{gap:8px}
   .board{background:#fff!important;border:1px solid #000}
   a{text-decoration:none;color:#000}
 }
+
+/* Print poster: a second, EXCLUSIVE print mode, opt-in via the
+   "Print poster" button (assets/app.js), which toggles this class on <body>
+   right before window.print() and removes it on the browser's "afterprint"
+   event. Plain Ctrl+P without that button is untouched — it still prints
+   the live board per the rule above.
+
+   An earlier version of this hid everything else with `visibility:hidden`
+   rather than `display:none`. That looked right on screen but printed 4
+   blank pages before the poster: visibility:hidden keeps an element's layout
+   box (and height) intact, so the page's total printable height was still
+   the whole (invisible) site, and the browser paginated across all of it.
+   display:none actually collapses that height to zero, which is why .poster
+   has to be a DIRECT CHILD OF <body> (see the HTML) — a single
+   `>*:not(.poster)` selector hides every other top-level element, rather
+   than needing to enumerate the page's wrapper classes the way the rule
+   above does, and can never accidentally take .poster down with it since
+   .poster isn't a descendant of any of them. */
+.poster{display:none}
+@media print{
+  body.print-poster>*:not(.poster){display:none!important}
+  body.print-poster .poster{
+    display:flex!important;flex-direction:column;align-items:center;justify-content:center;
+    position:fixed;inset:0;background:#fff;color:#000;text-align:center;padding:60px 40px;
+  }
+  .poster img{width:60%;max-width:480px;height:auto;margin:0 0 28px}
+  .poster h2{font-size:1.8rem;margin:0 0 10px}
+  .poster p{font-size:1.15rem;margin:4px 0}
+}

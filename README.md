@@ -115,9 +115,10 @@ scripts, and ads on a content-free screen is a live AdSense violation).
 
 `functions/mcp.js` is a Cloudflare Pages Function exposing CountLink over the
 Model Context Protocol, so an assistant can *hand someone a working link*
-rather than telling them to go and make one. Three tools, all genuinely
+rather than telling them to go and make one. Four tools, all genuinely
 read-only (there is no backend — a timer is string arithmetic over a
-duration): `create_timer`, `create_agenda` and `describe_timer_link`.
+duration): `create_timer`, `create_agenda`, `create_badge` and
+`describe_timer_link`.
 
 `create_agenda` takes an ordered list of `{ duration, label? }` segments and
 returns one link on `/timers/agenda-timer` that starts now and advances
@@ -139,6 +140,29 @@ embed also carries the attribution `<a>` OUTSIDE the `<iframe>` — a link
 inside a frame is attributed to the frame's own document, not the host page,
 so it earns no backlink; this is the one mechanism on the whole site that
 compounds links without per-instance outreach (see `docs/monetization.md`).
+
+`create_badge` is the same attribution mechanism for places an `<iframe>`
+cannot go — a GitHub README, a forum signature — where only a plain image is
+allowed. `functions/badge.svg.js` is a second, separate Pages Function (`GET
+/badge.svg?t=<end-ms>&l=<label>&style=<board|minimal|light>`, self-contained
+the same way `mcp.js` is) that server-renders an SVG showing coarse time
+remaining ("3d 04h left", never a live tick — GitHub's camo proxy strips
+scripts and caches images server-side, so promising one would be false) and
+links through to the live countdown. `create_badge` returns both a Markdown
+and an HTML snippet, always with the image wrapped in that link — never a
+bare `<img>`, for the same backlink reason as the website embed. A label
+lands inside real Markdown here, not just HTML, so it also gets
+CommonMark-escaped (`\`, `[`, `]`) against breaking `![alt](url)` open, on
+top of the usual HTML-attribute escaping.
+
+`create_timer`'s fixed-instant calls (`start_now`, `embed_on_website`) and
+`create_agenda` also return an `.ics` calendar file in `structuredContent.ics`
+— hand-built RFC 5545 (no library), CRLF line endings, escaped per §3.3.11,
+folded at 75 octets per §3.1. A second implementation of the same writer
+lives in `assets/app.js` behind the board's own "Add to calendar" button;
+`test/mcp-server.test.mjs` runs a shared corpus through both and fails if
+they ever disagree, the same discipline as the duration grammar and the
+agenda hash codec.
 
 Deliberately one self-contained file with no imports: Pages routes
 `functions/mcp.js` → `/mcp`, and keeping the logic in the same module means

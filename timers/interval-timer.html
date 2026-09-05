@@ -49,9 +49,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=6aef25e3" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=6aef25e3" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=6aef25e3"></noscript>
+<link rel="preload" href="../assets/style.css?v=55ecef58" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=55ecef58"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -235,6 +235,8 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
         <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
       </div>
+      <button class="btn icon-btn" id="icsBtn" style="display:none;margin-top:10px">Add to calendar (.ics)</button>
+      <button class="btn icon-btn" id="printPosterBtn" style="display:none;margin-top:10px">Print poster</button>
       <button class="pro-link" id="embedBtn" style="margin-top:10px">Embed on your site →</button>
       <div id="embedWrap" style="display:none;margin-top:10px">
         <div class="embed-builder">
@@ -380,7 +382,22 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
   </div>
 </footer>
 
+<!-- Invisible on screen (see .poster + body.print-poster in style.css);
+     shown ONLY under print, toggled by "Print poster"'s click handler right
+     before window.print(). A DIRECT CHILD OF <body> — not nested with the
+     rest of the page's content — so the print rule can hide every other
+     top-level element with one :not(.poster) selector, and so doing so
+     (via display:none, which collapses layout height to zero — the reason
+     an earlier version of this printed 4 blank pages instead of 1) can
+     never take the poster down with it. -->
+<div class="poster" id="posterBlock" aria-hidden="true">
+  <img id="posterQr" width="320" height="320" alt="QR code for the sync link">
+  <h2 id="posterLabel"></h2>
+  <p>Scan to open the live countdown</p>
+  <p id="posterEndsAt"></p>
+</div>
+
 <script>window.COUNTLINK_DEFAULT={"minutes":10,"label":"Rounds complete"};</script>
-<script src="../assets/app.js?v=8ebd13b2" defer></script>
+<script src="../assets/app.js?v=bfe40688" defer></script>
 </body>
 </html>

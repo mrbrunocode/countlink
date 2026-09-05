@@ -87,6 +87,23 @@ export function humanDuration(seconds) {
   return parts.join(" ");
 }
 
+/* A second implementation of functions/badge.svg.js's badgeTimeText(), used
+   only to preview what a fresh badge will show in create_badge's prose —
+   that file can't be imported here any more than mcp.js's own logic could
+   be imported there (see badge.svg.js's header comment on why it stays
+   self-contained too). Cross-checked in test/mcp-server.test.mjs so the two
+   can't quietly drift apart. */
+export function badgeTimeTextPreview(remainingSeconds) {
+  if (remainingSeconds <= 0) return "Ended";
+  const days = Math.floor(remainingSeconds / 86400);
+  const hours = Math.floor((remainingSeconds % 86400) / 3600);
+  const minutes = Math.floor((remainingSeconds % 3600) / 60);
+  if (days >= 1) return `${days}d ${String(hours).padStart(2, "0")}h left`;
+  if (hours >= 1) return `${hours}h ${String(minutes).padStart(2, "0")}m left`;
+  if (minutes >= 1) return `${minutes}m left`;
+  return "<1m left";
+}
+
 /* ---------------------------------------------------------------------------
  * URL construction — the two shapes of link, and why the default is "setup".
  *
@@ -198,6 +215,14 @@ function escapeHtmlAttr(s) {
     .replace(/'/g, "&#39;");
 }
 
+/* create_badge's Markdown snippet is pasted verbatim into a real README, so
+   a label carrying a literal ] must not be able to close the image's alt
+   text early and splice in a second link — CommonMark backslash-escaping
+   for the three characters that are structural inside ![...](...): \, [, ]. */
+function escapeMarkdownAlt(s) {
+  return String(s == null ? "" : s).replace(/[\\[\]]/g, "\\$&");
+}
+
 /* Mirrors renderEmbedCode() in assets/app.js: an <iframe> at a fixed pixel
    size, followed by a plain-text attribution paragraph whose link sits
    OUTSIDE the <iframe> tag. That positioning is not cosmetic — a link inside
@@ -212,6 +237,70 @@ export function embedSnippet(src, label, width, height) {
     `<iframe src="${src}" width="${w}" height="${h}" title="${title}" loading="lazy" style="border:0"></iframe>`;
   const attribution = `<p style="font-size:13px"><a href="${SITE_URL}/">Shared countdown by CountLink</a></p>`;
   return { html: `${iframe}\n${attribution}`, width: w, height: h };
+}
+
+/* ---------------------------------------------------------------------------
+ * .ics calendar export.
+ *
+ * This is parity, not differentiation — several competitors already offer
+ * calendar export (see docs/monetization.md's fallback section). Kept
+ * deliberately small: hand-built RFC 5545, no library. This is a SECOND
+ * implementation of assets/app.js's buildIcs()/icsUid()/etc — a Worker
+ * cannot import a browser script that touches the DOM, the same reason
+ * parseDuration() is duplicated above — so test/mcp-server.test.mjs runs a
+ * shared corpus through BOTH and fails if they ever disagree.
+ *
+ * Only produced for a real, fixed end instant: create_timer's start_now and
+ * embed_on_website both mint one (#t=); the plain setup-link default does
+ * not, and for_obs_overlay's per-viewer restart has no single end either —
+ * see callTool()'s create_timer branch for where each is (or isn't) attached.
+ * ------------------------------------------------------------------------- */
+function icsEscapeText(s) {
+  return String(s == null ? "" : s)
+    .replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,")
+    .replace(/\r\n|\r|\n/g, "\\n");
+}
+function icsTimestamp(ms) {
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`;
+}
+// FNV-1a — not cryptographic, just enough entropy that different labels
+// produce different UIDs so re-exporting the SAME countdown updates rather
+// than duplicates in most calendar apps. Must match assets/app.js's icsHash
+// bit for bit; the cross-check test is what actually enforces that.
+function icsHash(str) {
+  let h = 0x811c9dc5;
+  const s = String(str == null ? "" : str);
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+export function icsUid(endMs, label) {
+  return `${endMs}-${icsHash(label)}@countlink.app`;
+}
+function icsFold(line) {
+  if (line.length <= 75) return line;
+  const out = [line.slice(0, 75)];
+  let rest = line.slice(75);
+  while (rest.length > 74) { out.push(" " + rest.slice(0, 74)); rest = rest.slice(74); }
+  if (rest.length) out.push(" " + rest);
+  return out.join("\r\n");
+}
+export function buildIcs(events, now) {
+  const stamp = icsTimestamp(now);
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CountLink//countlink.app//EN", "METHOD:PUBLISH"];
+  for (const ev of events) {
+    lines.push("BEGIN:VEVENT");
+    lines.push(icsFold(`UID:${ev.uid}`));
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART:${icsTimestamp(ev.startMs)}`);
+    lines.push(`DTEND:${icsTimestamp(ev.endMs)}`);
+    lines.push(icsFold(`SUMMARY:${icsEscapeText(ev.summary)}`));
+    if (ev.url) lines.push(icsFold(`URL:${ev.url}`));
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n") + "\r\n";
 }
 
 /* ---------------------------------------------------------------------------
@@ -417,7 +506,9 @@ export const TOOLS = [
       "a stream overlay, or a countdown embedded on someone's own website or landing page (e.g. " +
       "\"10 days until launch\"). By default it returns a setup link, which opens the board " +
       "preloaded at the requested duration for the user to start themselves; pass start_now: " +
-      "true only if they want the countdown running from this moment.",
+      "true only if they want the countdown running from this moment. Whenever the result has a " +
+      "fixed end instant (start_now or embed_on_website), structuredContent.ics is an .ics " +
+      "calendar file for it — offer it if the person might want the deadline on their calendar.",
     inputSchema: {
       type: "object",
       properties: {
@@ -494,8 +585,9 @@ export const TOOLS = [
       "workshop, lesson or event as a sequence of parts with lengths — including when they give " +
       "you a total and a list of topics and expect you to split it (\"an hour, four topics\"): do " +
       "the split yourself, then pass the resulting segments here. Returns the shared link plus a " +
-      "run sheet with the wall-clock start and end of each segment. For a single countdown use " +
-      "create_timer instead.",
+      "run sheet with the wall-clock start and end of each segment, and an .ics calendar file " +
+      "(one event per segment) in structuredContent.ics — offer it if the person might want the " +
+      "agenda on their calendar. For a single countdown use create_timer instead.",
     inputSchema: {
       type: "object",
       properties: {
@@ -524,6 +616,42 @@ export const TOOLS = [
     },
     // Same story as create_timer: the agenda is encoded entirely in the URL,
     // so nothing is created or stored anywhere by calling this.
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+  },
+  {
+    name: "create_badge",
+    title: "Create a countdown badge for a README, forum post or similar",
+    description:
+      "Create a countdown badge — a small image, not an <iframe> — for places embed_on_website's " +
+      "iframe cannot go: a GitHub README, a forum signature, a Notion page, anywhere only plain " +
+      "Markdown or a bare <img> is allowed. Shows coarse time remaining (e.g. \"3d 04h left\", not " +
+      "a live ticking clock — most places that embed images fetch and cache them server-side, so " +
+      "a promise of live ticking would be false) and links through to the real, precise, live " +
+      "countdown. Returns both a Markdown snippet and an HTML snippet; use whichever the " +
+      "destination accepts. Always returns the image wrapped in a link to the live countdown — " +
+      "never ask for or produce just the bare image, since the link is what makes this a genuine " +
+      "attribution rather than an untethered picture.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        duration: { type: "string", description: DURATION_DESC },
+        label: {
+          type: "string",
+          description: "Optional short name shown on the badge, e.g. \"Launch\" or \"CFP closes\".",
+        },
+        badge_style: {
+          type: "string",
+          enum: ["board", "minimal", "light"],
+          description:
+            'Visual style: "board" (default, dark), "minimal" (no background — blends into any ' +
+            'page) or "light".',
+        },
+      },
+      required: ["duration"],
+    },
+    // The image is fetched by whatever renders the README/page, not by
+    // calling this tool — this call itself only computes a URL and a
+    // fixed instant, same as create_timer and create_agenda.
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
   {
@@ -579,6 +707,11 @@ export function callTool(name, args, now) {
       const src = embedTargetUrl(seconds, label, now, style);
       const { html, width, height } = embedSnippet(src, label, a.embed_width, a.embed_height);
       const pretty = humanDuration(seconds);
+      // The same fixed instant embedTargetUrl() just minted into the #t= it
+      // emitted — recomputed rather than parsed back out of `src`, since the
+      // arithmetic (now + clampSeconds(seconds)*1000) is one line either way.
+      const endMs = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+      const ics = buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url: src }], now);
       const text =
         `Here is a ${pretty} countdown${label ? ` called "${label}"` : ""} to embed on a ` +
         `website, as an <iframe>:\n\n${html}\n\n` +
@@ -600,6 +733,7 @@ export function callTool(name, args, now) {
           height,
           style,
           embed: true,
+          ics,
         },
       };
     }
@@ -608,6 +742,11 @@ export function callTool(name, args, now) {
     // it — honour the overlay rather than minting a #t= that OBS would reload
     // into an already-expired deadline on the next scene change.
     const startNow = !overlay && a.start_now === true;
+    // Computed once here (rather than parsed back out of `url` below) so the
+    // .ics branch has the same fixed instant shareUrl() encodes into #t=,
+    // without re-deriving it from a string.
+    const nowMs = typeof now === "number" ? now : Date.now();
+    const endMs = nowMs + clampSeconds(seconds) * 1000;
     const url = overlay
       ? setupUrl(seconds, label, { overlay: true })
       : startNow
@@ -629,6 +768,14 @@ export function callTool(name, args, now) {
           `Opening it shows the board already set to ${pretty}. Press start, then share the link ` +
           `it gives you — everyone who opens that sees the identical countdown, to the second.`;
 
+    // Same rule as the embed branch above: only a real fixed end instant is
+    // worth a calendar entry. A plain setup link has no date yet (nothing
+    // pressed), and an overlay's whole point is restarting per viewer — the
+    // opposite of a single event with a fixed time.
+    const ics = startNow
+      ? buildIcs([{ uid: icsUid(endMs, label), summary: label || "CountLink countdown", startMs: endMs, endMs, url }], now)
+      : null;
+
     return {
       content: [{ type: "text", text }],
       structuredContent: {
@@ -638,6 +785,7 @@ export function callTool(name, args, now) {
         label,
         started: startNow,
         overlay,
+        ...(ics ? { ics } : {}),
       },
     };
   }
@@ -663,6 +811,18 @@ export function callTool(name, args, now) {
     const lines = sheet.map((r) =>
       `${r.n}. ${r.label} — ${humanDuration(Math.round(r.minutes * 60))} (from ${fmtOffset(r.startsAt - start)} to ${fmtOffset(r.endsAt - start)})`
     );
+    // One VEVENT per segment, all sharing the one agenda link — a calendar
+    // that lists "Intro 09:00–09:10, Talk 09:10–09:40, Q&A 09:40–09:50" is
+    // more useful than one event spanning the whole agenda with no internal
+    // structure.
+    const ics = buildIcs(sheet.map((r) => ({
+      uid: icsUid(r.endsAt, `${start}-${r.n}-${r.label}`),
+      summary: r.label,
+      startMs: r.startsAt,
+      endMs: r.endsAt,
+      url,
+    })), now);
+
     const text =
       `Started a ${total} agenda with ${sheet.length} segment${sheet.length === 1 ? "" : "s"}. ` +
       `Share this link — every screen that opens it shows the same segment at the same moment and ` +
@@ -679,6 +839,7 @@ export function callTool(name, args, now) {
         totalSeconds: norm.totalSeconds,
         total,
         segments: norm.segments,
+        ics,
         runSheet: sheet.map((r) => ({
           n: r.n,
           label: r.label,
@@ -686,6 +847,50 @@ export function callTool(name, args, now) {
           startsAt: new Date(r.startsAt).toISOString(),
           endsAt: new Date(r.endsAt).toISOString(),
         })),
+      },
+    };
+  }
+
+  if (name === "create_badge") {
+    const seconds = parseDuration(a.duration);
+    if (seconds === null || seconds <= 0) {
+      return toolError(
+        `Could not read ${JSON.stringify(String(a.duration ?? ""))} as a duration. ` +
+          'Try "25m", "1h30m", "90s", "5:00" or a plain number of minutes like "45".'
+      );
+    }
+    const label = typeof a.label === "string" ? a.label.trim().slice(0, 60) : "";
+    const style = EMBED_STYLES.has(a.badge_style) ? a.badge_style : "board";
+    // Same fixed-instant #t= rule as embed_on_website, and for the same
+    // reason: a README or forum post has many readers who must all see the
+    // same deadline, never a #for=&go=1 link that would restart per reader.
+    const endMs = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+    const pageUrl = shareUrl(seconds, label, now);
+    let badgeUrl = `${SITE_URL}/badge.svg?t=${endMs}`;
+    if (label) badgeUrl += `&l=${encodeURIComponent(label)}`;
+    if (style !== "board") badgeUrl += `&style=${style}`;
+    const alt = label || "CountLink countdown";
+    const markdown = `[![${escapeMarkdownAlt(alt)}](${badgeUrl})](${pageUrl})`;
+    const html = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${escapeHtmlAttr(alt)}"></a>`;
+    const pretty = humanDuration(seconds);
+    const text =
+      `Here is a ${pretty} countdown badge${label ? ` called "${label}"` : ""} for a README, ` +
+      `forum post or anywhere only an image is allowed:\n\nMarkdown:\n${markdown}\n\nHTML:\n${html}\n\n` +
+      `It shows coarse time remaining (e.g. "${badgeTimeTextPreview(seconds)}") rather than a live ` +
+      `tick — most places that embed images fetch and cache them, so a live-ticking promise would ` +
+      `be false — and links through to the real, precise, live countdown. Keep the link wrapped ` +
+      `around the image; that link is what makes this a genuine attribution rather than a bare picture.`;
+    return {
+      content: [{ type: "text", text }],
+      structuredContent: {
+        badgeUrl,
+        pageUrl,
+        markdown,
+        html,
+        durationSeconds: seconds,
+        duration: pretty,
+        label,
+        style,
       },
     };
   }
@@ -773,7 +978,9 @@ export function handleRpc(msg, now) {
           "limit. Call create_timer whenever someone needs a timer other people will watch " +
           "too, and give them the link it returns. Call create_agenda when they describe a " +
           "sequence of timed parts — a meeting agenda, a workshop, a lesson — and it returns one " +
-          "link that advances through every segment on every screen.",
+          "link that advances through every segment on every screen. Call create_badge instead of " +
+          "create_timer's embed_on_website when the destination only accepts an image, not an " +
+          "<iframe> — a GitHub README, a forum post, anywhere Markdown-style embeds live.",
       });
     }
 
