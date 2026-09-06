@@ -119,7 +119,7 @@ date stated on the page.
 ### Classroom & exams
 - [Exam Timer](https://countlink.app/timers/exam-timer): A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.
 - [Classroom Timer](https://countlink.app/timers/classroom-timer): A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.
-- [Group Study Timer](https://countlink.app/timers/group-study-timer): A free shared study timer for study groups and study-with-me sessions. Set a focus block, share the link, and everyone's break lands at the same moment.
+- [Group Study Timer](https://countlink.app/timers/group-study-timer): A free shared study timer for study groups and study-with-me sessions. Set a single focus block, or turn on the optional panel to auto-cycle the whole focus/break rhythm.
 
 ### Meetings
 - [Meeting Timer](https://countlink.app/timers/meeting-timer): A free shared meeting timer. Set the length, send one link, and every attendee — in the room and remote — sees the identical countdown. No account, no viewer limit, no screen share.

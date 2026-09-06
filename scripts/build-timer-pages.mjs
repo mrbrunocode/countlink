@@ -141,45 +141,65 @@ const ivExtra = (workSec, restSec, rounds) => `
           <div class="hint" style="margin-top:6px" id="ivPhase"></div>
         </div>`;
 
-// The Pomodoro page's own variant of the same engine: minutes instead of
-// seconds (nobody thinks of a focus block as "1500 seconds"), plus the two
-// long-break fields that turn on Pomodoro's every-fourth-round long rest
-// (see intervalPhase's longRestSec/longEvery in assets/app.js). Distinct
-// field ids (ivWorkMin/ivRestMin vs the seconds-based ivWorkSec/ivRestSec
-// above) so the ivStartBtn click handler in app.js can tell which unit a
-// page is using — the two variants never appear on the same page.
-const POMODORO_EXTRA = `
+// The focus/break auto-cycle panel, shared by every page that offers it as
+// an OPTION alongside its plain single-block board — Pomodoro first, Group
+// Study second. Minutes instead of seconds (nobody thinks of a focus block
+// as "1500 seconds"), plus the two long-break fields that turn on the
+// every-Nth-round long rest (see intervalPhase's longRestSec/longEvery in
+// assets/app.js). Always the same field ids (ivWorkMin/ivRestMin/…) so one
+// click handler in app.js drives every page that uses it — safe because no
+// page mixes this with the seconds-based ivExtra() above.
+const focusBreakCycleExtra = ({
+  heading, intro, buttonLabel, footer,
+  workMin = 25, restMin = 5, longRestMin = 20, longEvery = 4, rounds = 8,
+}) => `
         <div class="obs-extra">
-          <h3>Auto-cycling focus and break, on every screen</h3>
-          <p>This runs the classic rhythm on its own: a focus block, then a break, repeated — with a longer break every fourth round, the way Francesco Cirillo's original technique does it. Share the link once, at the start, and everyone's screen advances through the same rounds together; nobody has to restart a countdown between blocks.</p>
+          <h3>${heading}</h3>
+          <p>${intro}</p>
           <div class="stack2">
             <div>
               <label for="ivWorkMin">Focus (minutes)</label>
-              <input id="ivWorkMin" type="number" min="1" value="25">
+              <input id="ivWorkMin" type="number" min="1" value="${workMin}">
             </div>
             <div>
               <label for="ivRestMin">Short break (minutes)</label>
-              <input id="ivRestMin" type="number" min="0" value="5">
+              <input id="ivRestMin" type="number" min="0" value="${restMin}">
             </div>
           </div>
           <div class="stack2">
             <div>
               <label for="ivLongRestMin">Long break (minutes)</label>
-              <input id="ivLongRestMin" type="number" min="0" value="20">
+              <input id="ivLongRestMin" type="number" min="0" value="${longRestMin}">
             </div>
             <div>
               <label for="ivLongEvery">Long break every</label>
-              <input id="ivLongEvery" type="number" min="0" value="4">
+              <input id="ivLongEvery" type="number" min="0" value="${longEvery}">
             </div>
           </div>
           <div>
             <label for="ivRounds">Total focus rounds</label>
-            <input id="ivRounds" type="number" min="1" value="8">
+            <input id="ivRounds" type="number" min="1" value="${rounds}">
           </div>
-          <button class="btn primary" id="ivStartBtn" style="margin-top:12px">Start auto-cycling pomodoro</button>
+          <button class="btn primary" id="ivStartBtn" style="margin-top:12px">${buttonLabel}</button>
           <div class="hint" style="margin-top:6px" id="ivPhase"></div>
-          <p class="hint" style="margin-top:10px">Same mechanic as the <a href="/timers/interval-timer">interval timer</a> and <a href="/timers/agenda-timer">agenda timer</a>: the cycle's start instant is the only thing the link carries, so every device works out which round and phase is "now" from elapsed time — no server, no viewer limit, and it's still correct if someone opens the link an hour into round six.</p>
+          <p class="hint" style="margin-top:10px">${footer}</p>
         </div>`;
+
+const AUTO_CYCLE_MECHANIC_NOTE = 'Same mechanic as the <a href="/timers/interval-timer">interval timer</a> and <a href="/timers/agenda-timer">agenda timer</a>: the cycle\'s start instant is the only thing the link carries, so every device works out which round and phase is "now" from elapsed time — no server, no viewer limit, and it\'s still correct if someone opens the link an hour into round six.';
+
+const POMODORO_EXTRA = focusBreakCycleExtra({
+  heading: "Auto-cycling focus and break, on every screen",
+  intro: "This runs the classic rhythm on its own: a focus block, then a break, repeated — with a longer break every fourth round, the way Francesco Cirillo's original technique does it. Share the link once, at the start, and everyone's screen advances through the same rounds together; nobody has to restart a countdown between blocks.",
+  buttonLabel: "Start auto-cycling pomodoro",
+  footer: AUTO_CYCLE_MECHANIC_NOTE,
+});
+
+const GROUP_STUDY_EXTRA = focusBreakCycleExtra({
+  heading: "Optional: auto-cycle through the whole session",
+  intro: "The board above still works as a single focus-then-manually-restart block if that's all you want. This panel is the alternative when a study group or \"study with me\" stream wants the whole rhythm handled for it: set your focus and break lengths once, and it advances through every round on its own — nobody has to notice zero and restart the next block.",
+  buttonLabel: "Start auto-cycling session",
+  footer: AUTO_CYCLE_MECHANIC_NOTE,
+});
 
 // Per-page supporting content, keyed by slug. Every page that doesn't already
 // carry an inline `extra` gets one of these injected in the render (see the
@@ -633,12 +653,14 @@ export const PAGES = [
     ] },
   { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer", affiliate: true,
     h1: "Group Study Timer — Study With Me, In Sync",
-    meta: "A free shared study timer for study groups and study-with-me sessions. Set a focus block, share the link, and everyone's break lands at the same moment.",
-    intro: "Studying with friends or running a study-with-me stream works best when breaks actually line up. Set a focus block here, share the link with your group, and everyone's countdown — and everyone's break — happens at the exact same moment.",
+    meta: "A free shared study timer for study groups and study-with-me sessions. Set a single focus block, or turn on the optional panel to auto-cycle the whole focus/break rhythm.",
+    intro: "Studying with friends or running a study-with-me stream works best when breaks actually line up. Set a single focus block here and share the link, or use the auto-cycling panel further down as an option to run the whole rhythm — breaks included — without restarting anything between rounds.",
+    setupHint: "The board above is set to a single 25-minute focus block, and you can change it right there. For the full auto-cycling rhythm instead, use the panel below the board.",
+    extra: GROUP_STUDY_EXTRA,
     faq: [
       { q: "Is this good for a \"study with me\" livestream?", a: "Yes — set your focus-block length, share the link in chat or your stream description, and viewers studying along with you see the identical countdown to the second." },
       { q: "Can my study group use this even if we're not all together?", a: "Yes — everyone opens the same link from wherever they are, and each device counts down to the same shared moment regardless of location." },
-      { q: "Does it support a work/break cycle automatically?", a: "Yes. For a repeating cycle — the same focus length and break length, round after round — use the interval timer at countlink.app/timers/interval-timer: set work, rest and the number of rounds, and it alternates on its own, in sync on every screen. For an irregular sequence (a long block, a short break, a different block), use the agenda timer at countlink.app/timers/agenda-timer, which runs any ordered list of segments from one link." },
+      { q: "Does it support a work/break cycle automatically?", a: "It's optional — the board above the auto-cycling panel is a plain single block if that's all you want. Turn the panel on and it alternates focus and break on its own, round after round, with a longer break every fourth by default, all in sync on every screen from one link." },
     ] },
   { slug: "game-night-timer", minutes: 3, label: "Time's up", eyebrow: "Game Night Timer",
     h1: "Game Night Timer — For Turns And Rounds",
