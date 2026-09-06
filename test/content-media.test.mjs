@@ -33,7 +33,7 @@ test("the sync mechanic is drawn, not only described", () => {
 // rather than as a paragraph or a bullet list.
 const TABLE_PAGES = [
   ["timers/interval-timer.html", /Work \/ rest \/ rounds for the common protocols/, "Tabata"],
-  ["timers/classroom-timer.html", /Countdown lengths that hold attention, by grade band/, "Elementary"],
+  ["timers/classroom-timer.html", /Countdown lengths that hold attention, by age/, "Older teens"],
   ["guides/the-pomodoro-technique.html", /One full pomodoro set, start to finish/, "Long break"],
   ["guides/put-a-timer-on-your-classroom-screen.html", /What actually works on each screen/, "Chromebook"],
 ];

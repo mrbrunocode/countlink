@@ -97,18 +97,18 @@ const EXAM_EXTRA = `
 
 const CLASSROOM_EXTRA = `
         <div class="obs-extra">
-          <h3>What to time, by grade band</h3>
-          <p>The right countdown length changes a lot between a first-grader and a senior — a timer that's motivating at one age reads as either patronizing or impossibly long at another.</p>
+          <h3>What to time, by age</h3>
+          <p>The right countdown length changes a lot by age — a timer that's motivating for a six-year-old reads as either patronizing or impossibly long for a seventeen-year-old.</p>
           <div class="data-table-wrap">
             <table class="data-table">
-              <caption>Countdown lengths that hold attention, by grade band</caption>
+              <caption>Countdown lengths that hold attention, by age</caption>
               <thead>
-                <tr><th scope="col">Band</th><th scope="col">Transition</th><th scope="col">Task or group work</th><th scope="col">Why that length</th></tr>
+                <tr><th scope="col">Age</th><th scope="col">Transition</th><th scope="col">Task or group work</th></tr>
               </thead>
               <tbody>
-                <tr><th scope="row">Elementary (K–5)</th><td class="num">60s</td><td class="num">2–5 min</td><td>Long countdowns lose younger students. Several short ones hold attention better than one twenty-minute block — a minute for "clean up your table" lands where ten would not.</td></tr>
-                <tr><th scope="row">Middle school (6–8)</th><td class="num">2–3 min</td><td class="num">10–15 min</td><td>Long enough to get into a worksheet, short enough that the end stays in sight. Keep the board visible throughout so students self-pace instead of asking how much longer every few minutes.</td></tr>
-                <tr><th scope="row">High school (9–12)</th><td class="num">3–5 min</td><td class="num">20–50 min</td><td>Sustained work or a full quiz. Use the Light board style (below) — it reads from the back of a large room, and a projected countdown removes the need to interrupt the class with a verbal time check.</td></tr>
+                <tr><th scope="row">Younger (roughly 5–10)</th><td class="num">60s</td><td class="num">2–5 min</td></tr>
+                <tr><th scope="row">Early teens (roughly 11–13)</th><td class="num">2–3 min</td><td class="num">10–15 min</td></tr>
+                <tr><th scope="row">Older teens (roughly 14–18)</th><td class="num">3–5 min</td><td class="num">20–50 min</td></tr>
               </tbody>
             </table>
           </div>
