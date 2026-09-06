@@ -107,7 +107,7 @@ roundup queries actually use.
 
 ## 2e. Status — what shipped, 2026-09-06
 
-Items 1, 2, 3, 5 and 8 below are **done and live**, verified in production
+Items 1, 2, 3, 5, 6 and 8 below are **done and live**, verified in production
 (see the commits "Name what CountLink does" and "Show the thing the words only
 claimed"). Concretely: `/features` with 32 named capabilities and matching
 JSON-LD; a `## Features` block at the top of `llms.txt`; `/timers/meeting-timer`
@@ -130,7 +130,14 @@ Two changes to the plan as written, both made after reading the repo:
   `test/faq-claims.test.mjs` now fails on any page that denies live control
   without naming phone control.
 
-**Still open: items 4, 6 and 7** — testimonials (collected, never written),
+**Item 6 (the `/vs/` pages) shipped 2026-09-06 too** — four head-to-head pages
+against ShareMyTimer, Stagetimer, CountdownShare and TimerLink, every figure
+re-verified against the vendor's own pricing page that day (several had moved
+since July: ShareMyTimer's Single Event tier is now 100 timers, not 15). Rules
+and enforcement in `scripts/comparisons.mjs` and `test/comparisons.test.mjs`.
+All 40 URLs resubmitted via IndexNow, 200 Accepted.
+
+**Still open: items 4 and 7** — testimonials (collected, never written),
 `/vs/` pages, and directory placements. These are the ones that need something
 no on-site change can manufacture: third-party corroboration, against a
 1-referring-domain profile.

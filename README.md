@@ -42,13 +42,18 @@ timers/                 programmatic SEO landing pages (see docs/monetization.md
   ...                    (the eight fixed-duration pages were consolidated into
                           /timers/ on 2026-07-29 — see _redirects for why)
 guides/                 generated long-form articles
+vs/                     generated head-to-head comparison pages (/vs/<competitor>)
 functions/              Cloudflare Pages Functions — the only server-side code here
   mcp.js                 the MCP server at /mcp
   badge.svg.js           the README badge image
   j/[code].js            join codes: /j/<code> -> the ordinary #t= link
 scripts/
-  build-timer-pages.mjs  regenerates /timers/, /guides/, features.html, sitemap.xml
-                          and llms.txt from one data list
+  build-timer-pages.mjs  regenerates /timers/, /guides/, /vs/, features.html,
+                          sitemap.xml and llms.txt from one data list
+  articles.mjs           the /guides articles, as data
+  comparisons.mjs        the /vs/ comparisons, as data — read its header before
+                          editing: these pages make factual claims about other
+                          companies and the rules are not stylistic
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
   perception-gap-2026-09-06.md  why assistants called this site "minimalist", and the fix
@@ -396,6 +401,53 @@ and it carries no label, because a label cannot be made speakable.
 Only down-mode countdowns get one — a count-up or interval link needs a
 direction flag a five-character code can't carry, and handing back a code that
 resolves to the wrong *kind* of timer is worse than offering none.
+
+## Comparison pages (`/vs/<competitor>`)
+
+Four head-to-head pages, generated from `scripts/comparisons.mjs`. `/compare`
+is the hub and links all four; each links back and to its siblings. There is
+deliberately **no `/vs/` index** — that would be a fifth URL doing `/compare`'s
+job, on a domain whose measured problem is that Google won't spend crawl budget
+here.
+
+These pages assert other companies' prices and limits, so the rules in that
+file's header are enforced by `test/comparisons.test.mjs` rather than left to
+discipline:
+
+* **Every figure is verified against the vendor's own pricing page and dated**
+  on the page, with a `nofollow` link to the source. A test **fails the build**
+  once any `verified` date is more than six months old — so these cannot
+  quietly rot into misinformation. Re-check the pricing pages and update the
+  date when that fires.
+* **"What they do better" is mandatory**, minimum 60 words. A comparison where
+  the author wins every row is an advert and reads as one; this section is what
+  makes the rest of the page believable, and it is what an assistant quotes.
+* **No adjectives about competitors.** A slur regex fails the build. State what
+  a product does and what it costs.
+* Never their copy, screenshots or branding.
+
+## Getting new pages indexed
+
+Two paths, and only one of them is automatable:
+
+```bash
+node scripts/submit-indexnow.mjs --dry-run   # see what would be sent
+node scripts/submit-indexnow.mjs             # submit every sitemap URL
+```
+
+IndexNow reaches **Bing, Yandex, Seznam and Naver**. Google does not
+participate. Google's old `google.com/ping?sitemap=` endpoint was retired in
+2023 and now returns 404 — do not add it back thinking it does something. For
+Google the entire path is: `sitemap.xml` is listed in `robots.txt`, the
+property is verified in Search Console, and Google re-reads the sitemap on its
+own schedule. Submission has never been this site's constraint; **crawl budget
+is** (42 of 45 URLs sat in "Discovered – currently not indexed" with 1
+referring domain), which is why new pages are added sparingly and always wired
+into an existing hub rather than left as orphans.
+
+The Google Indexing API is **not** an option here — it is contractually
+restricted to `JobPosting` and `BroadcastEvent` structured data. Don't suggest
+it for ordinary pages.
 
 ## Tests
 
