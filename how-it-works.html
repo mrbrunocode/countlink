@@ -15,9 +15,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="assets/style.css?v=55ecef58" as="style">
-<link rel="stylesheet" href="assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/style.css?v=55ecef58"></noscript>
+<link rel="preload" href="assets/style.css?v=15aebd97" as="style">
+<link rel="stylesheet" href="assets/style.css?v=15aebd97" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=15aebd97"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -55,8 +55,8 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     },
     {
       "@type": "Question",
-      "name": "Why can't the timer be paused or extended for everyone at once?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Because there's no live connection between devices, there's no channel to push a pause command through. Each device is independently doing local math against the timestamp in its own copy of the link — there's no shared, ongoing session to interrupt. The practical fix if plans change is starting a fresh countdown and sharing the new link." }
+      "name": "Can the timer be paused or extended for everyone at once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, if you turn on phone control before you start. That opens an optional live channel and gives you a second link that pauses, adds or removes a minute, and stops the countdown on every screen that has it open — free, with no cap on how many screens. Without it there is no live connection between devices: each one is independently doing local math against the timestamp in its own copy of the link, so Stop and Restart affect only your own screen, and the fix if plans change is starting a fresh countdown and sharing the new link." }
     }
   ]
 }
@@ -67,6 +67,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 <header class="chassis">
   <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
   <nav class="chassis-nav" aria-label="Site">
+    <a href="/features">Features</a>
     <a href="/guides/">Guides</a>
     <a href="/how-it-works" aria-current="page">How it works</a>
     <a href="/compare">Compare</a>
@@ -79,7 +80,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 <!-- INDEX_START — auto-synced from scripts/build-timer-pages.mjs, do not hand-edit -->
 <nav class="rig-index" aria-label="All timers">
   <div class="idx-in">
-    <p class="idx-title"><a href="/">18 timers</a></p>
+    <p class="idx-title"><a href="/">19 timers</a></p>
     <section class="idx-group">
       <p class="idx-head" id="idx-durations">Durations</p>
       <ul class="idx-list" aria-labelledby="idx-durations">
@@ -97,6 +98,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <section class="idx-group">
       <p class="idx-head" id="idx-meetings">Meetings</p>
       <ul class="idx-list" aria-labelledby="idx-meetings">
+        <li><a href="/timers/meeting-timer">Meeting Timer</a></li>
         <li><a href="/timers/webinar-countdown">Webinar Countdown</a></li>
         <li><a href="/timers/standup-timer">Standup Timer</a></li>
         <li><a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a></li>
@@ -215,7 +217,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <p style="margin-bottom:16px"><b>No account.</b> The countdown lives entirely in the link, so there's no user record to attach it to.</p>
     <p style="margin-bottom:16px"><b>No viewer limit.</b> Serving the same static page to one more viewer costs nothing, since nobody's holding a connection open per viewer.</p>
     <p style="margin-bottom:16px"><b>Sync accuracy tracks device-clock accuracy.</b> Each device does its own math against its own clock, so the countdown is only as precise as that clock — typically within a second on a modern phone or computer.</p>
-    <p style="margin-bottom:16px"><b>The trade-off: nothing can be pushed mid-countdown.</b> With no ongoing connection between devices, there's no channel to broadcast a live pause to everyone who already has the link open — the fix is starting a new countdown and sharing it. Anyone who specifically needs live control pushed to an audience should see <a href="/compare" style="text-decoration:underline">how CountLink compares to real-time tools</a>.</p>
+    <p style="margin-bottom:16px"><b>The trade-off, and the opt-out.</b> On its own, a link carries one fixed instant and nothing can be pushed to it mid-countdown — with no ongoing connection between devices, there is no channel to broadcast a pause through, and the fix is starting a new countdown and sharing it. That is the default, and it is what keeps viewers free and unlimited. If you do need live control, tick <b>phone control</b> before you start: it opens that channel deliberately, for that one countdown, and gives you a second link that pauses, adjusts and stops it on every screen at once — still free, still with no cap on how many screens are watching. See <a href="/features" style="text-decoration:underline">everything CountLink does</a>, or <a href="/compare" style="text-decoration:underline">how it compares to real-time tools</a>.</p>
   </section>
 </main>
 </div>

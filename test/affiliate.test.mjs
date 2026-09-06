@@ -46,6 +46,7 @@ test("exactly the intended productivity-context pages are tagged affiliate:true"
     "exam-timer",
     "google-meet-timer",
     "group-study-timer",
+    "meeting-timer",
     "pomodoro-timer",
     "standup-timer",
     "webinar-countdown",

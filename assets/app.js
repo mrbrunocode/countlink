@@ -94,6 +94,8 @@ if (typeof module !== "undefined" && module.exports) {
     parsePastedDuration: parsePastedDuration, maxSettable: maxSettable,
     // the URL contract: #t= (running) vs #for= (setup) — see that block below
     parseSetupHash: parseSetupHash, labelFromHash: labelFromHash,
+    // join codes (/j/<code>) — see the block after parseSetupHash
+    encodeJoinCode: encodeJoinCode, decodeJoinCode: decodeJoinCode,
     // standalone offline export + "how this works" panel (see the blocks
     // right after parsePastedDuration above)
     buildStandaloneTimerHtml: buildStandaloneTimerHtml, standaloneFilename: standaloneFilename,
@@ -450,6 +452,13 @@ function setState(s){
   // splits to take. Kept alongside the other show() calls so the visibility
   // rules for every stage button live in one place.
   show("lapBtn",direction==="up"&&s==="running");
+  /* The join code is derived from `end` and the live state, so it is
+     re-rendered here alongside every other stage-button rule rather than at
+     the couple of call sites that happen to mint a link — that is how the
+     .ics and poster buttons above drifted out of sync with `direction` once
+     already. renderJoinCode() is declared further down but hoisted, like
+     everything else in this file. */
+  renderJoinCode();
   show("stopBtn",s!=="ready");
   show("syncDot",live);
   const dot=$("syncDot");if(dot)dot.classList.toggle("is-paused",s==="paused");
@@ -1519,6 +1528,101 @@ function parseSetupHash(hashStr){
   return {seconds:seconds,label:labelFromHash(s),autostart:m.get("go")==="1"};
 }
 
+/* ================= join codes (/j/<code>) =================
+   A short code someone can read out to a room, instead of a URL nobody can
+   copy off a projector. ShareMyTimer's join code is the one feature of theirs
+   this site genuinely lacked (see docs/perception-gap-2026-09-06.md), and it
+   is the only one worth having: "go to countlink.app slash j slash K3M7QX" is
+   sayable out loud; "#t=1788634982117" is not.
+
+   The point is that it needs NO lookup table, so it costs nothing and cannot
+   go down — the code IS the deadline, base-32 encoded, exactly like the hash
+   is. functions/j/[code].js decodes it at the edge and redirects to the
+   ordinary #t= link, so a join code is a second spelling of an existing link
+   rather than a second kind of link with its own lifecycle.
+
+   Three decisions worth keeping:
+
+   1. CROCKFORD BASE 32, not base 36. The alphabet omits I, L, O and U, so
+      there is no 1/I, 0/O ambiguity when the code is spoken across a room or
+      copied off a whiteboard — which is the entire use case. Decoding is
+      case-insensitive and folds the ambiguous letters back anyway (I/l → 1,
+      O → 0), so someone who hears "oh" and types the letter still lands on
+      the right timer. U is excluded from the alphabet by Crockford to avoid
+      accidental obscenities in generated codes; we keep that.
+   2. SECONDS, not milliseconds, counted from a fixed project epoch rather
+      than the Unix one. Millisecond precision would cost two extra characters
+      to encode a difference no room can perceive, and counting from 2026
+      keeps codes at five characters instead of nine. Everyone holding the
+      same code therefore agrees exactly; someone holding the #t= link for the
+      same countdown can be up to half a second off from them, which is inside
+      the device-clock error the site already documents.
+   3. THE LABEL IS NOT ENCODED. It cannot be, without making the code
+      unspeakable. A join code carries the deadline and nothing else, so a
+      countdown opened by code shows the page's default label rather than the
+      typed one. Stated on /features rather than quietly dropped. */
+/* These three live INSIDE the functions rather than beside them, which looks
+   redundant and is not. The module.exports block near the top of this file
+   returns before any statement down here has run, so a `const` declared at
+   this depth is still in its temporal dead zone when a test calls one of
+   these functions — encodeJoinCode() threw ReferenceError on the first
+   attempt at exactly that. Anything the exported functions touch must either
+   be declared above that early return or be local to the function; local is
+   the better of the two here, because it keeps the codec readable as one
+   block instead of scattering its alphabet 1,400 lines away from it. */
+/* A function DECLARATION, not a `const` arrow: declarations are hoisted and
+   fully initialized, which is precisely why every other function in this file
+   is callable from the export block above. An arrow here reintroduced the
+   same ReferenceError it was written to fix. */
+function joinConsts(){ return {
+  ALPHABET:"0123456789ABCDEFGHJKMNPQRSTVWXYZ", // Crockford: no I, L, O, U
+  EPOCH_MS:Date.UTC(2026,0,1),                 // codes count seconds from here
+  /* 32^7 seconds past the epoch — ~1,090 years, and the width at which a code
+     stops being something anyone would read aloud. Anything beyond it is a
+     corrupt or hostile value, not a timer, and encode/decode both refuse it
+     rather than returning a plausible-looking wrong instant. */
+  MAX_CHARS:7,
+}; }
+
+/* Deadline (epoch ms) → code, or "" if it can't be expressed as one. Empty
+   rather than throwing because every caller is UI code deciding whether to
+   show the code at all, and a timer set for 1980 should hide the row, not
+   break the page. */
+function encodeJoinCode(endMs){
+  const K=joinConsts();
+  const n=Number(endMs);
+  if(!isFinite(n))return "";
+  const secs=Math.round((n-K.EPOCH_MS)/1000);
+  // Before the epoch there is nothing to encode; past the width limit the
+  // code stops being readable, which is the only reason it exists.
+  if(secs<0||secs>=Math.pow(32,K.MAX_CHARS))return "";
+  let s="",v=secs;
+  do{ s=K.ALPHABET[v%32]+s; v=Math.floor(v/32); }while(v>0);
+  return s;
+}
+
+/* Code → deadline (epoch ms), or null if it isn't one. Tolerant on the way in
+   — case, spaces, hyphens, and the three letters Crockford folds — because
+   the input here is a human retyping something they heard or read across a
+   room, and every one of those is a mishearing we can simply absorb. */
+function decodeJoinCode(code){
+  const K=joinConsts();
+  const raw=String(code==null?"":code)
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]/g,"")   // "K3M 7QX" and "K3M-7QX" are the same code
+    .replace(/[IL]/g,"1")   // heard "eye"/"ell", meant one
+    .replace(/O/g,"0");     // heard "oh", meant zero
+  if(!raw||raw.length>K.MAX_CHARS)return null;
+  let v=0;
+  for(const ch of raw){
+    const i=K.ALPHABET.indexOf(ch);
+    if(i<0)return null;     // U, or punctuation, or anything else: not a code
+    v=v*32+i;
+  }
+  return K.EPOCH_MS+v*1000;
+}
+
 /* ================= standalone offline export =================
    "Download this timer as one HTML file" — not a copy of this app, a
    separate, minimal, fully self-contained page. The wedge this whole family
@@ -2061,6 +2165,57 @@ if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
   $("qrWrap").style.display="block";label.textContent="Hide QR code";
 });
+/* ---- join codes: the spoken form of the share link (see encodeJoinCode) ----
+   Two halves, and they are for different people. renderJoinCode() shows the
+   code to whoever just started a countdown, so they have something they can
+   say to a room. The form below is for whoever heard it — a convenience only,
+   since the intended path is that they type countlink.app/j/CODE straight
+   into a browser, which is the whole reason the code exists.
+
+   Only DOWN-mode countdowns get a code. A count-up or interval link needs a
+   direction flag (&d=up, &d=iv&w=…) that a five-character code cannot carry,
+   and quietly handing back a code that resolves to the wrong KIND of timer
+   would be worse than not offering one — so the row stays hidden instead. */
+function renderJoinCode(){
+  const wrap=$("joinCodeWrap");
+  if(!wrap)return;
+  const code=(state==="running"||state==="paused")&&direction==="down"&&end!=null
+    ? encodeJoinCode(end) : "";
+  if(!code){wrap.style.display="none";return;}
+  $("joinCodeText").textContent=code;
+  wrap.style.display="";
+}
+
+if($("joinCopyBtn"))$("joinCopyBtn").addEventListener("click",()=>{
+  const code=$("joinCodeText").textContent;
+  if(!code)return;
+  const url=location.origin+"/j/"+code;
+  const btn=$("joinCopyBtn");
+  // Same shape as every other copy button here: navigator.clipboard can be
+  // unavailable (insecure context, permissions) and rejects rather than
+  // throwing, so the failure has to be caught or the button silently lies.
+  Promise.resolve().then(()=>navigator.clipboard.writeText(url))
+    .then(()=>{btn.textContent="Copied";setTimeout(()=>{btn.textContent="Copy join-code link";},1600);})
+    .catch(()=>{btn.textContent="Press ⌘C to copy";});
+});
+
+if($("joinEntry"))$("joinEntry").addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const raw=$("joinInput").value;
+  const end=decodeJoinCode(raw);
+  const hint=$("joinHint");
+  /* Validated here rather than by letting /j/ answer with a 404, so a typo
+     costs no navigation and the person keeps the code they already typed —
+     they are usually retyping something they heard, and the second attempt
+     is the one that works. */
+  if(end===null){
+    if(hint)hint.textContent="That isn't a join code — check the letters and try again.";
+    $("joinInput").focus();
+    return;
+  }
+  location.href="/j/"+String(raw).trim().toUpperCase().replace(/[\s-]/g,"");
+});
+
 /* Phone control (see realtime-config.js/realtime.js): the checkbox and the
    "Copy control link" row both stay hidden — not just unused — on any site
    that hasn't configured an Ably key, so there's nothing half-finished for

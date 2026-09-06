@@ -796,6 +796,30 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
    became a visible artefact the moment the panel went light. */
 .share-box:empty{display:none}
 
+/* ── join code (/j/<code>) ────────────────────────────────────────────────
+   The code is the one thing on this panel meant to be READ ALOUD, so it is
+   set at the largest size in the setup column and tracked wide — the same
+   reason a flight number is spaced on a departure board. The host prefix is
+   deliberately quieter than the code itself: whoever is saying it says the
+   whole URL once, then repeats only the five characters. */
+.join-code{border:1px solid var(--panel-line);padding:12px 14px;background:var(--panel)}
+.join-code-value{
+  margin:0 0 8px;font-family:var(--mono);font-size:1rem;color:var(--paper-text);
+  word-break:break-all;line-height:1.4;
+}
+.join-code-host{opacity:.6}
+.join-code-value b{font-size:1.5rem;letter-spacing:.14em;color:var(--amber);font-weight:700}
+
+/* The entry form is the mirror image and is deliberately understated: it is a
+   fallback for someone who heard a code, not a call to action. The intended
+   path is typing countlink.app/j/CODE straight into the address bar. */
+.join-entry-row{display:flex;gap:8px;align-items:stretch}
+.join-entry-row input{
+  flex:1 1 auto;min-width:0;font-family:var(--mono);font-size:1rem;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.join-entry-row .btn{flex:0 0 auto}
+
 .pro-link{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.03em;color:var(--amber);text-decoration:underline;text-underline-offset:3px;
   background:none;border:none;padding:8px 0;display:inline-block;min-height:44px;white-space:nowrap;
@@ -1124,3 +1148,49 @@ body.overlay-mode .tiles{gap:8px}
   .poster h2{font-size:1.8rem;margin:0 0 10px}
   .poster p{font-size:1.15rem;margin:4px 0}
 }
+
+/* ── feature inventory: /features and the homepage block ───────────────────
+   Both render from the same FEATURES array in build-timer-pages.mjs. The
+   visual job here is the opposite of the prose paragraph they replaced: make
+   the list SCANNABLE — a reader (or a summariser) should be able to count the
+   capabilities without reading a sentence. Hence a definition list with the
+   name set in the display face and the explanation demoted, rather than
+   equal-weight body copy where the names disappear. */
+.features{max-width:78ch;padding:0 var(--gut,16px) 48px}
+.feat-group{margin-top:34px}
+.feat-head{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--rule-fine);
+}
+.feat-list{margin:0}
+.feat{padding:12px 0;border-bottom:1px solid var(--rule-fine)}
+.feat:last-child{border-bottom:none}
+.feat dt{
+  font-family:var(--display);font-size:1.12rem;font-weight:700;letter-spacing:.01em;
+  color:var(--paper-text);margin:0 0 4px;
+}
+.feat dd{margin:0;font-size:.92rem;line-height:1.6;color:var(--paper-text);opacity:.82}
+.feat-nevers{margin:0;padding-left:1.1em;line-height:1.8;font-size:.92rem}
+.feat-cta{margin-top:20px;font-family:var(--mono);font-size:.8rem}
+
+/* The homepage block is the same data at a glance — three or five short
+   columns that name things, sitting below the tool rather than competing
+   with it. Auto-fit rather than a fixed column count so it collapses to one
+   column on a phone without a second breakpoint. */
+.home-features{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:20px 24px;margin-top:18px;max-width:75ch;
+}
+.hf-group h3{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--amber);margin:0 0 8px;
+}
+.hf-group ul{margin:0;padding:0;list-style:none;font-size:.88rem;line-height:1.55}
+.hf-group li{padding:2px 0}
+.hf-more{opacity:.55;font-family:var(--mono);font-size:.74rem}
+
+/* Hub-page link list (see /timers/meeting-timer): a short set of "which of
+   these are you actually doing" links, set apart from body copy so it reads
+   as navigation rather than prose. */
+.use-list{margin:0 0 18px;padding-left:1.1em;line-height:1.85}
+.use-list a{font-weight:600}

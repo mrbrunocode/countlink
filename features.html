@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
+<title>CountLink Features — Shared Timer, Join Codes, Overlays, Agendas | CountLink</title>
+<meta name="description" content="Every feature of CountLink's free shared timer: unlimited viewers, join codes, phone control, OBS overlays, website embeds, agendas, intervals, calendar export and an MCP server — with no account and no paid tier.">
+<link rel="canonical" href="https://countlink.app/features">
+<meta property="og:title" content="CountLink Features — Shared Timer, Join Codes, Overlays, Agendas">
+<meta property="og:description" content="Every feature of CountLink's free shared timer: unlimited viewers, join codes, phone control, OBS overlays, website embeds, agendas, intervals, calendar export and an MCP server — with no account and no paid tier.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://countlink.app/features">
+<meta property="og:image" content="https://countlink.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.app/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="assets/style.css?v=15aebd97" as="style">
+<link rel="stylesheet" href="assets/style.css?v=15aebd97" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=15aebd97"></noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["One link, unlimited viewers","Join code you can say out loud","QR code","Share sheet on mobile","Recent timers","Countdown to a duration","Countdown to a date and time","Count up — a shared stopwatch","Laps","Agenda timer","Interval timer","Several timers on one screen","Sound alerts, free","Wrap-up warning","Event labels","Phone control","Flash a message to every screen","The board is the input","Sealed once running","Three board styles","Fullscreen","Printable poster","Installable app","Offline copy","Stream overlay for OBS","Website embed","README badge","Add to calendar (.ics)","Zoom, Google Meet, Teams","MCP server for AI assistants","Setup links anyone can write","Link inspector"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"CountLink features","itemListElement":[{"@type":"ListItem","position":1,"name":"One link, unlimited viewers"},{"@type":"ListItem","position":2,"name":"Join code you can say out loud"},{"@type":"ListItem","position":3,"name":"QR code"},{"@type":"ListItem","position":4,"name":"Share sheet on mobile"},{"@type":"ListItem","position":5,"name":"Recent timers"},{"@type":"ListItem","position":6,"name":"Countdown to a duration"},{"@type":"ListItem","position":7,"name":"Countdown to a date and time"},{"@type":"ListItem","position":8,"name":"Count up — a shared stopwatch"},{"@type":"ListItem","position":9,"name":"Laps"},{"@type":"ListItem","position":10,"name":"Agenda timer"},{"@type":"ListItem","position":11,"name":"Interval timer"},{"@type":"ListItem","position":12,"name":"Several timers on one screen"},{"@type":"ListItem","position":13,"name":"Sound alerts, free"},{"@type":"ListItem","position":14,"name":"Wrap-up warning"},{"@type":"ListItem","position":15,"name":"Event labels"},{"@type":"ListItem","position":16,"name":"Phone control"},{"@type":"ListItem","position":17,"name":"Flash a message to every screen"},{"@type":"ListItem","position":18,"name":"The board is the input"},{"@type":"ListItem","position":19,"name":"Sealed once running"},{"@type":"ListItem","position":20,"name":"Three board styles"},{"@type":"ListItem","position":21,"name":"Fullscreen"},{"@type":"ListItem","position":22,"name":"Printable poster"},{"@type":"ListItem","position":23,"name":"Installable app"},{"@type":"ListItem","position":24,"name":"Offline copy"},{"@type":"ListItem","position":25,"name":"Stream overlay for OBS"},{"@type":"ListItem","position":26,"name":"Website embed"},{"@type":"ListItem","position":27,"name":"README badge"},{"@type":"ListItem","position":28,"name":"Add to calendar (.ics)"},{"@type":"ListItem","position":29,"name":"Zoom, Google Meet, Teams"},{"@type":"ListItem","position":30,"name":"MCP server for AI assistants"},{"@type":"ListItem","position":31,"name":"Setup links anyone can write"},{"@type":"ListItem","position":32,"name":"Link inspector"}]}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+<script data-grow-initializer="">
+!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
+  <nav class="chassis-nav" aria-label="Site">
+    <a href="/features" aria-current="page">Features</a>
+    <a href="/guides/">Guides</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/compare">Compare</a>
+    <a href="/about">About</a>
+  </nav>
+  <p class="chassis-spec">No server · No account · Unlimited viewers</p>
+</header>
+<div class="rig">
+<nav class="rig-index" aria-label="All timers">
+  <div class="idx-in">
+    <p class="idx-title"><a href="/">19 timers</a></p>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-durations">Durations</p>
+      <ul class="idx-list" aria-labelledby="idx-durations">
+        <li><a href="/timers/">Timer Durations</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-classroom-exams">Classroom & exams</p>
+      <ul class="idx-list" aria-labelledby="idx-classroom-exams">
+        <li><a href="/timers/exam-timer">Exam Timer</a></li>
+        <li><a href="/timers/classroom-timer">Classroom Timer</a></li>
+        <li><a href="/timers/group-study-timer">Group Study Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-meetings">Meetings</p>
+      <ul class="idx-list" aria-labelledby="idx-meetings">
+        <li><a href="/timers/meeting-timer">Meeting Timer</a></li>
+        <li><a href="/timers/webinar-countdown">Webinar Countdown</a></li>
+        <li><a href="/timers/standup-timer">Standup Timer</a></li>
+        <li><a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a></li>
+        <li><a href="/timers/google-meet-timer">Google Meet Timer</a></li>
+        <li><a href="/timers/workshop-timer">Workshop Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-streaming">Streaming</p>
+      <ul class="idx-list" aria-labelledby="idx-streaming">
+        <li><a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-focus-intervals">Focus & intervals</p>
+      <ul class="idx-list" aria-labelledby="idx-focus-intervals">
+        <li><a href="/timers/pomodoro-timer">Pomodoro Timer</a></li>
+        <li><a href="/timers/interval-timer">Interval Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-multi-stage">Multi-stage</p>
+      <ul class="idx-list" aria-labelledby="idx-multi-stage">
+        <li><a href="/timers/multiple-timers-at-once">Multiple Timers</a></li>
+        <li><a href="/timers/agenda-timer">Agenda Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-play-events">Play & events</p>
+      <ul class="idx-list" aria-labelledby="idx-play-events">
+        <li><a href="/timers/game-night-timer">Game Night Timer</a></li>
+        <li><a href="/timers/auction-countdown">Auction Countdown</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-seasonal">Seasonal</p>
+      <ul class="idx-list" aria-labelledby="idx-seasonal">
+        <li><a href="/timers/new-year-countdown">New Year Countdown</a></li>
+        <li><a href="/timers/christmas-countdown">Christmas Countdown</a></li>
+      </ul>
+    </section>
+  </div>
+</nav>
+<main class="rig-main" id="main">
+
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Features</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">Everything CountLink does</h1>
+      <p class="lede">32 things, all of them free, none of them behind an account. The countdown is the same one-timestamp-in-a-link mechanic throughout — <a href="/how-it-works">here is how that works</a>.</p>
+    </div>
+  </section>
+  <div class="features">
+      <section class="feat-group">
+        <h3 class="feat-head">Sharing</h3>
+        <dl class="feat-list">
+          <div class="feat"><dt>One link, unlimited viewers</dt><dd>Copy the link and send it to as many people as you like. There is no device cap, no seat count and no paid tier, because nothing is held open per viewer.</dd></div>
+          <div class="feat"><dt>Join code you can say out loud</dt><dd>Every running countdown also gets a five-character code — countlink.app/j/K3M7Q — for reading to a room or writing on a whiteboard when nobody can copy a URL off a projector.</dd></div>
+          <div class="feat"><dt>QR code</dt><dd>Show a QR for the share link so a room can scan it off the screen instead of typing anything.</dd></div>
+          <div class="feat"><dt>Share sheet on mobile</dt><dd>On a phone the share button opens the native sheet, so the link goes straight into whatever messaging app is already open.</dd></div>
+          <div class="feat"><dt>Recent timers</dt><dd>The last few countdowns you started are kept in your own browser, so a link you closed by accident is one click back.</dd></div>
+        </dl>
+      </section>
+      <section class="feat-group">
+        <h3 class="feat-head">The timer itself</h3>
+        <dl class="feat-list">
+          <div class="feat"><dt>Countdown to a duration</dt><dd>Any length from a second to days, set on the board or typed like a microwave keypad — 700 is seven minutes, 9000 is an hour and a half.</dd></div>
+          <div class="feat"><dt>Countdown to a date and time</dt><dd>Point it at an exact instant instead of a length: a launch, a deadline, midnight on New Year's Eve.</dd></div>
+          <div class="feat"><dt>Count up — a shared stopwatch</dt><dd>The same one-timestamp mechanic read the other way, so a whole group's stopwatch starts from the same instant.</dd></div>
+          <div class="feat"><dt>Laps</dt><dd>Take splits on a count-up without stopping it.</dd></div>
+          <div class="feat"><dt>Agenda timer</dt><dd>An ordered list of named segments — intro, demo, break, Q&A — that advances itself on every screen that has the link open.</dd></div>
+          <div class="feat"><dt>Interval timer</dt><dd>Work/rest cycles with a round count: Tabata 20/10, boxing rounds, HIIT, or any split you set.</dd></div>
+          <div class="feat"><dt>Several timers on one screen</dt><dd>Named countdowns running side by side for cooking, stations, or parallel exam sections.</dd></div>
+          <div class="feat"><dt>Sound alerts, free</dt><dd>A choice of end-of-timer tones, on by default. Competitors charge for this; it is the single most common thing a timer needs to do.</dd></div>
+          <div class="feat"><dt>Wrap-up warning</dt><dd>A countdown visibly changes state as it runs low, so the room gets a warning before zero rather than a surprise at it.</dd></div>
+          <div class="feat"><dt>Event labels</dt><dd>Name the countdown — "Break ends", "Quiz round 2" — and the label travels with the link.</dd></div>
+        </dl>
+      </section>
+      <section class="feat-group">
+        <h3 class="feat-head">Control</h3>
+        <dl class="feat-list">
+          <div class="feat"><dt>Phone control</dt><dd>Turn it on before you start and you get a second link that pauses, adds or removes a minute, and stops the countdown live on every screen that has it open. Free, with no viewer cap on the screens it reaches.</dd></div>
+          <div class="feat"><dt>Flash a message to every screen</dt><dd>Send a short line of text from the controller — "five more minutes", "wrap up" — and it appears over the countdown everywhere.</dd></div>
+          <div class="feat"><dt>The board is the input</dt><dd>Roll the digits with a click, the arrow keys, the scroll wheel or a drag; or type the time; or paste 1h30m, 5:00 or 90s onto it.</dd></div>
+          <div class="feat"><dt>Sealed once running</dt><dd>The controls are removed from the page entirely the moment a countdown starts, so nobody opening a shared link can change what the room sees.</dd></div>
+        </dl>
+      </section>
+      <section class="feat-group">
+        <h3 class="feat-head">Display</h3>
+        <dl class="feat-list">
+          <div class="feat"><dt>Three board styles</dt><dd>Board (mechanical split-flap), Minimal (plain digits), and Light (dark digits on white, for a projector in a bright room).</dd></div>
+          <div class="feat"><dt>Fullscreen</dt><dd>One button to fill a projector, a smart TV or an interactive whiteboard.</dd></div>
+          <div class="feat"><dt>Printable poster</dt><dd>A print-ready sheet with the countdown's QR code and end time, for a door or a wall.</dd></div>
+          <div class="feat"><dt>Installable app</dt><dd>Add it to a home screen or dock from the browser's own install prompt. It opens fullscreen and the board keeps working offline.</dd></div>
+          <div class="feat"><dt>Offline copy</dt><dd>Download a running countdown as a single self-contained HTML file that keeps counting with no network at all, forever.</dd></div>
+        </dl>
+      </section>
+      <section class="feat-group">
+        <h3 class="feat-head">Embedding and integrations</h3>
+        <dl class="feat-list">
+          <div class="feat"><dt>Stream overlay for OBS</dt><dd>A transparent, chrome-free browser source with no watermark and no green screen — just the digits over your scene.</dd></div>
+          <div class="feat"><dt>Website embed</dt><dd>An iframe builder with size, style and responsive options, producing a countdown for a landing page that shows every visitor the same remaining time.</dd></div>
+          <div class="feat"><dt>README badge</dt><dd>A Markdown or HTML snippet for a GitHub README, a forum post, or anywhere only an image is allowed.</dd></div>
+          <div class="feat"><dt>Add to calendar (.ics)</dt><dd>Export a countdown's end time as a calendar event.</dd></div>
+          <div class="feat"><dt>Zoom, Google Meet, Teams</dt><dd>No extension and no screen share — paste the link into the call chat and everyone's own screen counts down together.</dd></div>
+          <div class="feat"><dt>MCP server for AI assistants</dt><dd>countlink.app/mcp lets an assistant mint a working timer, build a whole agenda from a meeting outline, produce an embed or a badge, and read back what any CountLink link means. No other shared-timer tool has one.</dd></div>
+          <div class="feat"><dt>Setup links anyone can write</dt><dd>countlink.app/#for=25m opens the board ready at that duration — writable by hand, in advance, from a lesson plan, a bookmark or a calendar invite.</dd></div>
+          <div class="feat"><dt>Link inspector</dt><dd>Ask any CountLink link what it is: running or ready, its label, and how long is left.</dd></div>
+        </dl>
+      </section>
+      <section class="feat-group">
+        <h3 class="feat-head">And what it never does</h3>
+        <ul class="feat-nevers">
+          <li>No account, ever — there is nothing to sign up for and nothing to log into.</li>
+          <li>No viewer limit and no timer limit, on any page, at any time.</li>
+          <li>No paid tier, so no feature on this site is being withheld from you.</li>
+          <li>No watermark on the stream overlay or the website embed.</li>
+          <li>No analytics, ads or third-party scripts inside an embed you put on your own site.</li>
+        </ul>
+        <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/compare">Compare with ShareMyTimer and Stagetimer</a></p>
+      </section>
+  </div>
+</main>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="/timers/">Timer Durations</a>
+          <a href="/timers/exam-timer">Exam Timer</a>
+          <a href="/timers/classroom-timer">Classroom Timer</a>
+          <a href="/timers/webinar-countdown">Webinar Countdown</a>
+          <a href="/timers/meeting-timer">Meeting Timer</a>
+          <a href="/timers/standup-timer">Standup Timer</a>
+          <a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a>
+          <a href="/timers/google-meet-timer">Google Meet Timer</a>
+          <a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a>
+          <a href="/timers/workshop-timer">Workshop Timer</a>
+          <a href="/timers/group-study-timer">Group Study Timer</a>
+          <a href="/timers/game-night-timer">Game Night Timer</a>
+          <a href="/timers/auction-countdown">Auction Countdown</a>
+          <a href="/timers/pomodoro-timer">Pomodoro Timer</a>
+          <a href="/timers/interval-timer">Interval Timer</a>
+          <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
+          <a href="/timers/new-year-countdown">New Year Countdown</a>
+          <a href="/timers/christmas-countdown">Christmas Countdown</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
+      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

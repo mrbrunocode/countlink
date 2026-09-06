@@ -320,6 +320,7 @@ export const GROUPS = [
   ["Durations", ["index"]],
   ["Classroom & exams", ["exam-timer", "classroom-timer", "group-study-timer"]],
   ["Meetings", [
+    "meeting-timer",
     "webinar-countdown", "standup-timer", "zoom-meeting-timer",
     "google-meet-timer", "workshop-timer",
   ]],
@@ -483,6 +484,57 @@ export const PAGES = [
       { q: "Does this handle attendees in different timezones correctly?", a: "Yes — the link encodes one exact instant, not a wall-clock time, so every attendee's device converts it to their own local time automatically and everyone counts down to the same real moment." },
       { q: "Can I put this in an email before the webinar starts?", a: "Yes — that's a common use: paste the link into your registration confirmation or reminder email so attendees can see exactly how long until you go live." },
       { q: "What should attendees see after the countdown ends?", a: "The board shows the countdown has reached zero; from there, switch attendees to your actual webinar link/room, since this page is the countdown itself, not the meeting." },
+    ] },
+  /* The head of the Meetings cluster, added 2026-09-06.
+   *
+   * Why one page and not seven: the roundup SERPs that AI assistants draw
+   * from ("best shared timer for meetings") are occupied by competitors whose
+   * matching URL is literally /use-cases/meeting-timer — stagetimer,
+   * countdownshare, timerlink, remotetimer — and CountLink had zoom/meet/
+   * standup/workshop pages but nothing at the generic head those queries use.
+   * The obvious response was a batch of new use-case pages, and it was the
+   * wrong one: 42 of 45 URLs here sit in "Discovered – currently not indexed"
+   * with 1 referring domain, which is exactly why eight duration pages were
+   * culled on 2026-07-29. So this is a HUB, not a doorway — it links the four
+   * pages that already cover the specific cases rather than competing with
+   * them, which is the page shape (/timers/, /guides/) that does get indexed
+   * on this domain. Do not use it as precedent for adding six more.
+   */
+  { slug: "meeting-timer", minutes: 30, label: "Meeting over", eyebrow: "Meeting Timer", affiliate: true,
+    h1: "Meeting Timer — One Countdown Everyone In The Room Can See",
+    meta: "A free shared meeting timer. Set the length, send one link, and every attendee — in the room and remote — sees the identical countdown. No account, no viewer limit, no screen share.",
+    intro: "Meetings overrun because time is invisible to everyone except whoever is watching the clock. Set the length here, share the one link, and the countdown is on every attendee's own screen at once — remote and in-room, to the same second, without anyone screen-sharing or installing anything.",
+    setupHint: "Thirty minutes is loaded on the board. Roll or type a different length, or count down to the hard stop you actually have.",
+    extra: `
+    <h2>Pick the meeting you're actually running</h2>
+    <p>The board above works for any of these — these pages just start at the
+    right length and answer the questions specific to each:</p>
+    <ul class="use-list">
+      <li><a href="/timers/standup-timer">Standup timer</a> — the daily one, for keeping it to ten minutes.</li>
+      <li><a href="/timers/zoom-meeting-timer">Zoom meeting timer</a> — paste into the call chat; no screen share needed.</li>
+      <li><a href="/timers/google-meet-timer">Google Meet timer</a> — same, without an extension.</li>
+      <li><a href="/timers/workshop-timer">Workshop timer</a> — longer sessions and breakout groups that need to finish together.</li>
+      <li><a href="/timers/agenda-timer">Agenda timer</a> — several named segments in order, advancing themselves on every screen.</li>
+      <li><a href="/timers/webinar-countdown">Webinar countdown</a> — the wait before it starts, not the meeting itself.</li>
+    </ul>
+    <h2>Timeboxing the whole agenda, not just the meeting</h2>
+    <p>A single countdown keeps a meeting inside its slot; it does not stop
+    the first item eating the third item's time. For that, build the agenda as
+    named segments — intro, demo, decision, AOB — and let it advance itself on
+    every screen. There is a longer piece on doing this well in
+    <a href="/guides/timeboxing-meetings">the guide to meetings that end on time</a>.</p>
+    <h2>If the meeting changes shape mid-way</h2>
+    <p>Tick <b>phone control</b> before you start and you get a second link
+    that pauses the countdown, adds or removes a minute, and stops it — live,
+    on every screen that has it open — from your phone, without touching the
+    shared screen. And if nobody can copy a link off the room display, read
+    out the join code instead: every running countdown gets a five-character
+    one.</p>`,
+    faq: [
+      { q: "Does everyone need an account or an app?", a: "No. It's a web page — anyone with the link opens it in whatever browser they already have. There's no signup, no extension and no install, for you or for them." },
+      { q: "How many people can watch the same meeting timer?", a: "As many as you like. Nothing is held open per viewer, so a two-person one-to-one and a 400-person all-hands cost the same to serve — which is why there's no device cap here and no paid tier to lift one." },
+      { q: "Can I use it for a hybrid meeting?", a: "That's the case it's best at. The countdown is a fixed instant rather than a stream from a server, so the room's projector and a remote attendee's laptop are doing the same subtraction and agree to the second — no screen share, and nothing to fall behind." },
+      { q: "Can I keep a meeting timer running across several agenda items?", a: "Use the agenda timer for that: give each item a name and a length and it moves through them itself, on every screen at once, rather than needing someone to restart a countdown between items." },
     ] },
   { slug: "standup-timer", minutes: 10, label: "Standup over", eyebrow: "Standup Timer", affiliate: true,
     h1: "Standup Timer — Keep Daily Standups Short",
@@ -961,6 +1013,11 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="btn primary" id="startBtn">Start countdown</button>
       </div>
       <div class="share-box" id="shareUrl"></div>
+      <div class="join-code" id="joinCodeWrap" style="display:none;margin-top:10px">
+        <p class="hint" style="margin:0 0 4px">Or read this out instead of the link:</p>
+        <p class="join-code-value"><span class="join-code-host">countlink.app/j/</span><b id="joinCodeText"></b></p>
+        <button class="pro-link" id="joinCopyBtn">Copy join-code link</button>
+      </div>
       <button class="btn icon-btn" id="qrBtn" style="margin-top:10px">${QR_ICON}<span id="qrBtnLabel">Show QR code</span></button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
@@ -996,6 +1053,14 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="pro-link" id="embedCopyBtn" style="margin-top:6px">Copy embed code</button>
         <div class="hint" style="margin-top:6px">A transparent, chrome-free version of this same synced countdown — the same widget streamers use as an OBS overlay works as a plain &lt;iframe&gt; on any page. It loads no ads, no analytics and no third-party scripts onto your site.</div>
       </div>
+      <form class="join-entry" id="joinEntry" style="margin-top:16px">
+        <label class="lbl" for="joinInput">Been given a join code?</label>
+        <div class="join-entry-row">
+          <input id="joinInput" name="code" inputmode="latin" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="9" placeholder="K3M7Q" aria-describedby="joinHint">
+          <button class="btn" type="submit">Join</button>
+        </div>
+        <p class="hint" id="joinHint">Opens the same countdown the code was made for.</p>
+      </form>
     </div>
   </section>
 
@@ -1074,9 +1139,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=55ecef58" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=55ecef58"></noscript>
+<link rel="preload" href="../assets/style.css?v=15aebd97" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=15aebd97" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=15aebd97"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1166,7 +1231,7 @@ ${instrumentIndex(p.slug)}
 </div>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=81501581" defer></script>
+<script src="../assets/app.js?v=712a7231" defer></script>
 </body>
 </html>
 `; };
@@ -1188,7 +1253,7 @@ const fmtDate = (iso) =>
    It deliberately does NOT drop the overlay guard, which lives at the top of
    <head> for every page. That guard is a redirect, not ad code, and an
    ?overlay=1 request that lands on a 404 should still end up at /embed/. */
-const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks, noAds = false }) => `<!DOCTYPE html>
+const guideShell = ({ rel, title, description, canonicalPath, headJsonLd = "", main, footLinks, noAds = false, navPath = "/guides/" }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1240,9 +1305,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=55ecef58" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=55ecef58" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=55ecef58"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=15aebd97" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=15aebd97" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=15aebd97"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1252,7 +1317,7 @@ ${growScript()}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-${chassis("/guides/")}
+${chassis(navPath)}
 <div class="rig">
 ${instrumentIndex(null)}
 <main class="rig-main" id="main">
@@ -1426,6 +1491,178 @@ const guidesIndexPage = () => {
   return guideShell({ rel: "../", title: "Timing & Productivity Guides", description: "Practical guides on running meetings, exams, classes, workshops, standups and workouts to time — timeboxing, the Pomodoro technique, interval training and more.", canonicalPath: "/guides/", headJsonLd: jsonLd, main });
 };
 
+/* ================= the feature inventory =================
+ * ONE list, rendered into three places: /features, the block on the homepage
+ * that replaced "Beyond the link", and llms.txt's "## Features" section.
+ *
+ * WHY IT EXISTS AT ALL (docs/perception-gap-2026-09-06.md):
+ * CountLink was being described by AI assistants — its single largest real
+ * traffic channel — as "minimalist", while ShareMyTimer, which has four
+ * indexable URLs and fewer features, was described richly and praised. The
+ * cause was not capability. It was that this site had no enumerated feature
+ * list anywhere: the homepage led with three ABSENCES ("no viewer limit, no
+ * account, no paid tier"), and everything it could actually do was buried in
+ * one prose paragraph headed "Beyond the link" whose first sentence called
+ * those features "a few things that don't get much billing up top". A
+ * summariser can only enumerate what a page enumerates. They wrote a list; we
+ * wrote an essay, and got summarised accordingly.
+ *
+ * So the rule for editing this: every entry is a NAMED capability with a verb.
+ * "Phone control", not "the trade-off we made about servers". Keep the
+ * reasoning — it is good, and it is why anyone trusts this site — on /about
+ * and /how-it-works, where it belongs.
+ *
+ * Generated rather than hand-written in three files because this repo has hit
+ * the hand-maintained-list-goes-stale bug four times now (the README domain
+ * table, the footer links, llms.txt, and /embed/ being one build behind). A
+ * feature list is the single most likely thing to drift, because it changes
+ * every time anything ships.
+ */
+export const FEATURES = [
+  ["Sharing", [
+    ["One link, unlimited viewers", "Copy the link and send it to as many people as you like. There is no device cap, no seat count and no paid tier, because nothing is held open per viewer."],
+    ["Join code you can say out loud", "Every running countdown also gets a five-character code — countlink.app/j/K3M7Q — for reading to a room or writing on a whiteboard when nobody can copy a URL off a projector."],
+    ["QR code", "Show a QR for the share link so a room can scan it off the screen instead of typing anything."],
+    ["Share sheet on mobile", "On a phone the share button opens the native sheet, so the link goes straight into whatever messaging app is already open."],
+    ["Recent timers", "The last few countdowns you started are kept in your own browser, so a link you closed by accident is one click back."],
+  ]],
+  ["The timer itself", [
+    ["Countdown to a duration", "Any length from a second to days, set on the board or typed like a microwave keypad — 700 is seven minutes, 9000 is an hour and a half."],
+    ["Countdown to a date and time", "Point it at an exact instant instead of a length: a launch, a deadline, midnight on New Year's Eve."],
+    ["Count up — a shared stopwatch", "The same one-timestamp mechanic read the other way, so a whole group's stopwatch starts from the same instant."],
+    ["Laps", "Take splits on a count-up without stopping it."],
+    ["Agenda timer", "An ordered list of named segments — intro, demo, break, Q&A — that advances itself on every screen that has the link open."],
+    ["Interval timer", "Work/rest cycles with a round count: Tabata 20/10, boxing rounds, HIIT, or any split you set."],
+    ["Several timers on one screen", "Named countdowns running side by side for cooking, stations, or parallel exam sections."],
+    ["Sound alerts, free", "A choice of end-of-timer tones, on by default. Competitors charge for this; it is the single most common thing a timer needs to do."],
+    ["Wrap-up warning", "A countdown visibly changes state as it runs low, so the room gets a warning before zero rather than a surprise at it."],
+    ["Event labels", "Name the countdown — \"Break ends\", \"Quiz round 2\" — and the label travels with the link."],
+  ]],
+  ["Control", [
+    ["Phone control", "Turn it on before you start and you get a second link that pauses, adds or removes a minute, and stops the countdown live on every screen that has it open. Free, with no viewer cap on the screens it reaches."],
+    ["Flash a message to every screen", "Send a short line of text from the controller — \"five more minutes\", \"wrap up\" — and it appears over the countdown everywhere."],
+    ["The board is the input", "Roll the digits with a click, the arrow keys, the scroll wheel or a drag; or type the time; or paste 1h30m, 5:00 or 90s onto it."],
+    ["Sealed once running", "The controls are removed from the page entirely the moment a countdown starts, so nobody opening a shared link can change what the room sees."],
+  ]],
+  ["Display", [
+    ["Three board styles", "Board (mechanical split-flap), Minimal (plain digits), and Light (dark digits on white, for a projector in a bright room)."],
+    ["Fullscreen", "One button to fill a projector, a smart TV or an interactive whiteboard."],
+    ["Printable poster", "A print-ready sheet with the countdown's QR code and end time, for a door or a wall."],
+    ["Installable app", "Add it to a home screen or dock from the browser's own install prompt. It opens fullscreen and the board keeps working offline."],
+    ["Offline copy", "Download a running countdown as a single self-contained HTML file that keeps counting with no network at all, forever."],
+  ]],
+  ["Embedding and integrations", [
+    ["Stream overlay for OBS", "A transparent, chrome-free browser source with no watermark and no green screen — just the digits over your scene."],
+    ["Website embed", "An iframe builder with size, style and responsive options, producing a countdown for a landing page that shows every visitor the same remaining time."],
+    ["README badge", "A Markdown or HTML snippet for a GitHub README, a forum post, or anywhere only an image is allowed."],
+    ["Add to calendar (.ics)", "Export a countdown's end time as a calendar event."],
+    ["Zoom, Google Meet, Teams", "No extension and no screen share — paste the link into the call chat and everyone's own screen counts down together."],
+    ["MCP server for AI assistants", "countlink.app/mcp lets an assistant mint a working timer, build a whole agenda from a meeting outline, produce an embed or a badge, and read back what any CountLink link means. No other shared-timer tool has one."],
+    ["Setup links anyone can write", "countlink.app/#for=25m opens the board ready at that duration — writable by hand, in advance, from a lesson plan, a bookmark or a calendar invite."],
+    ["Link inspector", "Ask any CountLink link what it is: running or ready, its label, and how long is left."],
+  ]],
+];
+
+/* The absences still matter — they are the reason most of the above is free —
+ * but they belong AFTER the capabilities, not instead of them. */
+const FEATURE_NEVERS = [
+  "No account, ever — there is nothing to sign up for and nothing to log into.",
+  "No viewer limit and no timer limit, on any page, at any time.",
+  "No paid tier, so no feature on this site is being withheld from you.",
+  "No watermark on the stream overlay or the website embed.",
+  "No analytics, ads or third-party scripts inside an embed you put on your own site.",
+];
+
+const featureGrid = () => FEATURES.map(([heading, items]) => `
+      <section class="feat-group">
+        <h3 class="feat-head">${heading}</h3>
+        <dl class="feat-list">
+${items.map(([name, blurb]) => `          <div class="feat"><dt>${name}</dt><dd>${blurb}</dd></div>`).join("\n")}
+        </dl>
+      </section>`).join("");
+
+const featuresPage = () => {
+  /* ItemList rather than a bare WebApplication featureList: the same names
+     the page shows, in the same order, so an assistant reading the structured
+     data and an assistant reading the prose cannot come away with different
+     lists. featureList is emitted too, since that is the property most tools
+     actually look for on software. */
+  const flat = FEATURES.flatMap(([, items]) => items.map(([name]) => name));
+  const jsonLd = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: NAME,
+    url: `${SITE_URL}/`,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Any (web browser)",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    featureList: flat,
+  })}</script>
+<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${NAME} features`,
+    itemListElement: flat.map((name, i) => ({ "@type": "ListItem", position: i + 1, name })),
+  })}</script>`;
+  const main = `
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Features</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">Everything ${NAME} does</h1>
+      <p class="lede">${flat.length} things, all of them free, none of them behind an account. The countdown is the same one-timestamp-in-a-link mechanic throughout — <a href="/how-it-works">here is how that works</a>.</p>
+    </div>
+  </section>
+  <div class="features">${featureGrid()}
+      <section class="feat-group">
+        <h3 class="feat-head">And what it never does</h3>
+        <ul class="feat-nevers">
+${FEATURE_NEVERS.map((n) => `          <li>${n}</li>`).join("\n")}
+        </ul>
+        <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/compare">Compare with ShareMyTimer and Stagetimer</a></p>
+      </section>
+  </div>`;
+  return guideShell({
+    rel: "",
+    title: `${NAME} Features — Shared Timer, Join Codes, Overlays, Agendas`,
+    description: `Every feature of ${NAME}'s free shared timer: unlimited viewers, join codes, phone control, OBS overlays, website embeds, agendas, intervals, calendar export and an MCP server — with no account and no paid tier.`,
+    canonicalPath: "/features",
+    navPath: "/features",
+    headJsonLd: jsonLd,
+    main,
+  });
+};
+
+/* The homepage's feature block. Deliberately NOT the whole grid: the homepage
+ * is a tool first, and 30 rows above the footer would bury the board it exists
+ * to serve. What it must do is NAME things — the paragraph it replaced hid
+ * four real features inside prose that opened by calling them "a few things
+ * that don't get much billing up top", which is how a summariser came away
+ * with "minimalist". Two named features per group and a count is enough for a
+ * crawler, a summariser and a skimming human to all see there is a product
+ * here; /features carries the rest.
+ *
+ * Synced between markers into index.html on every build, same mechanism as the
+ * footer links — the hand-written version of this list is exactly what went
+ * stale before. */
+const HOME_FEATURES_START = "<!-- HOME_FEATURES_START — auto-synced from FEATURES by scripts/build-timer-pages.mjs, do not hand-edit -->";
+const HOME_FEATURES_END = "<!-- HOME_FEATURES_END -->";
+
+const homeFeatureBlock = () => {
+  const total = FEATURES.reduce((n, [, items]) => n + items.length, 0);
+  const cols = FEATURES.map(([heading, items]) => `
+        <div class="hf-group">
+          <h3>${heading}</h3>
+          <ul>
+${items.slice(0, 2).map(([name]) => `            <li>${name}</li>`).join("\n")}
+            <li class="hf-more">+ ${items.length - 2} more</li>
+          </ul>
+        </div>`).join("");
+  return `    <h2>What ${BRAND} does</h2>
+    <p class="seo-intro" style="max-width:75ch">${total} features, all free, none behind an account — <a href="/features">the full list is here</a>.</p>
+    <div class="home-features">${cols}
+    </div>`;
+};
+
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
 // Cloudflare Pages serves a root 404.html with a real 404 status for any
@@ -1462,6 +1699,7 @@ const BUILD_DATE = new Date().toISOString().split("T")[0];
 const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}${hrefFor(p.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
+  const featuresUrl = `  <url><loc>${SITE_URL}/features</loc><lastmod>${BUILD_DATE}</lastmod></url>`;
   const guideUrls = [`  <url><loc>${SITE_URL}/guides/</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
     .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
     .join("\n");
@@ -1469,6 +1707,7 @@ const sitemap = () => {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE_URL}/</loc><lastmod>${BUILD_DATE}</lastmod></url>
 ${staticUrls}
+${featuresUrl}
 ${guideUrls}
 ${urls}
 </urlset>
@@ -1551,7 +1790,18 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 
 Full submission/testing detail: \`docs/mcp-submission.md\`.
 
+## Features
+
+Every one of these is free, with no account and no paid tier. Full page: ${SITE_URL}/features
+
+${FEATURES.map(([heading, items]) => `**${heading}** — ` + items.map(([name]) => name).join("; ")).join("\n\n")}
+
+What ${BRAND} deliberately does not do:
+
+${FEATURE_NEVERS.map((n) => `- ${n}`).join("\n")}
+
 ## Primary pages
+- [Features](${SITE_URL}/features): every capability, named and grouped
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
 - [How It Works](${SITE_URL}/how-it-works): the link-timestamp sync mechanic explained in depth
 - [Comparison: ${BRAND} vs ShareMyTimer vs Stagetimer](${SITE_URL}/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
@@ -1581,6 +1831,7 @@ const INDEX_START = "<!-- INDEX_START — auto-synced from scripts/build-timer-p
 const INDEX_END = "<!-- INDEX_END -->";
 
 const CHASSIS_NAV = [
+  ["/features", "Features"],
   ["/guides/", "Guides"],
   ["/how-it-works", "How it works"],
   ["/compare", "Compare"],
@@ -1744,6 +1995,16 @@ async function syncChrome() {
   console.log(`Synced chassis + timer index into ${changed} hand-written page(s).`);
 }
 
+async function syncHomeFeatures() {
+  const indexPath = join(ROOT, "index.html");
+  const html = await readFile(indexPath, "utf-8");
+  const out = replaceBetween(html, HOME_FEATURES_START, HOME_FEATURES_END, homeFeatureBlock(), "index.html", "home features");
+  if (out !== html) {
+    await writeFile(indexPath, out, "utf-8");
+    console.log("Synced index.html feature block to match FEATURES.");
+  }
+}
+
 async function syncIndexFootLinks() {
   const indexPath = join(ROOT, "index.html");
   const html = await readFile(indexPath, "utf-8");
@@ -1790,6 +2051,10 @@ async function main() {
   }
   console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
 
+  const featuresPath = join(ROOT, "features.html");
+  await writeFile(featuresPath, featuresPage(), "utf-8");
+  console.log(`Wrote ${relative(ROOT, featuresPath)}`);
+
   const notFoundPath = join(ROOT, "404.html");
   await writeFile(notFoundPath, notFoundPage(), "utf-8");
   console.log(`Wrote ${relative(ROOT, notFoundPath)}`);
@@ -1810,6 +2075,7 @@ async function main() {
   console.log(`dateModified: ${d.total} pages tracked, ${d.changed.length} changed this build.`);
 
   await syncChrome();
+  await syncHomeFeatures();
   await syncIndexFootLinks();
 
   /*

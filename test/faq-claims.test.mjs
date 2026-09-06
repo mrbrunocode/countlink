@@ -37,3 +37,26 @@ test("no shipped page promises a feature as future", () => {
   }
   assert.deepEqual(offenders, [], "these pages describe something as not-yet-shipped:\n" + offenders.join("\n"));
 });
+
+/* The inverse failure, found 2026-09-06: not a promise about the future, but
+ * a DENIAL of something already shipped. /how-it-works said, in prose and
+ * again inside its FAQPage JSON-LD, that a pause could not be pushed to
+ * viewers — written truthfully in July, still there weeks after phone control
+ * shipped in August. Same surface, same audience, and strictly worse than the
+ * roadmap case: an assistant reading it told people CountLink lacked the one
+ * feature competitors are praised for, using CountLink's own words.
+ *
+ * The rule: any page allowed to discuss the no-live-connection trade-off must
+ * also name the opt-out on the same page. Deliberately not a ban on the
+ * phrasing — the trade-off is real, it is the reason viewers are free, and
+ * explaining it is good. It just may not be the last word. */
+test("no page denies live control without naming phone control", () => {
+  const DENIAL = /no channel to (push|broadcast)|nothing can be pushed|can'?t be paused for everyone/i;
+  const pages = [...htmlIn("."), ...htmlIn("timers"), ...htmlIn("guides")];
+  for (const rel of pages) {
+    const html = readFileSync(join(ROOT, rel), "utf8");
+    if (!DENIAL.test(html)) continue;
+    assert.match(html, /phone control/i,
+      `${rel} describes live control as impossible without mentioning phone control, which does it`);
+  }
+});
