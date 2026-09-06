@@ -13,7 +13,7 @@
 export const AUTHOR_NAME = "Bruno FK";
 export const AUTHOR_URL = "https://brunofk.dev";
 export const AUTHOR_BIO =
-  "Bruno FK is an Edinburgh-based software developer who builds small, fast, privacy-respecting web tools. He built CountLink after watching too many meetings, classes and calls run over because nobody in the room could see the same clock.";
+  "Bruno FK builds small, fast, privacy-respecting web tools, including CountLink.";
 
 export const ARTICLES = [
   {

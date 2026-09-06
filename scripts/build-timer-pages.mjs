@@ -1264,7 +1264,7 @@ ${instrumentIndex(p.slug)}
     <div class="foot-in">
       <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
       <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.<br>
-      Built and maintained by <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a>, an independent developer in Edinburgh.</div>
+      Built and maintained by <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a>.</div>
     </div>
   </div>
 </footer>
