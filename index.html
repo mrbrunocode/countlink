@@ -49,9 +49,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="assets/style.css?v=15aebd97" as="style">
-<link rel="stylesheet" href="assets/style.css?v=15aebd97" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/style.css?v=15aebd97"></noscript>
+<link rel="preload" href="assets/style.css?v=fb1b693a" as="style">
+<link rel="stylesheet" href="assets/style.css?v=fb1b693a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=fb1b693a"></noscript>
 
 <script type="application/ld+json">
 {
@@ -248,10 +248,106 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <h1>A shared timer with nothing to run out of.</h1>
       <p class="lede">Copy the link, send it to <b>as many people as you like</b> — everyone counts down to the same instant. No viewer limit, no account, no paid tier, because there's no server to pay for.</p>
       <p class="use-line">For classrooms, exams, webinars, workshops, standups, game nights and auctions.</p>
+      <ul class="hero-checks">
+        <li>No signup</li>
+        <li>Works on any device</li>
+        <li>Share by link, QR or join code</li>
+      </ul>
     </div>
-    <div class="hero-fact">
-      <span class="n">00</span>servers to run this
-    </div>
+    <!-- The one thing the words alone could not do: SHOW the countdown on
+         three screens at once. Every competitor's hero carries a product shot
+         doing this; CountLink only ever asserted it in prose, which is a large
+         part of why it read as a smaller tool than it is (see
+         docs/perception-gap-2026-09-06.md). Drawn rather than screenshotted:
+         a screenshot of a split-flap board at this size is unreadable, and
+         line art in the same idiom as the /how-it-works figure says "one
+         link, three screens, same digits" in a single glance. -->
+    <figure class="hero-fig">
+      <svg viewBox="0 0 360 250" role="img" aria-labelledby="heroFigTitle heroFigDesc">
+        <title id="heroFigTitle">One link, three screens, the same countdown</title>
+        <desc id="heroFigDesc">A single CountLink share link branches to a room screen, a laptop and a phone. All three show the identical countdown, ten minutes, because the end time is written into the link rather than pushed from a server.</desc>
+
+        <!-- the link itself -->
+        <g class="hf-line">
+          <rect x="0.5" y="0.5" width="212" height="24"/>
+        </g>
+        <text class="hf-mono hf-dim" x="10" y="16">countlink.app/#t=…</text>
+        <text class="hf-mono hf-dim" x="222" y="16">one link</text>
+
+        <!-- spine: down from the link, then out to each screen -->
+        <g class="hf-line">
+          <path d="M20 25 V 196"/>
+          <path d="M20 74 H 46"/>
+          <path d="M20 135 H 46"/>
+          <path d="M20 196 H 46"/>
+        </g>
+        <g class="hf-fill">
+          <path d="M46 74 l-6 -3 v6 z"/>
+          <path d="M46 135 l-6 -3 v6 z"/>
+          <path d="M46 196 l-6 -3 v6 z"/>
+        </g>
+
+        <!-- room screen -->
+        <g class="hf-line">
+          <rect x="50.5" y="52.5" width="34" height="24"/>
+          <path d="M67 77 V 84"/><path d="M57 84 H 78"/>
+        </g>
+        <!-- laptop -->
+        <g class="hf-line">
+          <rect x="52.5" y="116.5" width="30" height="20"/>
+          <path d="M48 140 H 87"/><path d="M52 136 H 83"/>
+        </g>
+        <!-- phone -->
+        <g class="hf-line">
+          <rect x="59.5" y="176.5" width="16" height="28" rx="2"/>
+          <path d="M64 180 H 71"/>
+        </g>
+
+        <text class="hf-mono hf-dim" x="96" y="97">room screen</text>
+        <text class="hf-mono hf-dim" x="96" y="158">laptop</text>
+        <text class="hf-mono hf-dim" x="96" y="219">phone</text>
+
+        <!-- the same digits on all three, drawn as flap tiles: two panes with
+             the hairline split across the middle, which is the board's own
+             signature and what makes these read as CountLink and not as any
+             generic clock glyph -->
+        <g class="hf-tiles">
+          <g transform="translate(96 58)">
+            <rect x="0" y="0" width="20" height="26"/><path d="M0 13 H20"/>
+            <rect x="24" y="0" width="20" height="26"/><path d="M24 13 H44"/>
+            <rect x="55" y="0" width="20" height="26"/><path d="M55 13 H75"/>
+            <rect x="79" y="0" width="20" height="26"/><path d="M79 13 H99"/>
+            <circle cx="50" cy="8" r="1.6"/><circle cx="50" cy="18" r="1.6"/>
+            <text class="hf-digit" x="10" y="19">1</text><text class="hf-digit" x="34" y="19">0</text>
+            <text class="hf-digit" x="65" y="19">0</text><text class="hf-digit" x="89" y="19">0</text>
+          </g>
+          <g transform="translate(96 119)">
+            <rect x="0" y="0" width="20" height="26"/><path d="M0 13 H20"/>
+            <rect x="24" y="0" width="20" height="26"/><path d="M24 13 H44"/>
+            <rect x="55" y="0" width="20" height="26"/><path d="M55 13 H75"/>
+            <rect x="79" y="0" width="20" height="26"/><path d="M79 13 H99"/>
+            <circle cx="50" cy="8" r="1.6"/><circle cx="50" cy="18" r="1.6"/>
+            <text class="hf-digit" x="10" y="19">1</text><text class="hf-digit" x="34" y="19">0</text>
+            <text class="hf-digit" x="65" y="19">0</text><text class="hf-digit" x="89" y="19">0</text>
+          </g>
+          <g transform="translate(96 180)">
+            <rect x="0" y="0" width="20" height="26"/><path d="M0 13 H20"/>
+            <rect x="24" y="0" width="20" height="26"/><path d="M24 13 H44"/>
+            <rect x="55" y="0" width="20" height="26"/><path d="M55 13 H75"/>
+            <rect x="79" y="0" width="20" height="26"/><path d="M79 13 H99"/>
+            <circle cx="50" cy="8" r="1.6"/><circle cx="50" cy="18" r="1.6"/>
+            <text class="hf-digit" x="10" y="19">1</text><text class="hf-digit" x="34" y="19">0</text>
+            <text class="hf-digit" x="65" y="19">0</text><text class="hf-digit" x="89" y="19">0</text>
+          </g>
+        </g>
+
+        <!-- no server in the middle: the point of the whole drawing -->
+        <g class="hf-line hf-dash"><path d="M232 58 V 206"/></g>
+        <text class="hf-mono hf-dim" x="240" y="130">no server</text>
+        <text class="hf-mono hf-dim" x="240" y="142">in between</text>
+      </svg>
+      <figcaption>Every screen subtracts the same instant from its own clock.</figcaption>
+    </figure>
   </section>
 
   <!-- ============ BOARD ============ -->

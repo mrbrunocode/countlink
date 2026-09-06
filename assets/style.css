@@ -193,15 +193,63 @@ body.viewing .stage-section{padding-top:18px}
    The same list is a real, clickable nav in the footer; this is context only. */
 .use-line{display:none;margin-top:10px;font-size:.78rem;color:var(--paper-dim);opacity:.8;max-width:42ch;line-height:1.5}
 @media(min-width:640px){.use-line{display:block}}
-.hero-fact{display:none}
+/* Trust row. Deliberately typographic — a mono rule-and-dot list, not a row of
+   green ticks — because ticks are the single most template-looking element on
+   a SaaS landing page and this site's whole visual identity is instrument
+   panel, not marketing page. Same 640px gate as .use-line: below that the hero
+   collapses to a shallow title strip so the board stays inside the first
+   375x667 viewport, which is a deliberate, hard-won property (see the
+   mobile-first rebuild) and not something a trust row gets to undo. */
+.hero-checks{display:none}
+@media(min-width:640px){
+  .hero-checks{
+    display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;padding:0;list-style:none;
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--paper-dim);
+  }
+  .hero-checks li{display:flex;align-items:center;gap:7px}
+  .hero-checks li::before{
+    content:"";width:5px;height:5px;background:var(--amber);flex:0 0 auto;
+  }
+}
+
+/* The hero illustration replaces the old "00 servers to run this" stat in the
+   same grid slot. The stat said the right thing in the wrong register — a
+   number nobody had context for — where the drawing shows the actual claim:
+   one link, three screens, identical digits, nothing in the middle. It keeps
+   the "no server" line inside the figure, so nothing was lost. */
+.hero-fig{display:none}
 @media(min-width:760px){
   .hero{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
-  .hero-fact{
-    display:block;text-align:right;font-family:var(--mono);font-size:.7rem;color:var(--paper-dim);
-    line-height:1.9;min-width:180px;
-  }
-  .hero-fact .n{font-family:var(--display);font-weight:800;font-size:2rem;color:var(--amber);display:block;line-height:1}
   .hero-inner{grid-column:1}
+  .hero-fig{
+    display:block;margin:0;width:300px;flex:0 0 auto;
+  }
+  .hero-fig svg{width:100%;height:auto;display:block;color:var(--paper-text)}
+  .hero-fig figcaption{
+    margin-top:10px;font-family:var(--mono);font-size:.62rem;line-height:1.5;
+    color:var(--paper-dim);opacity:.85;max-width:34ch;
+  }
+}
+@media(min-width:1100px){.hero-fig{width:360px}}
+
+/* Figure internals. Stroke weights are hairline on purpose: at 300px wide the
+   drawing has to sit BESIDE the headline without competing with it, so it
+   reads as a diagram in the margin rather than a second focal point. */
+.hero-fig .hf-line{fill:none;stroke:currentColor;stroke-width:1;opacity:.55}
+.hero-fig .hf-dash{stroke-dasharray:2 4;opacity:.35}
+.hero-fig .hf-fill{fill:currentColor;opacity:.55}
+.hero-fig .hf-mono{font-family:var(--mono);font-size:8px;letter-spacing:.06em;fill:currentColor}
+.hero-fig .hf-dim{opacity:.55}
+/* The tiles are the brand device — two panes split by a hairline — so they
+   get the only saturated colour in the drawing, and the same amber the real
+   board's signal lamp uses. */
+.hero-fig .hf-tiles rect{fill:none;stroke:currentColor;stroke-width:1;opacity:.7}
+.hero-fig .hf-tiles path{stroke:currentColor;stroke-width:1;opacity:.35}
+.hero-fig .hf-tiles circle{fill:var(--amber);opacity:.9}
+.hero-fig .hf-digit{
+  font-family:var(--display);font-weight:800;font-size:17px;text-anchor:middle;
+  fill:var(--amber);
 }
 
 /* ============ BOARD / STAGE ============ */

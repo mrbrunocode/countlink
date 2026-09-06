@@ -105,6 +105,36 @@ timer"*. CountLink has zoom-meeting-timer, standup-timer and workshop-timer —
 but nothing at the generic head of that cluster, which is the phrase the
 roundup queries actually use.
 
+## 2e. Status — what shipped, 2026-09-06
+
+Items 1, 2, 3, 5 and 8 below are **done and live**, verified in production
+(see the commits "Name what CountLink does" and "Show the thing the words only
+claimed"). Concretely: `/features` with 32 named capabilities and matching
+JSON-LD; a `## Features` block at the top of `llms.txt`; `/timers/meeting-timer`
+as a **single hub page** rather than the seven use-case pages this plan
+originally called for; join codes at `/j/<code>`; flash messages named as
+viewer messaging; and a hero illustration showing one link on three screens.
+
+Two changes to the plan as written, both made after reading the repo:
+
+* **Item 3 was cut from seven pages to one.** 42 of 45 URLs sit in "Discovered
+  – currently not indexed" with 1 referring domain, which is exactly why eight
+  duration pages were culled on 2026-07-29. Six more thin use-case pages would
+  have repeated a mistake already corrected. `/timers/meeting-timer` links the
+  existing zoom/meet/standup/workshop pages instead of competing with them.
+* **A cause this teardown missed:** `/how-it-works` was actively *denying* a
+  shipped feature — it said, in prose and inside its FAQPage JSON-LD, that a
+  pause could not be pushed to viewers. True when written in July, false since
+  phone control shipped in August. So the site was telling assistants it lacked
+  the exact feature ShareMyTimer is praised for, in its own words. Fixed, and
+  `test/faq-claims.test.mjs` now fails on any page that denies live control
+  without naming phone control.
+
+**Still open: items 4, 6 and 7** — testimonials (collected, never written),
+`/vs/` pages, and directory placements. These are the ones that need something
+no on-site change can manufacture: third-party corroboration, against a
+1-referring-domain profile.
+
 ## 3. Ranked plan
 
 Scored on impact against the actual failure mode (how CountLink gets described

@@ -35,13 +35,23 @@ assets/
   control.js             control.html's logic — separate file, different DOM shape
   realtime.js            thin Ably pub/sub wrapper for phone control, inert with no key configured
   realtime-config.js     the on/off switch — window.COUNTLINK_ABLY_KEY, empty by default
+features.html           generated — every capability, named (see "The feature inventory")
 timers/                 programmatic SEO landing pages (see docs/monetization.md)
-  5-minute-timer.html
-  ...
+  meeting-timer.html     the Meetings cluster hub
+  exam-timer.html
+  ...                    (the eight fixed-duration pages were consolidated into
+                          /timers/ on 2026-07-29 — see _redirects for why)
+guides/                 generated long-form articles
+functions/              Cloudflare Pages Functions — the only server-side code here
+  mcp.js                 the MCP server at /mcp
+  badge.svg.js           the README badge image
+  j/[code].js            join codes: /j/<code> -> the ordinary #t= link
 scripts/
-  build-timer-pages.mjs  regenerates everything in /timers/ + sitemap.xml from one data list
+  build-timer-pages.mjs  regenerates /timers/, /guides/, features.html, sitemap.xml
+                          and llms.txt from one data list
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
+  perception-gap-2026-09-06.md  why assistants called this site "minimalist", and the fix
   phone-control-setup.md how to turn on pause/adjust/stop from a phone (currently dark — needs an Ably key)
 ads.txt                 AdSense seller-verification file (fill in once approved)
 robots.txt              allows crawling, points to sitemap.xml
@@ -333,6 +343,59 @@ Two things it fixes, neither of which is visible on the site itself:
 
 The six hand-written static pages (`/about`, `/compare`, …) carried neither the
 manifest nor a touch icon, so installing from them did nothing. They do now.
+
+## The feature inventory
+
+`FEATURES` in `scripts/build-timer-pages.mjs` is the single list of what this
+site does. It renders into three places and they can never disagree:
+
+* **`/features`** — the full grid, plus `WebApplication.featureList` and
+  `ItemList` JSON-LD carrying the same names in the same order.
+* **the homepage** — a compact named block, synced between
+  `<!-- HOME_FEATURES_START/END -->` markers by the build. Do not hand-edit it.
+* **`llms.txt`** — a flat, quotable `## Features` section above the narrative.
+
+Add a capability by adding one row to `FEATURES` and rebuilding. Two rules,
+both enforced by `test/features-page.test.mjs`:
+
+1. **Every entry is a named capability with a verb** — "Phone control", not
+   "the trade-off we made about servers". This exists because the homepage
+   used to lead with three *absences* ("no viewer limit, no account, no paid
+   tier") and bury the real features in a paragraph that opened by calling
+   them "a few things that don't get much billing up top". A summariser can
+   only enumerate what a page enumerates, and AI referral is this site's
+   largest real channel. Absences go in `FEATURE_NEVERS`, after the
+   capabilities — a feature name starting with "No" fails the test.
+2. **It must be true today.** `test/faq-claims.test.mjs` fails on copy that
+   promises a feature as future *or* denies one that has shipped.
+
+## Join codes (`/j/<code>`)
+
+A five-character code a person can read out to a room —
+`countlink.app/j/K3M7Q` — because a `#t=1788634982117` link cannot be spoken,
+and a projector cannot be copy-pasted from.
+
+It needs **no database**: the code *is* the deadline, in Crockford base 32
+(seconds since a fixed 2026 epoch). The alphabet omits I, L, O and U, so there
+is no spoken ambiguity, and decoding folds the confusions back anyway — someone
+who hears "oh" and types the letter still lands on the right countdown. Codes
+are case-insensitive and tolerate spaces and hyphens.
+
+The codec exists twice on purpose: `encodeJoinCode`/`decodeJoinCode` in
+`assets/app.js` (mints it in the browser) and in `functions/j/[code].js`
+(resolves it at the edge). There is no build step here, so a shared module
+isn't available; `test/join-code.test.mjs` cross-checks the two over a fixed
+corpus, which is what makes the duplication safe. **Change one and that test
+fails until you change the other.**
+
+Two documented trade-offs, both stated on `/features` rather than hidden:
+a code carries seconds, not milliseconds, so code-holders agree exactly with
+each other and can be up to half a second from someone holding the `#t=` link;
+and it carries no label, because a label cannot be made speakable.
+
+Only down-mode countdowns get one — a count-up or interval link needs a
+direction flag a five-character code can't carry, and handing back a code that
+resolves to the wrong *kind* of timer is worse than offering none.
 
 ## Tests
 
