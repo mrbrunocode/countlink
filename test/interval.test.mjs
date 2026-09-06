@@ -111,3 +111,66 @@ test("the phase key used for the round-transition beep changes exactly once per 
   }
   assert.deepEqual(keys, ["1w", "1r", "2w", "2r", "3w", "3r"]);
 });
+
+// The Pomodoro page's long break: every `longEvery`th round's rest is
+// `longRestSec` instead of the plain `restSec`. Rounds no longer share one
+// cycle length once this is on, so it gets its own coverage rather than
+// trusting the modulo-based math above to generalize.
+test("omitting longRestSec/longEvery behaves exactly as before — no cycle-length regression", () => {
+  const total = s(30) * 8;
+  for (let t = 0; t < total; t += 1000) {
+    const withDefaults = intervalPhase(20, 10, 8, t);
+    const explicitlyDisabled = intervalPhase(20, 10, 8, t, 0, 0);
+    assert.deepEqual(explicitlyDisabled, withDefaults, `mismatch at ${t}ms`);
+  }
+});
+
+test("long break lands on every Nth round and is the long length, not the short one", () => {
+  // 25/5 work/rest (in seconds), 8 rounds, long break of 20 min every 4th round.
+  const WORK = 25 * 60, REST = 5 * 60, LONG = 20 * 60;
+  const at = (ms) => intervalPhase(WORK, REST, 8, ms, LONG, 4);
+
+  const round1CycleEnd = s(WORK + REST);
+  assert.equal(at(round1CycleEnd - 1).inWork, false, "still in round 1's short break");
+  assert.equal(at(round1CycleEnd - 1).isLongBreak, false, "round 1's break is short, not long");
+
+  // Round 4's rest starts after 4 focus blocks + 3 short breaks.
+  const round4RestStart = s(WORK * 4 + REST * 3);
+  assert.equal(at(round4RestStart).inWork, false);
+  assert.equal(at(round4RestStart).isLongBreak, true, "round 4's break is the long one");
+  assert.equal(at(round4RestStart).phaseTotalMs, s(LONG), "long break runs the long length");
+  assert.equal(at(round4RestStart).round, 4);
+
+  // Round 5 starts right after the 20-minute long break, not a 5-minute one.
+  const round5Start = round4RestStart + s(LONG);
+  assert.equal(at(round5Start).round, 5);
+  assert.equal(at(round5Start).inWork, true);
+});
+
+test("isLongBreak is false during work, even on a long-break round", () => {
+  const WORK = 25 * 60, REST = 5 * 60, LONG = 20 * 60;
+  const p = intervalPhase(WORK, REST, 8, s(WORK * 3 + REST * 3), LONG, 4);
+  assert.equal(p.round, 4);
+  assert.equal(p.inWork, true, "round 4's work phase, right after round 3's short break");
+  assert.equal(p.isLongBreak, false, "isLongBreak must not fire during the work half of the round");
+});
+
+test("longEvery=0 disables the long break even if longRestSec is set", () => {
+  const total = s(30) * 8;
+  for (let t = 0; t < total; t += 1000) {
+    const p = intervalPhase(20, 10, 8, t, 999, 0);
+    assert.equal(p.isLongBreak, false, `long break fired at ${t}ms despite longEvery=0`);
+  }
+});
+
+test("totalMs accounts for the long breaks, so the run doesn't end early", () => {
+  // 8 rounds of 25/5 with a 20-min long break every 4th round: 2 long-break
+  // rounds (4 and 8) each adding (20−5) extra minutes over the plain total.
+  const WORK = 25 * 60, REST = 5 * 60, LONG = 20 * 60;
+  const plainTotal = s((WORK + REST) * 8);
+  const p = intervalPhase(WORK, REST, 8, 0, LONG, 4);
+  const extraPerLongBreak = s(LONG - REST);
+  assert.equal(p.totalMs, plainTotal + extraPerLongBreak * 2, "two long-break rounds (4 and 8) in an 8-round run");
+  assert.equal(intervalPhase(WORK, REST, 8, p.totalMs - 1, LONG, 4).done, false);
+  assert.equal(intervalPhase(WORK, REST, 8, p.totalMs, LONG, 4).done, true);
+});

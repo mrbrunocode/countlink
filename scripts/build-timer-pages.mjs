@@ -141,6 +141,46 @@ const ivExtra = (workSec, restSec, rounds) => `
           <div class="hint" style="margin-top:6px" id="ivPhase"></div>
         </div>`;
 
+// The Pomodoro page's own variant of the same engine: minutes instead of
+// seconds (nobody thinks of a focus block as "1500 seconds"), plus the two
+// long-break fields that turn on Pomodoro's every-fourth-round long rest
+// (see intervalPhase's longRestSec/longEvery in assets/app.js). Distinct
+// field ids (ivWorkMin/ivRestMin vs the seconds-based ivWorkSec/ivRestSec
+// above) so the ivStartBtn click handler in app.js can tell which unit a
+// page is using — the two variants never appear on the same page.
+const POMODORO_EXTRA = `
+        <div class="obs-extra">
+          <h3>Auto-cycling focus and break, on every screen</h3>
+          <p>This runs the classic rhythm on its own: a focus block, then a break, repeated — with a longer break every fourth round, the way Francesco Cirillo's original technique does it. Share the link once, at the start, and everyone's screen advances through the same rounds together; nobody has to restart a countdown between blocks.</p>
+          <div class="stack2">
+            <div>
+              <label for="ivWorkMin">Focus (minutes)</label>
+              <input id="ivWorkMin" type="number" min="1" value="25">
+            </div>
+            <div>
+              <label for="ivRestMin">Short break (minutes)</label>
+              <input id="ivRestMin" type="number" min="0" value="5">
+            </div>
+          </div>
+          <div class="stack2">
+            <div>
+              <label for="ivLongRestMin">Long break (minutes)</label>
+              <input id="ivLongRestMin" type="number" min="0" value="20">
+            </div>
+            <div>
+              <label for="ivLongEvery">Long break every</label>
+              <input id="ivLongEvery" type="number" min="0" value="4">
+            </div>
+          </div>
+          <div>
+            <label for="ivRounds">Total focus rounds</label>
+            <input id="ivRounds" type="number" min="1" value="8">
+          </div>
+          <button class="btn primary" id="ivStartBtn" style="margin-top:12px">Start auto-cycling pomodoro</button>
+          <div class="hint" style="margin-top:6px" id="ivPhase"></div>
+          <p class="hint" style="margin-top:10px">Same mechanic as the <a href="/timers/interval-timer">interval timer</a> and <a href="/timers/agenda-timer">agenda timer</a>: the cycle's start instant is the only thing the link carries, so every device works out which round and phase is "now" from elapsed time — no server, no viewer limit, and it's still correct if someone opens the link an hour into round six.</p>
+        </div>`;
+
 // Per-page supporting content, keyed by slug. Every page that doesn't already
 // carry an inline `extra` gets one of these injected in the render (see the
 // `${p.extra || EXTRA_BY_SLUG[p.slug] || ""}` line in the page template). Each
@@ -625,30 +665,21 @@ export const PAGES = [
   // "Counting up instead" section.
   { slug: "pomodoro-timer", minutes: 25, label: "Pomodoro — focus", eyebrow: "Pomodoro Timer", affiliate: true,
     h1: "Pomodoro Timer — 25 Minutes, Shareable",
-    meta: "A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.",
-    intro: "The pomodoro technique is 25 minutes of focus, then a 5-minute break, repeated. Solo, any kitchen timer works — but a pomodoro is better with company. Start the 25 minutes here, share the link, and your study group or team focuses to the same clock and breaks at the same moment.",
-    setupHint: "The board above is set to the classic 25-minute pomodoro, and you can change it on the board itself. For the break, set 5 minutes and press start again.",
-    extra: `
-        <div class="obs-extra">
-          <h3>Running full pomodoro cycles</h3>
-          <ol>
-            <li>Start the <b>25-minute</b> countdown and share the link with everyone working with you.</li>
-            <li>At zero, hit the <b>5 min</b> quick button and start the break — share the fresh link (each timer is its own link).</li>
-            <li>After the break, press <b>Restart — same duration</b> to begin the next 25 minutes in one click.</li>
-            <li>Every fourth break, set <b>15–30 minutes</b> instead — that's the classic long-break rhythm.</li>
-          </ol>
-          <p>Why doesn't it auto-advance from focus to break? Because the link is the timer: each countdown is one fixed end time that every screen agrees on. An auto-advancing cycle would need every viewer's browser to agree on state changes over time — that's a server, and no server is the reason this tool has no viewer limits.</p>
-        </div>`,
+    meta: "A free pomodoro timer you can share: auto-cycling focus and break rounds with a long break every fourth, or a single 25-minute block — the whole study group or team stays on the same clock.",
+    intro: "The pomodoro technique is 25 minutes of focus, then a 5-minute break, repeated, with a longer break every fourth round. Start a single 25-minute block below, or use the auto-cycling panel further down to run the whole rhythm — breaks included — without touching anything between rounds. Share the link either way and your study group or team stays on the same clock.",
+    setupHint: "The board above is set to the classic 25-minute pomodoro for a single block, and you can change it on the board itself. For the full auto-cycling rhythm, use the panel below the board instead.",
+    extra: POMODORO_EXTRA,
     howto: [
-      "Set 25 minutes — the classic focus block — by typing 25 00 straight onto the board, or tap the 25 min preset. Roll the digits with the arrows to fine-tune it.",
-      "Name it under \"What's it for?\" so every screen shows what the block is for, then press Start countdown.",
-      "Press Copy sync link and send it to whoever is working along with you; every device shows the identical time remaining.",
-      "When the chime sounds, start a fresh 5-minute timer for the break, and take a longer 15–30 minute break after four cycles.",
+      "For one focus block: set 25 minutes — type 25 00 straight onto the board, or tap the 25 min preset — then press Start countdown.",
+      "For the full rhythm: scroll to \"Auto-cycling focus and break\" below, check the focus/break/long-break lengths and round count, and press Start auto-cycling pomodoro.",
+      "Either way, press Copy sync link on the board and send it to whoever is working along with you; every device shows the identical round and phase.",
+      "The auto-cycling version advances itself — focus, break, focus, break, with a long break every fourth round — so there's nothing to restart between blocks.",
     ],
     faq: [
-      { q: "Why 25 minutes?", a: "That's the classic pomodoro length from Francesco Cirillo's original technique — long enough to get real work done, short enough that starting doesn't feel heavy. The custom-minutes field takes any length if your group prefers 50/10." },
-      { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical countdown, so the whole group starts focusing and breaks at the same moments." },
-      { q: "Does it auto-start the break when the 25 minutes end?", a: "No — at zero every screen chimes together, then whoever runs the session starts the 5-minute break and shares that link. The one-click Restart button makes the next focus round instant." },
+      { q: "Why 25 minutes?", a: "That's the classic pomodoro length from Francesco Cirillo's original technique — long enough to get real work done, short enough that starting doesn't feel heavy. The auto-cycling panel's Focus field takes any length if your group prefers 50/10." },
+      { q: "Can my study group all follow the same pomodoro?", a: "Yes — that's the point of the shared link. Everyone opens it and sees the identical round and phase, so the whole group starts focusing and breaks at the same moments." },
+      { q: "Does it auto-advance from focus to break on its own?", a: "The auto-cycling panel does, all the way through your set number of rounds, with a long break every fourth by default — the same start-instant-in-the-link mechanic as the interval and agenda timers, so there's still no server and no viewer limit. The single board above the panel stays a plain one-block countdown if that's all you want." },
+      { q: "Can I change how often the long break happens?", a: "Yes — the \"Long break every\" field takes any round count, not just four. Set it to 0 to disable the long break entirely and just alternate focus and short break." },
     ] },
   // Absorbed tabata-timer and boxing-round-timer 2026-07-29. All three were the
   // same work/rest engine with a different preset and a different sport's name
@@ -1232,7 +1263,7 @@ ${instrumentIndex(p.slug)}
 </div>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=712a7231" defer></script>
+<script src="../assets/app.js?v=fc5ea69f" defer></script>
 </body>
 </html>
 `; };

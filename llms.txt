@@ -133,7 +133,7 @@ date stated on the page.
 - [Stream Countdown (OBS)](https://countlink.app/timers/obs-countdown-timer): A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.
 
 ### Focus & intervals
-- [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer): A free 25-minute pomodoro timer you can share: the whole study group or team focuses to the same clock, then breaks together.
+- [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer): A free pomodoro timer you can share: auto-cycling focus and break rounds with a long break every fourth, or a single 25-minute block — the whole study group or team stays on the same clock.
 - [Interval Timer](https://countlink.app/timers/interval-timer): A free shareable interval timer — Tabata 20/10, boxing 3-minute rounds, or any custom work/rest split and round count, with every screen on the identical round.
 
 ### Multi-stage

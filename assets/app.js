@@ -14,6 +14,12 @@ let direction="down"; // "down" (countdown) | "up" (stopwatch/count-up) | "inter
                       // the other way; "interval" additionally derives which phase/round is
                       // current from elapsed time, rather than counting to one fixed deadline.
 let ivWork=20,ivRest=10,ivRounds=8; // interval mode: work/rest seconds per round, total rounds
+/* Pomodoro-style long break: every `ivLongEvery`th round's rest is
+   `ivLongRest` seconds instead of `ivRest`. ivLongEvery=0 disables it
+   entirely (the plain Tabata/boxing case), so every existing interval link
+   and every call site that only ever knew about work/rest/rounds keeps
+   behaving exactly as before. */
+let ivLongRest=0,ivLongEvery=0;
 let lapMarks=[];      // stopwatch laps: elapsed-ms marks, this screen only (see "stopwatch laps")
 /* Which work/rest phase draw() last rendered, as "<round><w|r>" — the only
    thing that tells a 250ms frame it has crossed a round boundary and owes a
@@ -243,27 +249,51 @@ function modeForHash(direction,total){
    a signal that's always on carries no information. Anything 20s or shorter
    IS the urgent part already, so it gets no pulse; longer phases keep the
    final-10-seconds escalation they were designed for. */
-function intervalPhase(workSec,restSec,rounds,elapsedMs){
+/* longRestSec/longEvery add an optional Pomodoro-style long break: every
+   `longEvery`th round's rest runs `longRestSec` instead of `restSec`.
+   longEvery=0 (the default) disables this, so every round's cycle is the
+   same fixed (workSec+restSec) length and this behaves exactly as it did
+   before long breaks existed — which is what every existing Tabata/boxing
+   link on this site still expects. With it enabled, rounds no longer share
+   one cycle length, so both the round lookup and the total run length have
+   to walk the rounds one at a time instead of using elapsedMs%cycleMs — cheap
+   given rounds is always a small, human-typed number. */
+function intervalPhase(workSec,restSec,rounds,elapsedMs,longRestSec=restSec,longEvery=0){
   // Thresholds live INSIDE the function on purpose. Module-level `const`s
   // declared below the test-export early return (see this file's header) are
   // still in their temporal dead zone when a test calls in, so a top-level
   // URGENT_MS here threw ReferenceError under the test runner while working
   // fine in a browser — the exact hazard that comment describes.
   const URGENT_MS=10000, URGENT_MIN_PHASE_MS=20000;
-  const cycleMs=(workSec+restSec)*1000;
-  if(elapsedMs>=cycleMs*rounds)return {done:true,round:rounds,inWork:false,phaseLeftMs:0,phaseTotalMs:0,urgent:false};
-  const posMs=elapsedMs%cycleMs;
-  const inWork=posMs<workSec*1000;
-  const phaseTotalMs=(inWork?workSec:restSec)*1000;
-  const phaseLeftMs=inWork?workSec*1000-posMs:cycleMs-posMs;
-  return {
-    done:false,
-    round:Math.floor(elapsedMs/cycleMs)+1,
-    inWork:inWork,
-    phaseTotalMs:phaseTotalMs,
-    phaseLeftMs:phaseLeftMs,
-    urgent:phaseTotalMs>URGENT_MIN_PHASE_MS&&phaseLeftMs<=URGENT_MS,
-  };
+  const workMs=workSec*1000;
+  const hasLong=longEvery>0;
+  const isLongRound=(round)=>hasLong&&round%longEvery===0;
+  const restMsFor=(round)=>(isLongRound(round)?longRestSec:restSec)*1000;
+  let totalMs=0;
+  for(let r=1;r<=rounds;r++)totalMs+=workMs+restMsFor(r);
+  if(elapsedMs>=totalMs)return {done:true,round:rounds,inWork:false,phaseLeftMs:0,phaseTotalMs:0,urgent:false,isLongBreak:false,totalMs:totalMs};
+  let remaining=elapsedMs;
+  for(let round=1;round<=rounds;round++){
+    const cycleMs=workMs+restMsFor(round);
+    if(remaining<cycleMs){
+      const inWork=remaining<workMs;
+      const phaseTotalMs=inWork?workMs:restMsFor(round);
+      const phaseLeftMs=inWork?workMs-remaining:cycleMs-remaining;
+      return {
+        done:false,
+        round:round,
+        inWork:inWork,
+        phaseTotalMs:phaseTotalMs,
+        phaseLeftMs:phaseLeftMs,
+        urgent:phaseTotalMs>URGENT_MIN_PHASE_MS&&phaseLeftMs<=URGENT_MS,
+        isLongBreak:!inWork&&isLongRound(round),
+        totalMs:totalMs,
+      };
+    }
+    remaining-=cycleMs;
+  }
+  // Unreachable: the elapsedMs>=totalMs check above already covers this case.
+  return {done:true,round:rounds,inWork:false,phaseLeftMs:0,phaseTotalMs:0,urgent:false,isLongBreak:false,totalMs:totalMs};
 }
 /* Down-mode's two-stage urgency, as a pure function of time left and the
    countdown's original total — same reasoning as intervalPhase() above:
@@ -295,7 +325,7 @@ function setDefaultUntil(){
 }
 function makeLink(){
   const u=new URL(location.href);
-  const dirParam=direction==="up"?"&d=up":direction==="interval"?`&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`:"";
+  const dirParam=direction==="up"?"&d=up":direction==="interval"?`&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}${ivLongEvery>0?`&lr=${ivLongRest}&le=${ivLongEvery}`:""}`:"";
   const ctrlParam=controlSession?`&c=${controlSession}`:"";
   const pauseParam=(state==="paused")?`&p=${Math.round(pausedRemaining)}`:"";
   u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}${ctrlParam}${pauseParam}`;
@@ -329,6 +359,8 @@ function readHash(){
     else if(m.get("d")==="iv"){
       direction="interval";
       ivWork=Math.max(1,numOr(m.get("w"),20));ivRest=Math.max(0,numOr(m.get("r"),10));ivRounds=Math.max(1,numOr(m.get("n"),8));
+      ivLongEvery=Math.max(0,Math.floor(numOr(m.get("le"),0)));
+      ivLongRest=ivLongEvery>0?Math.max(0,numOr(m.get("lr"),0)):0;
     }else direction="down";
     controlSession=m.get("c")||null;
     // Only down-mode countdowns support pause — see the state-list comment
@@ -525,14 +557,17 @@ function startUp(lab){
    there's no per-round timestamp to track, so "resume from a shared link"
    and "resume after a tab was backgrounded" both just work, same as every
    other mode here. */
-function startInterval(workSec,restSec,rounds,lab){
+function startInterval(workSec,restSec,rounds,lab,longRestSec=0,longEvery=0){
   direction="interval";
   end=Date.now();label=lab;fired=false;prevValues=null;
   resetLaps(); // a new run always starts with an empty split list
   controlSession=null;pausedRemaining=0; // phone control is down-mode only
   ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
+  ivLongEvery=Math.max(0,Math.floor(longEvery||0));
+  ivLongRest=ivLongEvery>0?Math.max(0,longRestSec||0):0;
   mode="ms";
-  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}`;
+  const longParam=ivLongEvery>0?`&lr=${ivLongRest}&le=${ivLongEvery}`:"";
+  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}${longParam}`;
   lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce(`Interval timer started: ${ivRounds} rounds of ${ivWork}s work, ${ivRest}s rest`);
   saveRecent();
@@ -1857,11 +1892,9 @@ function draw(){
   }
 
   if(direction==="interval"){
-    const cycleSec=ivWork+ivRest;
     const elapsedMs=Date.now()-end;
-    const totalMs=cycleSec*1000*ivRounds;
     const ivPhaseEl=$("ivPhase");
-    if(elapsedMs>=totalMs){
+    if(intervalPhase(ivWork,ivRest,ivRounds,elapsedMs,ivLongRest,ivLongEvery).done){
       const chars=charsFor(0,"ms").tiles;
       if(!document.querySelector(".tile"))buildTiles(chars);else updateTiles(chars);
       if(ivPhaseEl)ivPhaseEl.textContent=`Done — ${ivRounds} of ${ivRounds} rounds complete`;
@@ -1884,7 +1917,7 @@ function draw(){
       return;
     }
     document.querySelector(".bar").style.display="";
-    const {round,inWork,phaseLeftMs,phaseTotalMs,urgent}=intervalPhase(ivWork,ivRest,ivRounds,elapsedMs);
+    const {round,inWork,phaseLeftMs,phaseTotalMs,urgent,isLongBreak}=intervalPhase(ivWork,ivRest,ivRounds,elapsedMs,ivLongRest,ivLongEvery);
     const c=charsFor(phaseLeftMs,"ms");
     const curSecond=Math.floor(phaseLeftMs/1000);
     if(!document.querySelector(".tile")||prevValues===null){buildTiles(c.tiles);prevValues=true;}
@@ -1903,8 +1936,9 @@ function draw(){
     if(ivPhaseKey!==null&&ivPhaseKey!==phaseKey){beep();announcedFinal=false;lastAnnouncedMin=null;}
     ivPhaseKey=phaseKey;
     setUrgent(urgent);
-    if(ivPhaseEl)ivPhaseEl.textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`;
-    $("evtLabel").textContent=`${inWork?"WORK":"REST"} — round ${round} of ${ivRounds}`+(label?" · "+label:"");
+    const phaseWord=inWork?"WORK":(isLongBreak?"LONG BREAK":"REST");
+    if(ivPhaseEl)ivPhaseEl.textContent=`${phaseWord} — round ${round} of ${ivRounds}`;
+    $("evtLabel").textContent=`${phaseWord} — round ${round} of ${ivRounds}`+(label?" · "+label:"");
     announceLeft(phaseLeftMs);
     $("subLine").innerHTML=`round <b>${round} of ${ivRounds}</b> — synced on every screen with this link`;
     /* Progress across THIS phase, so work and rest each fill 0→100%.
@@ -2038,7 +2072,7 @@ if($("boardStartBtn"))$("boardStartBtn").addEventListener("click",()=>{
   if(state==="finished"){
     // Restart: same duration/label as the countdown that just ended (fresh link)
     if(direction==="up")startUp(label);
-    else if(direction==="interval")startInterval(ivWork,ivRest,ivRounds,label);
+    else if(direction==="interval")startInterval(ivWork,ivRest,ivRounds,label,ivLongRest,ivLongEvery);
     /* A finished board is settable again, so if it's been rolled to a new
        duration that's what "start" must mean — restarting the old length
        after the user has visibly changed the digits would be the board
@@ -2065,11 +2099,20 @@ if($("stopBtn"))$("stopBtn").addEventListener("click",stopTimer);
    scripts/build-timer-pages.mjs INTERVAL_EXTRA), wired defensively like every
    other extra-row control since it's absent on every non-interval page. */
 if($("ivStartBtn"))$("ivStartBtn").addEventListener("click",()=>{
+  // Two field sets share this one button: the interval-timer page's plain
+  // seconds fields (ivWorkSec/ivRestSec — Tabata, boxing) and the pomodoro
+  // page's minutes fields plus long-break controls (ivWorkMin/ivRestMin/
+  // ivLongRestMin/ivLongEvery — see POMODORO_EXTRA in build-timer-pages.mjs).
+  // Only one set exists on any given page, so whichever is present wins.
+  const workSec=$("ivWorkMin")?numOr($("ivWorkMin").value,25)*60:numOr($("ivWorkSec")&&$("ivWorkSec").value,20);
+  const restSec=$("ivRestMin")?numOr($("ivRestMin").value,5)*60:numOr($("ivRestSec")&&$("ivRestSec").value,10);
   startInterval(
-    numOr($("ivWorkSec")&&$("ivWorkSec").value,20),
-    numOr($("ivRestSec")&&$("ivRestSec").value,10),
+    workSec,
+    restSec,
     numOr($("ivRounds")&&$("ivRounds").value,8),
-    $("evtName")?$("evtName").value:""
+    $("evtName")?$("evtName").value:"",
+    numOr($("ivLongRestMin")&&$("ivLongRestMin").value,0)*60,
+    numOr($("ivLongEvery")&&$("ivLongEvery").value,0)
   );
   $("boardEl").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
