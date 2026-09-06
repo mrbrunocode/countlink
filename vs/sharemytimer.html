@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
+<title>CountLink vs ShareMyTimer — Free Shared Timer Comparison | CountLink</title>
+<meta name="description" content="CountLink vs ShareMyTimer, compared on price, viewer limits and features. ShareMyTimer's free tier stops at 3 viewers and charges $6/mo for sound alerts; CountLink is unlimited and free. Verified against their pricing page.">
+<link rel="canonical" href="https://countlink.app/vs/sharemytimer">
+<meta property="og:title" content="CountLink vs ShareMyTimer — Free Shared Timer Comparison">
+<meta property="og:description" content="CountLink vs ShareMyTimer, compared on price, viewer limits and features. ShareMyTimer's free tier stops at 3 viewers and charges $6/mo for sound alerts; CountLink is unlimited and free. Verified against their pricing page.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://countlink.app/vs/sharemytimer">
+<meta property="og:image" content="https://countlink.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.app/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/icons/icon-180.png">
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="../assets/style.css?v=16c11f1a" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=16c11f1a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=16c11f1a"></noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is CountLink actually free, or free-for-now?","acceptedAnswer":{"@type":"Answer","text":"Free permanently, and there is no paid tier to upgrade to. That is a consequence of the architecture rather than a promotion: viewers cost nothing to serve because nothing is held open per viewer, so there is no per-user cost that would eventually need covering."}},{"@type":"Question","name":"Can CountLink pause a countdown for everyone, like ShareMyTimer does?","acceptedAnswer":{"@type":"Answer","text":"Yes, if you tick phone control before starting. That opens a live channel for that one countdown and gives you a second link that pauses, adds or removes a minute, and stops it on every screen at once — free, with no cap on the number of screens. The difference is that it is opt-in rather than always on."}},{"@type":"Question","name":"Why does ShareMyTimer limit free viewers to three?","acceptedAnswer":{"@type":"Answer","text":"Their sync runs through a server that holds a connection open for each viewer, so each additional viewer has a real cost. That is a reasonable engineering choice, and the viewer caps follow from it directly."}},{"@type":"Question","name":"Do I need to move my existing timers?","acceptedAnswer":{"@type":"Answer","text":"There is nothing to migrate. A CountLink countdown is just a link — set the duration, press start, and send the link you get."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"CountLink vs ShareMyTimer — Free Shared Timer Comparison","description":"CountLink vs ShareMyTimer, compared on price, viewer limits and features. ShareMyTimer's free tier stops at 3 viewers and charges $6/mo for sound alerts; CountLink is unlimited and free. Verified against their pricing page.","url":"https://countlink.app/vs/sharemytimer","author":{"@type":"Organization","name":"CountLink"},"publisher":{"@type":"Organization","name":"CountLink"},"datePublished":"2026-09-06","dateModified":"2026-09-06","about":[{"@type":"SoftwareApplication","name":"CountLink","url":"https://countlink.app/"},{"@type":"SoftwareApplication","name":"ShareMyTimer","url":"https://www.sharemytimer.live/"}]}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+<script data-grow-initializer="">
+!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
+  <nav class="chassis-nav" aria-label="Site">
+    <a href="/features">Features</a>
+    <a href="/guides/">Guides</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/compare" aria-current="page">Compare</a>
+    <a href="/about">About</a>
+  </nav>
+  <p class="chassis-spec">No server · No account · Unlimited viewers</p>
+</header>
+<div class="rig">
+<nav class="rig-index" aria-label="All timers">
+  <div class="idx-in">
+    <p class="idx-title"><a href="/">19 timers</a></p>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-durations">Durations</p>
+      <ul class="idx-list" aria-labelledby="idx-durations">
+        <li><a href="/timers/">Timer Durations</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-classroom-exams">Classroom & exams</p>
+      <ul class="idx-list" aria-labelledby="idx-classroom-exams">
+        <li><a href="/timers/exam-timer">Exam Timer</a></li>
+        <li><a href="/timers/classroom-timer">Classroom Timer</a></li>
+        <li><a href="/timers/group-study-timer">Group Study Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-meetings">Meetings</p>
+      <ul class="idx-list" aria-labelledby="idx-meetings">
+        <li><a href="/timers/meeting-timer">Meeting Timer</a></li>
+        <li><a href="/timers/webinar-countdown">Webinar Countdown</a></li>
+        <li><a href="/timers/standup-timer">Standup Timer</a></li>
+        <li><a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a></li>
+        <li><a href="/timers/google-meet-timer">Google Meet Timer</a></li>
+        <li><a href="/timers/workshop-timer">Workshop Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-streaming">Streaming</p>
+      <ul class="idx-list" aria-labelledby="idx-streaming">
+        <li><a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-focus-intervals">Focus & intervals</p>
+      <ul class="idx-list" aria-labelledby="idx-focus-intervals">
+        <li><a href="/timers/pomodoro-timer">Pomodoro Timer</a></li>
+        <li><a href="/timers/interval-timer">Interval Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-multi-stage">Multi-stage</p>
+      <ul class="idx-list" aria-labelledby="idx-multi-stage">
+        <li><a href="/timers/multiple-timers-at-once">Multiple Timers</a></li>
+        <li><a href="/timers/agenda-timer">Agenda Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-play-events">Play & events</p>
+      <ul class="idx-list" aria-labelledby="idx-play-events">
+        <li><a href="/timers/game-night-timer">Game Night Timer</a></li>
+        <li><a href="/timers/auction-countdown">Auction Countdown</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-seasonal">Seasonal</p>
+      <ul class="idx-list" aria-labelledby="idx-seasonal">
+        <li><a href="/timers/new-year-countdown">New Year Countdown</a></li>
+        <li><a href="/timers/christmas-countdown">Christmas Countdown</a></li>
+      </ul>
+    </section>
+  </div>
+</nav>
+<main class="rig-main" id="main">
+
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Comparison</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">CountLink vs ShareMyTimer</h1>
+      <p class="lede">The closest comparison there is — both do one shared countdown on every screen. The difference is architectural, and it decides everything about the pricing.</p>
+    </div>
+  </section>
+  <article class="vs">
+    <h2>The short answer</h2>
+    <p>If you want a countdown that a group watches together and you would rather not pay or sign up, CountLink does everything ShareMyTimer's $6/month Pro tier does, for nothing, with no cap on how many people watch. If you want live pause-and-adjust control pushed to viewers with no setup step at all, and you want it from a native iOS app, ShareMyTimer is the more finished product in that specific respect.</p>
+    <h2>Side by side</h2>
+
+    <div class="vs-table-wrap">
+      <table class="vs-table">
+        <caption class="sr-only">CountLink compared with ShareMyTimer, feature by feature</caption>
+        <thead>
+          <tr><th scope="col">&nbsp;</th><th scope="col" class="vs-us">CountLink</th><th scope="col">ShareMyTimer</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Price</th><td class="vs-us">Free, permanently. No paid tier exists.</td><td>Free tier; Pro $6/month; Single Event $9 one-time (15 days)</td></tr>
+          <tr><th scope="row">Account required</th><td class="vs-us">No — there is nothing to sign up for</td><td>No signup for the free tier</td></tr>
+          <tr><th scope="row">Viewers</th><td class="vs-us">Unlimited</td><td>3 free · 90 on Pro · 150 on Single Event</td></tr>
+          <tr><th scope="row">Timers</th><td class="vs-us">Unlimited</td><td>3 free · 20 on Pro · 100 on Single Event</td></tr>
+          <tr><th scope="row">Sound alerts</th><td class="vs-us">Free</td><td>Pro and Single Event only</td></tr>
+          <tr><th scope="row">Live pause / adjust pushed to viewers</th><td class="vs-us">Free, unlimited screens — opt in before starting</td><td>Yes, on every tier</td></tr>
+          <tr><th scope="row">Message to every viewer</th><td class="vs-us">Free (flash message, via phone control)</td><td>Yes, including on the free tier</td></tr>
+          <tr><th scope="row">Join code</th><td class="vs-us">Free — five characters, e.g. /j/K3M7Q</td><td>Yes</td></tr>
+          <tr><th scope="row">QR code</th><td class="vs-us">Free</td><td>Yes</td></tr>
+          <tr><th scope="row">Count up / stopwatch</th><td class="vs-us">Free</td><td>Yes</td></tr>
+          <tr><th scope="row">OBS / stream overlay</th><td class="vs-us">Free, transparent, no watermark</td><td>Yes, including on the free tier</td></tr>
+          <tr><th scope="row">Website embed (iframe)</th><td class="vs-us">Free, no watermark</td><td>Not offered</td></tr>
+          <tr><th scope="row">Agenda of named segments</th><td class="vs-us">Free</td><td>Not offered</td></tr>
+          <tr><th scope="row">Interval / round timer</th><td class="vs-us">Free</td><td>Not offered</td></tr>
+          <tr><th scope="row">Calendar (.ics) export</th><td class="vs-us">Free</td><td>Not offered</td></tr>
+          <tr><th scope="row">MCP server for AI assistants</th><td class="vs-us">Yes — countlink.app/mcp</td><td>Not offered</td></tr>
+          <tr><th scope="row">Native iOS app</th><td class="vs-us">No — installable web app instead</td><td>Yes</td></tr>
+          <tr><th scope="row">Can the service go down mid-countdown?</th><td class="vs-us">There is no server to go down</td><td>Sync runs through their servers</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vs-verified">ShareMyTimer figures verified against <a href="https://www.sharemytimer.live/payment" rel="nofollow noopener" target="_blank">their own pricing page</a> on 6 September 2026. Prices and limits change — check theirs before deciding.</p>
+    <h2>What ShareMyTimer does better</h2>
+
+    <p><b>Live control with no setup step.</b> ShareMyTimer is built around a
+    controller/viewer split, so pause, resume and adjust reach every viewer by
+    default. CountLink can do the same thing — and does not charge for it or
+    cap the screens it reaches — but you have to tick <b>phone control</b>
+    <i>before</i> you start the countdown. Forget to tick it and the countdown
+    is fixed, because there is no connection to send a command down. If you
+    routinely need to change a timer mid-run, theirs is the less error-prone
+    model.</p>
+    <p><b>A native iOS app.</b> CountLink installs from the browser as a web
+    app, which covers the same ground for most people, but it is not the same
+    as an App Store download and there is no point pretending otherwise.</p>
+    <p><b>Viewer messaging is on their free tier and is a first-class feature.</b>
+    CountLink's equivalent rides on phone control, so it is one more thing to
+    have switched on in advance.</p>
+    <h2>What CountLink does better</h2>
+
+    <p><b>Nothing is metered.</b> The reason ShareMyTimer counts your viewers is
+    that each one holds a connection open on their servers, and connections
+    cost money — three free, ninety for $6. CountLink writes the countdown's end
+    time into the link itself, so every device does its own arithmetic against
+    its own clock and nothing is held open for anyone. A viewer costs us
+    nothing, so there is no cap and nothing to sell you.</p>
+    <p><b>Sound is free.</b> A timer that cannot make a noise at zero is doing
+    half its job, and it sits behind their $6/month tier.</p>
+    <p><b>There is more of it.</b> Agendas that advance themselves, interval and
+    round timers, website embeds, README badges, calendar export, printable
+    posters, an offline copy you can download, and an MCP server so an AI
+    assistant can build you a timer directly — none of which ShareMyTimer
+    offers. The full list is on <a href="/features">the features page</a>.</p>
+    <p><b>Nothing can go down.</b> There is no server in the path after the link
+    is sent, so there is no outage that can interrupt a countdown people are
+    already watching.</p>
+    <h2>Which one should you use?</h2>
+
+    <p><b>Pick ShareMyTimer if</b> you need to pause and adjust a running timer
+    often and would rather that be the default behaviour than an option you
+    remember to enable, or you specifically want a native iOS app.</p>
+    <p><b>Pick CountLink if</b> more than three people need to watch, or you
+    want sound at zero, or you would rather not create an account or a
+    subscription for a countdown.</p>
+    <h2>Common questions</h2>
+    <dl class="faq-list">
+      <div class="faq-item"><dt><h3>Is CountLink actually free, or free-for-now?</h3></dt><dd>Free permanently, and there is no paid tier to upgrade to. That is a consequence of the architecture rather than a promotion: viewers cost nothing to serve because nothing is held open per viewer, so there is no per-user cost that would eventually need covering.</dd></div>
+      <div class="faq-item"><dt><h3>Can CountLink pause a countdown for everyone, like ShareMyTimer does?</h3></dt><dd>Yes, if you tick phone control before starting. That opens a live channel for that one countdown and gives you a second link that pauses, adds or removes a minute, and stops it on every screen at once — free, with no cap on the number of screens. The difference is that it is opt-in rather than always on.</dd></div>
+      <div class="faq-item"><dt><h3>Why does ShareMyTimer limit free viewers to three?</h3></dt><dd>Their sync runs through a server that holds a connection open for each viewer, so each additional viewer has a real cost. That is a reasonable engineering choice, and the viewer caps follow from it directly.</dd></div>
+      <div class="faq-item"><dt><h3>Do I need to move my existing timers?</h3></dt><dd>There is nothing to migrate. A CountLink countdown is just a link — set the duration, press start, and send the link you get.</dd></div>
+    </dl>
+    <h2>Other comparisons</h2>
+    <ul class="use-list">
+      <li><a href="/vs/stagetimer">CountLink vs Stagetimer.io</a></li>
+      <li><a href="/vs/countdownshare">CountLink vs CountdownShare</a></li>
+      <li><a href="/vs/timerlink">CountLink vs TimerLink</a></li>
+      <li><a href="/compare">All of them side by side, in one table</a></li>
+    </ul>
+    <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/features">Everything CountLink does</a></p>
+  </article>
+</main>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="/timers/">Timer Durations</a>
+          <a href="/timers/exam-timer">Exam Timer</a>
+          <a href="/timers/classroom-timer">Classroom Timer</a>
+          <a href="/timers/webinar-countdown">Webinar Countdown</a>
+          <a href="/timers/meeting-timer">Meeting Timer</a>
+          <a href="/timers/standup-timer">Standup Timer</a>
+          <a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a>
+          <a href="/timers/google-meet-timer">Google Meet Timer</a>
+          <a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a>
+          <a href="/timers/workshop-timer">Workshop Timer</a>
+          <a href="/timers/group-study-timer">Group Study Timer</a>
+          <a href="/timers/game-night-timer">Game Night Timer</a>
+          <a href="/timers/auction-countdown">Auction Countdown</a>
+          <a href="/timers/pomodoro-timer">Pomodoro Timer</a>
+          <a href="/timers/interval-timer">Interval Timer</a>
+          <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
+          <a href="/timers/new-year-countdown">New Year Countdown</a>
+          <a href="/timers/christmas-countdown">Christmas Countdown</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
+      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

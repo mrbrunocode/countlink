@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
+<title>CountLink vs CountdownShare — Shared Timer or Marketing Countdown | CountLink</title>
+<meta name="description" content="CountLink vs CountdownShare. CountdownShare is a marketing countdown tool — email GIFs, evergreen per-visitor timers, analytics, from $9/month. CountLink is a free shared timer for groups. They solve different problems.">
+<link rel="canonical" href="https://countlink.app/vs/countdownshare">
+<meta property="og:title" content="CountLink vs CountdownShare — Shared Timer or Marketing Countdown">
+<meta property="og:description" content="CountLink vs CountdownShare. CountdownShare is a marketing countdown tool — email GIFs, evergreen per-visitor timers, analytics, from $9/month. CountLink is a free shared timer for groups. They solve different problems.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://countlink.app/vs/countdownshare">
+<meta property="og:image" content="https://countlink.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.app/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/icons/icon-180.png">
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="../assets/style.css?v=16c11f1a" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=16c11f1a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=16c11f1a"></noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can CountLink put a countdown in an email?","acceptedAnswer":{"@type":"Answer","text":"No. Email clients don't run JavaScript, so an email countdown has to be a server-rendered image regenerated on each open — that is a genuinely different product and CountdownShare builds it. CountLink's badge image is for READMEs and forum posts and shows coarse time remaining, not a live tick."}},{"@type":"Question","name":"Why won't CountLink do evergreen per-visitor countdowns?","acceptedAnswer":{"@type":"Answer","text":"Because they contradict the premise. CountLink exists so that everyone opening a link sees the identical instant; a per-visitor countdown gives three people opening the same link three different timers. It is a legitimate marketing technique and a legitimate product — just not this one."}},{"@type":"Question","name":"Can I put a CountLink countdown on my own website?","acceptedAnswer":{"@type":"Answer","text":"Yes, free and without a watermark. The embed builder produces an iframe with size and style options, and every visitor sees the same remaining time because the end instant is fixed in the link."}},{"@type":"Question","name":"Does CountLink track who opens a countdown?","acceptedAnswer":{"@type":"Answer","text":"No. There is no per-timer analytics of any kind, which is the flip side of there being no server holding the countdown."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"CountLink vs CountdownShare — Shared Timer or Marketing Countdown","description":"CountLink vs CountdownShare. CountdownShare is a marketing countdown tool — email GIFs, evergreen per-visitor timers, analytics, from $9/month. CountLink is a free shared timer for groups. They solve different problems.","url":"https://countlink.app/vs/countdownshare","author":{"@type":"Organization","name":"CountLink"},"publisher":{"@type":"Organization","name":"CountLink"},"datePublished":"2026-09-06","dateModified":"2026-09-06","about":[{"@type":"SoftwareApplication","name":"CountLink","url":"https://countlink.app/"},{"@type":"SoftwareApplication","name":"CountdownShare","url":"https://countdownshare.com/"}]}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+<script data-grow-initializer="">
+!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
+  <nav class="chassis-nav" aria-label="Site">
+    <a href="/features">Features</a>
+    <a href="/guides/">Guides</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/compare" aria-current="page">Compare</a>
+    <a href="/about">About</a>
+  </nav>
+  <p class="chassis-spec">No server · No account · Unlimited viewers</p>
+</header>
+<div class="rig">
+<nav class="rig-index" aria-label="All timers">
+  <div class="idx-in">
+    <p class="idx-title"><a href="/">19 timers</a></p>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-durations">Durations</p>
+      <ul class="idx-list" aria-labelledby="idx-durations">
+        <li><a href="/timers/">Timer Durations</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-classroom-exams">Classroom & exams</p>
+      <ul class="idx-list" aria-labelledby="idx-classroom-exams">
+        <li><a href="/timers/exam-timer">Exam Timer</a></li>
+        <li><a href="/timers/classroom-timer">Classroom Timer</a></li>
+        <li><a href="/timers/group-study-timer">Group Study Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-meetings">Meetings</p>
+      <ul class="idx-list" aria-labelledby="idx-meetings">
+        <li><a href="/timers/meeting-timer">Meeting Timer</a></li>
+        <li><a href="/timers/webinar-countdown">Webinar Countdown</a></li>
+        <li><a href="/timers/standup-timer">Standup Timer</a></li>
+        <li><a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a></li>
+        <li><a href="/timers/google-meet-timer">Google Meet Timer</a></li>
+        <li><a href="/timers/workshop-timer">Workshop Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-streaming">Streaming</p>
+      <ul class="idx-list" aria-labelledby="idx-streaming">
+        <li><a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-focus-intervals">Focus & intervals</p>
+      <ul class="idx-list" aria-labelledby="idx-focus-intervals">
+        <li><a href="/timers/pomodoro-timer">Pomodoro Timer</a></li>
+        <li><a href="/timers/interval-timer">Interval Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-multi-stage">Multi-stage</p>
+      <ul class="idx-list" aria-labelledby="idx-multi-stage">
+        <li><a href="/timers/multiple-timers-at-once">Multiple Timers</a></li>
+        <li><a href="/timers/agenda-timer">Agenda Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-play-events">Play & events</p>
+      <ul class="idx-list" aria-labelledby="idx-play-events">
+        <li><a href="/timers/game-night-timer">Game Night Timer</a></li>
+        <li><a href="/timers/auction-countdown">Auction Countdown</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-seasonal">Seasonal</p>
+      <ul class="idx-list" aria-labelledby="idx-seasonal">
+        <li><a href="/timers/new-year-countdown">New Year Countdown</a></li>
+        <li><a href="/timers/christmas-countdown">Christmas Countdown</a></li>
+      </ul>
+    </section>
+  </div>
+</nav>
+<main class="rig-main" id="main">
+
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Comparison</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">CountLink vs CountdownShare</h1>
+      <p class="lede">Both put a countdown in a link, and then they diverge completely: one is aimed at a marketing campaign, the other at a room full of people.</p>
+    </div>
+  </section>
+  <article class="vs">
+    <h2>The short answer</h2>
+    <p>CountdownShare is built for marketing — countdown images that survive an email client, per-visitor "evergreen" urgency timers, campaign analytics, branded landing pages. CountLink is built for a group watching the same clock. If you are running a sales campaign, CountdownShare does things CountLink deliberately refuses to do. If you are timing a meeting, a class or a stream, you are paying $9/month for a feature set aimed at somebody else.</p>
+    <h2>Side by side</h2>
+
+    <div class="vs-table-wrap">
+      <table class="vs-table">
+        <caption class="sr-only">CountLink compared with CountdownShare, feature by feature</caption>
+        <thead>
+          <tr><th scope="col">&nbsp;</th><th scope="col" class="vs-us">CountLink</th><th scope="col">CountdownShare</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Price</th><td class="vs-us">Free, permanently. No paid tier exists.</td><td>Free tier; Pro $9/month or $199 one-time lifetime</td></tr>
+          <tr><th scope="row">Account required</th><td class="vs-us">No</td><td>Yes</td></tr>
+          <tr><th scope="row">Active timers</th><td class="vs-us">Unlimited</td><td>3 free · unlimited on Pro</td></tr>
+          <tr><th scope="row">Viewers</th><td class="vs-us">Unlimited</td><td>Unlimited views on website embeds is a Pro feature</td></tr>
+          <tr><th scope="row">Watermark / branding on free tier</th><td class="vs-us">None</td><td>Branding on the free tier; removed on Pro</td></tr>
+          <tr><th scope="row">Website embed (iframe)</th><td class="vs-us">Free, no watermark</td><td>Yes — core to the product</td></tr>
+          <tr><th scope="row">Countdown image or GIF for email</th><td class="vs-us">No</td><td>Yes (Pro)</td></tr>
+          <tr><th scope="row">Evergreen per-visitor countdown</th><td class="vs-us">Deliberately not offered — see below</td><td>Yes (Pro)</td></tr>
+          <tr><th scope="row">Campaign analytics</th><td class="vs-us">No</td><td>Yes (Pro)</td></tr>
+          <tr><th scope="row">Custom design — fonts, colours, layouts</th><td class="vs-us">Three board styles, no custom colours</td><td>Yes</td></tr>
+          <tr><th scope="row">Everyone sees the identical time remaining</th><td class="vs-us">Always — it is the whole mechanic</td><td>Yes for fixed-date timers; no for evergreen ones, by design</td></tr>
+          <tr><th scope="row">Live pause / adjust pushed to viewers</th><td class="vs-us">Free, unlimited screens</td><td>Not offered</td></tr>
+          <tr><th scope="row">Join code to read out</th><td class="vs-us">Free</td><td>Not offered</td></tr>
+          <tr><th scope="row">Agenda, intervals, laps, stopwatch</th><td class="vs-us">Free</td><td>Not offered</td></tr>
+          <tr><th scope="row">OBS / stream overlay</th><td class="vs-us">Free, transparent, no watermark</td><td>Not offered</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vs-verified">CountdownShare figures verified against <a href="https://countdownshare.com/" rel="nofollow noopener" target="_blank">their own pricing page</a> on 6 September 2026. Prices and limits change — check theirs before deciding.</p>
+    <h2>What CountdownShare does better</h2>
+
+    <p><b>Email countdowns.</b> An email client will not run JavaScript, so a
+    countdown in an email has to be a server-rendered image or animated GIF
+    regenerated on every open. CountdownShare does this; CountLink does not.
+    Its README badge is an image, but it shows coarse time remaining and is
+    built for a GitHub README, not a Klaviyo campaign.</p>
+    <p><b>Evergreen per-visitor countdowns.</b> Each visitor gets their own
+    countdown starting when they arrive. This is a real marketing technique and
+    it works. CountLink will not do it, and that is a deliberate refusal rather
+    than a missing feature — the entire premise here is that everyone sees the
+    same instant, and a per-visitor timer is the exact opposite. If you want
+    one, you want their tool, not ours.</p>
+    <p><b>Design control and analytics.</b> Fonts, colours, layouts, branded
+    landing pages and campaign reporting. CountLink offers three board styles
+    and no analytics at all.</p>
+    <h2>What CountLink does better</h2>
+
+    <p><b>The free tier is not a trial.</b> Theirs allows three active timers
+    and puts branding on them. CountLink has no timer limit, no watermark, and
+    no upgrade.</p>
+    <p><b>Everything for a live group.</b> Live pause and adjust pushed to every
+    screen, a join code to read to a room, agendas that advance themselves,
+    interval timers, laps, a stream overlay, a printable poster. CountdownShare
+    does none of this, because none of it is what a marketing countdown needs.</p>
+    <p><b>No account.</b> Theirs needs one before you can make anything.</p>
+    <h2>Which one should you use?</h2>
+
+    <p><b>Pick CountdownShare if</b> the countdown is part of a campaign — a
+    launch page, a sale, an email sequence, anything where you want branding,
+    analytics, or per-visitor urgency.</p>
+    <p><b>Pick CountLink if</b> the countdown is for people in a room, a call or
+    a stream, all of whom should see the same number at the same moment.</p>
+    <h2>Common questions</h2>
+    <dl class="faq-list">
+      <div class="faq-item"><dt><h3>Can CountLink put a countdown in an email?</h3></dt><dd>No. Email clients don't run JavaScript, so an email countdown has to be a server-rendered image regenerated on each open — that is a genuinely different product and CountdownShare builds it. CountLink's badge image is for READMEs and forum posts and shows coarse time remaining, not a live tick.</dd></div>
+      <div class="faq-item"><dt><h3>Why won't CountLink do evergreen per-visitor countdowns?</h3></dt><dd>Because they contradict the premise. CountLink exists so that everyone opening a link sees the identical instant; a per-visitor countdown gives three people opening the same link three different timers. It is a legitimate marketing technique and a legitimate product — just not this one.</dd></div>
+      <div class="faq-item"><dt><h3>Can I put a CountLink countdown on my own website?</h3></dt><dd>Yes, free and without a watermark. The embed builder produces an iframe with size and style options, and every visitor sees the same remaining time because the end instant is fixed in the link.</dd></div>
+      <div class="faq-item"><dt><h3>Does CountLink track who opens a countdown?</h3></dt><dd>No. There is no per-timer analytics of any kind, which is the flip side of there being no server holding the countdown.</dd></div>
+    </dl>
+    <h2>Other comparisons</h2>
+    <ul class="use-list">
+      <li><a href="/vs/sharemytimer">CountLink vs ShareMyTimer</a></li>
+      <li><a href="/vs/stagetimer">CountLink vs Stagetimer.io</a></li>
+      <li><a href="/vs/timerlink">CountLink vs TimerLink</a></li>
+      <li><a href="/compare">All of them side by side, in one table</a></li>
+    </ul>
+    <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/features">Everything CountLink does</a></p>
+  </article>
+</main>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="/timers/">Timer Durations</a>
+          <a href="/timers/exam-timer">Exam Timer</a>
+          <a href="/timers/classroom-timer">Classroom Timer</a>
+          <a href="/timers/webinar-countdown">Webinar Countdown</a>
+          <a href="/timers/meeting-timer">Meeting Timer</a>
+          <a href="/timers/standup-timer">Standup Timer</a>
+          <a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a>
+          <a href="/timers/google-meet-timer">Google Meet Timer</a>
+          <a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a>
+          <a href="/timers/workshop-timer">Workshop Timer</a>
+          <a href="/timers/group-study-timer">Group Study Timer</a>
+          <a href="/timers/game-night-timer">Game Night Timer</a>
+          <a href="/timers/auction-countdown">Auction Countdown</a>
+          <a href="/timers/pomodoro-timer">Pomodoro Timer</a>
+          <a href="/timers/interval-timer">Interval Timer</a>
+          <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
+          <a href="/timers/new-year-countdown">New Year Countdown</a>
+          <a href="/timers/christmas-countdown">Christmas Countdown</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
+      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -20,6 +20,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, GROW_SITE_ID, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
+import { COMPARISONS } from "./comparisons.mjs";
 import { makeDateTracker } from "./content-dates.mjs";
 
 // Inline QR icon for the "Show QR code" board button (design review,
@@ -1139,9 +1140,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=fb1b693a" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=fb1b693a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=fb1b693a"></noscript>
+<link rel="preload" href="../assets/style.css?v=16c11f1a" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=16c11f1a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=16c11f1a"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1305,9 +1306,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=fb1b693a" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=fb1b693a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=fb1b693a"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=16c11f1a" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=16c11f1a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=16c11f1a"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1663,6 +1664,105 @@ ${items.slice(0, 2).map(([name]) => `            <li>${name}</li>`).join("\n")}
     </div>`;
 };
 
+/* ================= /vs/<slug> comparison pages =================
+ * Data and the rules for writing one live in scripts/comparisons.mjs. This is
+ * only the rendering.
+ *
+ * The page order is deliberate and is the order a reader wants: the verdict
+ * first (most people came for an answer, not a table), then the table, then
+ * what the competitor is genuinely better at, then what we are, then who
+ * should pick which, then the FAQ. Putting "what they do better" ABOVE "what
+ * we do better" is not modesty — it is the thing that makes the rest of the
+ * page believable, and it is the section a summariser quotes when someone asks
+ * an assistant to compare the two.
+ */
+const vsHref = (slug) => `/vs/${slug}`;
+
+const vsTable = (c) => `
+    <div class="vs-table-wrap">
+      <table class="vs-table">
+        <caption class="sr-only">${NAME} compared with ${c.name}, feature by feature</caption>
+        <thead>
+          <tr><th scope="col">&nbsp;</th><th scope="col" class="vs-us">${NAME}</th><th scope="col">${c.name}</th></tr>
+        </thead>
+        <tbody>
+${c.rows.map(([label, ours, theirs]) => `          <tr><th scope="row">${label}</th><td class="vs-us">${ours}</td><td>${theirs}</td></tr>`).join("\n")}
+        </tbody>
+      </table>
+    </div>
+    <p class="vs-verified">${c.name} figures verified against <a href="${c.pricingUrl}" rel="nofollow noopener" target="_blank">their own pricing page</a> on ${fmtDate(c.verified)}. Prices and limits change — check theirs before deciding.</p>`;
+
+const vsPage = (c) => {
+  const jsonLd = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: c.faq.map((f) => ({
+      "@type": "Question", name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  })}</script>
+<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: c.title,
+    description: c.meta,
+    url: `${SITE_URL}${vsHref(c.slug)}`,
+    author: { "@type": "Organization", name: NAME },
+    publisher: { "@type": "Organization", name: NAME },
+    datePublished: c.verified,
+    dateModified: c.verified,
+    /* `about` names both products so an assistant answering "CountLink vs X"
+       can see the page is genuinely about that pair, rather than inferring it
+       from the title string. */
+    about: [
+      { "@type": "SoftwareApplication", name: NAME, url: `${SITE_URL}/` },
+      { "@type": "SoftwareApplication", name: c.name, url: c.site },
+    ],
+  })}</script>`;
+
+  const others = COMPARISONS.filter((o) => o.slug !== c.slug);
+  const main = `
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Comparison</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">${c.h1}</h1>
+      <p class="lede">${c.lede}</p>
+    </div>
+  </section>
+  <article class="vs">
+    <h2>The short answer</h2>
+    ${c.verdict}
+    <h2>Side by side</h2>
+${vsTable(c)}
+    <h2>What ${c.name} does better</h2>
+${c.theyWinHtml}
+    <h2>What ${NAME} does better</h2>
+${c.weWinHtml}
+    <h2>Which one should you use?</h2>
+${c.whichHtml}
+    <h2>Common questions</h2>
+    <dl class="faq-list">
+${c.faq.map((f) => `      <div class="faq-item"><dt><h3>${f.q}</h3></dt><dd>${f.a}</dd></div>`).join("\n")}
+    </dl>
+    <h2>Other comparisons</h2>
+    <ul class="use-list">
+${others.map((o) => `      <li><a href="${vsHref(o.slug)}">${NAME} vs ${o.name}</a></li>`).join("\n")}
+      <li><a href="/compare">All of them side by side, in one table</a></li>
+    </ul>
+    <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/features">Everything ${NAME} does</a></p>
+  </article>`;
+
+  return guideShell({
+    rel: "../",
+    title: c.title,
+    description: c.meta,
+    canonicalPath: vsHref(c.slug),
+    navPath: "/compare",
+    headJsonLd: jsonLd,
+    main,
+  });
+};
+
 const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-works.html", "terms.html", "contact.html"];
 
 // Cloudflare Pages serves a root 404.html with a real 404 status for any
@@ -1700,6 +1800,9 @@ const sitemap = () => {
   const urls = PAGES.map(p => `  <url><loc>${SITE_URL}${hrefFor(p.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
   const featuresUrl = `  <url><loc>${SITE_URL}/features</loc><lastmod>${BUILD_DATE}</lastmod></url>`;
+  const vsUrls = COMPARISONS
+    .map((c) => `  <url><loc>${SITE_URL}${vsHref(c.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`)
+    .join("\n");
   const guideUrls = [`  <url><loc>${SITE_URL}/guides/</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
     .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
     .join("\n");
@@ -1708,6 +1811,7 @@ const sitemap = () => {
   <url><loc>${SITE_URL}/</loc><lastmod>${BUILD_DATE}</lastmod></url>
 ${staticUrls}
 ${featuresUrl}
+${vsUrls}
 ${guideUrls}
 ${urls}
 </urlset>
@@ -1804,7 +1908,16 @@ ${FEATURE_NEVERS.map((n) => `- ${n}`).join("\n")}
 - [Features](${SITE_URL}/features): every capability, named and grouped
 - [Home / timer tool](${SITE_URL}/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
 - [How It Works](${SITE_URL}/how-it-works): the link-timestamp sync mechanic explained in depth
-- [Comparison: ${BRAND} vs ShareMyTimer vs Stagetimer](${SITE_URL}/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [Comparison hub: ${BRAND} vs ShareMyTimer vs Stagetimer vs CountdownShare vs Leaderboarded](${SITE_URL}/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+
+## Head-to-head comparisons
+
+One page per competitor, each with a verdict, a full feature table, an honest
+section on what the competitor does better, and the case for picking either.
+Every price and limit is verified against that vendor's own pricing page on the
+date stated on the page.
+
+${COMPARISONS.map((c) => `- [${BRAND} vs ${c.name}](${SITE_URL}${vsHref(c.slug)}): ${c.meta}`).join("\n")}
 - [About](${SITE_URL}/about): who builds this and why
 - [Privacy policy](${SITE_URL}/privacy): what data is (and isn't) collected
 - [Terms of Service](${SITE_URL}/terms)
@@ -2050,6 +2163,13 @@ async function main() {
     await writeFile(join(guidesDir, `${a.slug}.html`), guidePage(a), "utf-8");
   }
   console.log(`Wrote guides.html + ${ARTICLES.length} article(s) to guides/`);
+
+  const vsDir = join(ROOT, "vs");
+  await mkdir(vsDir, { recursive: true });
+  for (const c of COMPARISONS) {
+    await writeFile(join(vsDir, `${c.slug}.html`), vsPage(c), "utf-8");
+  }
+  console.log(`Wrote ${COMPARISONS.length} comparison page(s) to vs/`);
 
   const featuresPath = join(ROOT, "features.html");
   await writeFile(featuresPath, featuresPage(), "utf-8");

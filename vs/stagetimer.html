@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ?overlay=1 renders a transparent, chrome-free board for an OBS Browser
+   Source or a plain <iframe> — a screen with no publisher content on it at
+   all, which is exactly what AdSense's "ads on screens without publisher
+   content" rule is about.
+
+   Neutering the ad code in place was tried first and is NOT enough. Removing
+   the <ins> from the DOM in app.js and skipping the inline push() both work,
+   but the library itself then injects its own auto-ad <ins> afterwards —
+   verified in a browser: an overlay screen ended up with one adsbygoogle <ins>
+   in the DOM and show_ads_impl loaded. pauseAdRequests did not survive the
+   library loading over the top of it either.
+
+   So an overlay screen is sent to /embed/ instead, which is the same board
+   built with every ad and analytics tag stripped out (see buildEmbedHtml in
+   scripts/build-timer-pages.mjs) and is also the only path _headers exempts
+   from X-Frame-Options: DENY. The hash carries the timer, so it survives the
+   redirect untouched. This runs in <head>, before the loader tag below is
+   parsed, and location.replace() leaves no history entry — an OBS Browser
+   Source or an iframe follows it without noticing.
+
+   Overlay links already handed out point at content pages, and this is what
+   keeps those working AND ad-free. The loader tag stays static and
+   unconditional on every real page so AdSense's site verification still finds
+   the code where it belongs. Guarded by test/overlay-ads.test.mjs. */
+window.__CL_OVERLAY=new URLSearchParams(location.search).has("overlay");
+if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
+  location.replace("/embed/"+location.search+location.hash);
+}</script>
+<title>CountLink vs Stagetimer.io — When To Use Each | CountLink</title>
+<meta name="description" content="CountLink vs Stagetimer.io, compared honestly. Stagetimer is professional event-production software from $210/year; CountLink is a free shared countdown. Which one you need depends on whether there's an AV desk involved.">
+<link rel="canonical" href="https://countlink.app/vs/stagetimer">
+<meta property="og:title" content="CountLink vs Stagetimer.io — When To Use Each">
+<meta property="og:description" content="CountLink vs Stagetimer.io, compared honestly. Stagetimer is professional event-production software from $210/year; CountLink is a free shared countdown. Which one you need depends on whether there's an AV desk involved.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://countlink.app/vs/stagetimer">
+<meta property="og:image" content="https://countlink.app/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://countlink.app/assets/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="apple-touch-icon" href="../assets/icons/icon-180.png">
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#1c1c1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="../assets/style.css?v=16c11f1a" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=16c11f1a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=16c11f1a"></noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is CountLink trying to replace Stagetimer?","acceptedAnswer":{"@type":"Answer","text":"No. They are built for different jobs. Stagetimer is event-production software with roles, rooms and an API; CountLink is a shared countdown in a link. The overlap is the countdown itself, and that is the only part this comparison is about."}},{"@type":"Question","name":"What does Stagetimer's free tier actually allow?","acceptedAnswer":{"@type":"Answer","text":"Three live connections per room and three timers per room, across three rooms, plus audio chimes, CSV import/export, API access and a custom logo. Verified against their pricing page on 6 September 2026."}},{"@type":"Question","name":"Does CountLink have an API?","acceptedAnswer":{"@type":"Answer","text":"Not a REST API. It has an MCP server at countlink.app/mcp, which lets an AI assistant create timers, build agendas, generate embeds and badges, and read back what a link means. For scripting from your own code, Stagetimer's REST API is the better fit."}},{"@type":"Question","name":"Can CountLink work offline?","acceptedAnswer":{"@type":"Answer","text":"A running countdown can be downloaded as a single self-contained HTML file that keeps counting with no network. That covers one timer, not a whole event — Stagetimer's desktop app is the serious offline option."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"CountLink vs Stagetimer.io — When To Use Each","description":"CountLink vs Stagetimer.io, compared honestly. Stagetimer is professional event-production software from $210/year; CountLink is a free shared countdown. Which one you need depends on whether there's an AV desk involved.","url":"https://countlink.app/vs/stagetimer","author":{"@type":"Organization","name":"CountLink"},"publisher":{"@type":"Organization","name":"CountLink"},"datePublished":"2026-09-06","dateModified":"2026-09-06","about":[{"@type":"SoftwareApplication","name":"CountLink","url":"https://countlink.app/"},{"@type":"SoftwareApplication","name":"Stagetimer.io","url":"https://stagetimer.io/"}]}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
+<script data-grow-initializer="">
+!(function(){window.growMe||((window.growMe=function(e){window.growMe._.push(e);}),(window.growMe._=[]));var e=document.createElement("script");(e.type="text/javascript"),(e.src="https://faves.grow.me/main.js"),(e.defer=!0),e.setAttribute("data-grow-faves-site-id","U2l0ZTo3YzZmZGZjMy0yZmEzLTQzOWItOTAwOC02Y2RlMWY3NTUwZDY=");var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t);})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="chassis">
+  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>CountLink</a>
+  <nav class="chassis-nav" aria-label="Site">
+    <a href="/features">Features</a>
+    <a href="/guides/">Guides</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/compare" aria-current="page">Compare</a>
+    <a href="/about">About</a>
+  </nav>
+  <p class="chassis-spec">No server · No account · Unlimited viewers</p>
+</header>
+<div class="rig">
+<nav class="rig-index" aria-label="All timers">
+  <div class="idx-in">
+    <p class="idx-title"><a href="/">19 timers</a></p>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-durations">Durations</p>
+      <ul class="idx-list" aria-labelledby="idx-durations">
+        <li><a href="/timers/">Timer Durations</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-classroom-exams">Classroom & exams</p>
+      <ul class="idx-list" aria-labelledby="idx-classroom-exams">
+        <li><a href="/timers/exam-timer">Exam Timer</a></li>
+        <li><a href="/timers/classroom-timer">Classroom Timer</a></li>
+        <li><a href="/timers/group-study-timer">Group Study Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-meetings">Meetings</p>
+      <ul class="idx-list" aria-labelledby="idx-meetings">
+        <li><a href="/timers/meeting-timer">Meeting Timer</a></li>
+        <li><a href="/timers/webinar-countdown">Webinar Countdown</a></li>
+        <li><a href="/timers/standup-timer">Standup Timer</a></li>
+        <li><a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a></li>
+        <li><a href="/timers/google-meet-timer">Google Meet Timer</a></li>
+        <li><a href="/timers/workshop-timer">Workshop Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-streaming">Streaming</p>
+      <ul class="idx-list" aria-labelledby="idx-streaming">
+        <li><a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-focus-intervals">Focus & intervals</p>
+      <ul class="idx-list" aria-labelledby="idx-focus-intervals">
+        <li><a href="/timers/pomodoro-timer">Pomodoro Timer</a></li>
+        <li><a href="/timers/interval-timer">Interval Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-multi-stage">Multi-stage</p>
+      <ul class="idx-list" aria-labelledby="idx-multi-stage">
+        <li><a href="/timers/multiple-timers-at-once">Multiple Timers</a></li>
+        <li><a href="/timers/agenda-timer">Agenda Timer</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-play-events">Play & events</p>
+      <ul class="idx-list" aria-labelledby="idx-play-events">
+        <li><a href="/timers/game-night-timer">Game Night Timer</a></li>
+        <li><a href="/timers/auction-countdown">Auction Countdown</a></li>
+      </ul>
+    </section>
+    <section class="idx-group">
+      <p class="idx-head" id="idx-seasonal">Seasonal</p>
+      <ul class="idx-list" aria-labelledby="idx-seasonal">
+        <li><a href="/timers/new-year-countdown">New Year Countdown</a></li>
+        <li><a href="/timers/christmas-countdown">Christmas Countdown</a></li>
+      </ul>
+    </section>
+  </div>
+</nav>
+<main class="rig-main" id="main">
+
+  <section class="hero" style="border-bottom:none;display:block">
+    <div class="hero-inner">
+      <span class="eyebrow">Comparison</span>
+      <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">CountLink vs Stagetimer.io</h1>
+      <p class="lede">These are not really the same kind of product, and the comparison is more useful once that is said out loud.</p>
+    </div>
+  </section>
+  <article class="vs">
+    <h2>The short answer</h2>
+    <p>Stagetimer is production software for live events: rooms, speakers, moderators, audience questions, an API, a desktop app that runs offline. CountLink is a shared countdown you send as a link. If you are running a conference stage with an AV desk, Stagetimer is the right tool and this page will not try to talk you out of it. If you are running a meeting, a class, a workshop or a stream and you have been looking at Stagetimer because it was the first result, you are probably about to pay $210 a year for a fraction of what it does.</p>
+    <h2>Side by side</h2>
+
+    <div class="vs-table-wrap">
+      <table class="vs-table">
+        <caption class="sr-only">CountLink compared with Stagetimer.io, feature by feature</caption>
+        <thead>
+          <tr><th scope="col">&nbsp;</th><th scope="col" class="vs-us">CountLink</th><th scope="col">Stagetimer.io</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Price</th><td class="vs-us">Free, permanently. No paid tier exists.</td><td>Free tier; Pro $210/yr; Premium $420/yr; Enterprise from $630; desktop lifetime licence $980</td></tr>
+          <tr><th scope="row">Account required</th><td class="vs-us">No</td><td>Yes</td></tr>
+          <tr><th scope="row">Viewers / live connections</th><td class="vs-us">Unlimited</td><td>3 per room free · 5 on Pro · 50 on Premium · up to 500 on Enterprise</td></tr>
+          <tr><th scope="row">Timers</th><td class="vs-us">Unlimited</td><td>3 per room free · 50 on Pro · unlimited on Premium</td></tr>
+          <tr><th scope="row">Rooms / events</th><td class="vs-us">Not a concept — every countdown is a link</td><td>3 free</td></tr>
+          <tr><th scope="row">Sound alerts</th><td class="vs-us">Free</td><td>Free (audio chimes)</td></tr>
+          <tr><th scope="row">Live control pushed to viewers</th><td class="vs-us">Free, unlimited screens — opt in before starting</td><td>Yes, core to the product</td></tr>
+          <tr><th scope="row">Speaker / moderator roles</th><td class="vs-us">No</td><td>Yes</td></tr>
+          <tr><th scope="row">Audience questions</th><td class="vs-us">No</td><td>Yes</td></tr>
+          <tr><th scope="row">REST API</th><td class="vs-us">No — but an MCP server for AI assistants</td><td>Yes</td></tr>
+          <tr><th scope="row">Desktop app / offline operation</th><td class="vs-us">Downloadable single-file offline copy of one countdown</td><td>Full offline desktop app ($980 lifetime)</td></tr>
+          <tr><th scope="row">Custom branding on outputs</th><td class="vs-us">No</td><td>Yes, from the free tier (custom logo)</td></tr>
+          <tr><th scope="row">Agenda of named segments</th><td class="vs-us">Free</td><td>Yes</td></tr>
+          <tr><th scope="row">Website embed (iframe)</th><td class="vs-us">Free, no watermark</td><td>Yes</td></tr>
+          <tr><th scope="row">Setup time before first use</th><td class="vs-us">None — open the page, press start</td><td>Create an account, create a room</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="vs-verified">Stagetimer.io figures verified against <a href="https://stagetimer.io/pricing/" rel="nofollow noopener" target="_blank">their own pricing page</a> on 6 September 2026. Prices and limits change — check theirs before deciding.</p>
+    <h2>What Stagetimer.io does better</h2>
+
+    <p><b>It is a genuinely more capable product, and it should be.</b>
+    Stagetimer does speaker and moderator roles, audience questions, multiple
+    rooms, CSV import and export, a REST API, custom-branded outputs, and a
+    desktop application that runs with no internet at all. If your event has a
+    run of show, a stage manager and a comms channel, those are not luxuries.</p>
+    <p><b>Offline operation is a real differentiator.</b> Their desktop app runs
+    a whole event with no network. CountLink can download a single countdown as
+    a self-contained file that keeps running offline, which is a much smaller
+    claim.</p>
+    <p><b>Branding.</b> Custom logos on outputs start on their free tier.
+    CountLink has no white-labelling at all.</p>
+    <h2>What CountLink does better</h2>
+
+    <p><b>The free tiers are not comparable.</b> Stagetimer's free tier allows
+    three live connections per room; CountLink has no connection limit at any
+    price, because it has no connections. For the very common case — one
+    countdown that a room full of people can see — the free version of
+    CountLink does more than the free version of Stagetimer.</p>
+    <p><b>Even their $210/year Pro tier allows five live connections per room.</b>
+    That is the number to check against your actual audience before subscribing,
+    and it surprises people.</p>
+    <p><b>No account, no room, no setup.</b> Open the page, set a duration, press
+    start, send the link. For anything short of a produced event, the setup is
+    the cost.</p>
+    <h2>Which one should you use?</h2>
+
+    <p><b>Pick Stagetimer if</b> you are running a produced event — a conference
+    stage, a broadcast, anything with a stage manager, multiple speakers on a
+    schedule, or a need to brand what the audience sees. Also pick it if you
+    need an API or guaranteed offline operation.</p>
+    <p><b>Pick CountLink if</b> you want a countdown a group can watch together
+    — meetings, classes, exams, workshops, streams, study groups — without an
+    account, a room, a connection limit or a subscription.</p>
+    <h2>Common questions</h2>
+    <dl class="faq-list">
+      <div class="faq-item"><dt><h3>Is CountLink trying to replace Stagetimer?</h3></dt><dd>No. They are built for different jobs. Stagetimer is event-production software with roles, rooms and an API; CountLink is a shared countdown in a link. The overlap is the countdown itself, and that is the only part this comparison is about.</dd></div>
+      <div class="faq-item"><dt><h3>What does Stagetimer's free tier actually allow?</h3></dt><dd>Three live connections per room and three timers per room, across three rooms, plus audio chimes, CSV import/export, API access and a custom logo. Verified against their pricing page on 6 September 2026.</dd></div>
+      <div class="faq-item"><dt><h3>Does CountLink have an API?</h3></dt><dd>Not a REST API. It has an MCP server at countlink.app/mcp, which lets an AI assistant create timers, build agendas, generate embeds and badges, and read back what a link means. For scripting from your own code, Stagetimer's REST API is the better fit.</dd></div>
+      <div class="faq-item"><dt><h3>Can CountLink work offline?</h3></dt><dd>A running countdown can be downloaded as a single self-contained HTML file that keeps counting with no network. That covers one timer, not a whole event — Stagetimer's desktop app is the serious offline option.</dd></div>
+    </dl>
+    <h2>Other comparisons</h2>
+    <ul class="use-list">
+      <li><a href="/vs/sharemytimer">CountLink vs ShareMyTimer</a></li>
+      <li><a href="/vs/countdownshare">CountLink vs CountdownShare</a></li>
+      <li><a href="/vs/timerlink">CountLink vs TimerLink</a></li>
+      <li><a href="/compare">All of them side by side, in one table</a></li>
+    </ul>
+    <p class="feat-cta"><a href="/">Start a countdown</a> · <a href="/features">Everything CountLink does</a></p>
+  </article>
+</main>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="/timers/">Timer Durations</a>
+          <a href="/timers/exam-timer">Exam Timer</a>
+          <a href="/timers/classroom-timer">Classroom Timer</a>
+          <a href="/timers/webinar-countdown">Webinar Countdown</a>
+          <a href="/timers/meeting-timer">Meeting Timer</a>
+          <a href="/timers/standup-timer">Standup Timer</a>
+          <a href="/timers/zoom-meeting-timer">Zoom Meeting Timer</a>
+          <a href="/timers/google-meet-timer">Google Meet Timer</a>
+          <a href="/timers/obs-countdown-timer">Stream Countdown (OBS)</a>
+          <a href="/timers/workshop-timer">Workshop Timer</a>
+          <a href="/timers/group-study-timer">Group Study Timer</a>
+          <a href="/timers/game-night-timer">Game Night Timer</a>
+          <a href="/timers/auction-countdown">Auction Countdown</a>
+          <a href="/timers/pomodoro-timer">Pomodoro Timer</a>
+          <a href="/timers/interval-timer">Interval Timer</a>
+          <a href="/timers/multiple-timers-at-once">Multiple Timers</a>
+          <a href="/timers/agenda-timer">Agenda Timer</a>
+          <a href="/timers/new-year-countdown">New Year Countdown</a>
+          <a href="/timers/christmas-countdown">Christmas Countdown</a>
+    </div>
+    <div class="foot-in">
+      <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
+      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

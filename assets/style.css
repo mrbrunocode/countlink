@@ -862,11 +862,22 @@ input:focus,select:focus{outline:none;border-color:var(--amber)}
    fallback for someone who heard a code, not a call to action. The intended
    path is typing countlink.app/j/CODE straight into the address bar. */
 .join-entry-row{display:flex;gap:8px;align-items:stretch}
+/* width:100% on BOTH, and the growth controlled by flex-basis — not by
+   leaving either one on `auto`.
+   .btn carries width:100% below 480px (see the .btn rule: mobile buttons are
+   full-width by default), so a flex child of this row with flex-basis:auto
+   resolves its basis from that 100% and claims the entire row. Shipped that
+   way for one deploy: on a phone the Join button filled the row and the input
+   collapsed to about 60px — a code field too narrow to show a five-character
+   code, which is the one thing it exists to hold. Caught on a real phone, not
+   by the 375px checks that only asserted the page did not scroll sideways.
+   An overflow assertion cannot see this; the row fitted perfectly, it was
+   just apportioned backwards. */
 .join-entry-row input{
-  flex:1 1 auto;min-width:0;font-family:var(--mono);font-size:1rem;
+  flex:1 1 auto;width:100%;min-width:6ch;font-family:var(--mono);font-size:1rem;
   letter-spacing:.12em;text-transform:uppercase;
 }
-.join-entry-row .btn{flex:0 0 auto}
+.join-entry-row .btn{flex:0 0 auto;width:auto}
 
 .pro-link{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.03em;color:var(--amber);text-decoration:underline;text-underline-offset:3px;
@@ -1242,3 +1253,37 @@ body.overlay-mode .tiles{gap:8px}
    as navigation rather than prose. */
 .use-list{margin:0 0 18px;padding-left:1.1em;line-height:1.85}
 .use-list a{font-weight:600}
+
+/* ── /vs/ comparison pages ────────────────────────────────────────────────
+   A two-column table where one column is us. The "us" column is tinted rather
+   than bolded so the table still reads as a comparison a reader can trust —
+   the point of these pages is that the competitor's column is filled in
+   honestly, and shouting our own column undercuts that. */
+.vs{max-width:76ch;padding:0 var(--gut,16px) 48px}
+.vs h2{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule-fine);
+}
+.vs p{margin:0 0 14px;line-height:1.7}
+.vs .use-list{margin-top:0}
+
+/* Wide tables scroll inside their own box rather than pushing the page
+   sideways — this one is three columns of prose and will not fit a phone. */
+.vs-table-wrap{overflow-x:auto;margin:0 0 10px;-webkit-overflow-scrolling:touch}
+.vs-table{border-collapse:collapse;width:100%;min-width:520px;font-size:.86rem}
+.vs-table th,.vs-table td{
+  text-align:left;padding:10px 12px;vertical-align:top;line-height:1.5;
+  border-bottom:1px solid var(--rule-fine);
+}
+.vs-table thead th{
+  font-family:var(--display);font-size:.95rem;letter-spacing:.02em;
+  border-bottom:1px solid var(--panel-line);
+}
+.vs-table tbody th{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--paper-dim);font-weight:400;width:30%;
+}
+.vs-table .vs-us{background:color-mix(in oklch, var(--amber) 7%, transparent)}
+.vs-table thead .vs-us{color:var(--amber)}
+.vs-verified{font-size:.78rem;color:var(--paper-dim);margin:0 0 8px}
+.vs-verified a{text-decoration:underline}

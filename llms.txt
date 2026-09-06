@@ -84,7 +84,19 @@ What CountLink deliberately does not do:
 - [Features](https://countlink.app/features): every capability, named and grouped
 - [Home / timer tool](https://countlink.app/): create and share a countdown, FAQ on how sync works, why the free tier has no viewer limit
 - [How It Works](https://countlink.app/how-it-works): the link-timestamp sync mechanic explained in depth
-- [Comparison: CountLink vs ShareMyTimer vs Stagetimer](https://countlink.app/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+- [Comparison hub: CountLink vs ShareMyTimer vs Stagetimer vs CountdownShare vs Leaderboarded](https://countlink.app/compare): pricing, limits, and architecture differences, verified against each competitor's own pricing page
+
+## Head-to-head comparisons
+
+One page per competitor, each with a verdict, a full feature table, an honest
+section on what the competitor does better, and the case for picking either.
+Every price and limit is verified against that vendor's own pricing page on the
+date stated on the page.
+
+- [CountLink vs ShareMyTimer](https://countlink.app/vs/sharemytimer): CountLink vs ShareMyTimer, compared on price, viewer limits and features. ShareMyTimer's free tier stops at 3 viewers and charges $6/mo for sound alerts; CountLink is unlimited and free. Verified against their pricing page.
+- [CountLink vs Stagetimer.io](https://countlink.app/vs/stagetimer): CountLink vs Stagetimer.io, compared honestly. Stagetimer is professional event-production software from $210/year; CountLink is a free shared countdown. Which one you need depends on whether there's an AV desk involved.
+- [CountLink vs CountdownShare](https://countlink.app/vs/countdownshare): CountLink vs CountdownShare. CountdownShare is a marketing countdown tool — email GIFs, evergreen per-visitor timers, analytics, from $9/month. CountLink is a free shared timer for groups. They solve different problems.
+- [CountLink vs TimerLink](https://countlink.app/vs/timerlink): CountLink vs TimerLink. TimerLink's free tier allows one active timer with branding and needs an account; Pro is $9/month. CountLink is unlimited and free with no signup. Verified against their pricing page.
 - [About](https://countlink.app/about): who builds this and why
 - [Privacy policy](https://countlink.app/privacy): what data is (and isn't) collected
 - [Terms of Service](https://countlink.app/terms)
