@@ -114,6 +114,20 @@ test("an unknown style falls back to board rather than 400ing", async () => {
   assert.equal(res.status, 200);
 });
 
+test("a prototype-chain style name falls back to board, not fill=undefined", async () => {
+  // `?style=constructor` (also __proto__, toString, hasOwnProperty) resolves
+  // up Object.prototype to a truthy value, which used to sail past the bare
+  // `STYLES[name]` check and render a badge with no background and
+  // fill="undefined".
+  for (const name of ["constructor", "__proto__", "toString", "hasOwnProperty"]) {
+    const res = await get(`?t=${Date.now() + 90000}&style=${name}`);
+    assert.equal(res.status, 200, name);
+    const body = await res.text();
+    assert.doesNotMatch(body, /fill="undefined"/, name);
+    assert.match(body, /<rect /, `${name}: board style must still draw its background`);
+  }
+});
+
 test("a label is carried through into the rendered badge", async () => {
   const res = await get(`?t=${Date.now() + 90000}&l=${encodeURIComponent("Group Study")}`);
   assert.match(await res.text(), /Group Study/);

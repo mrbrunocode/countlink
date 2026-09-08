@@ -6,9 +6,23 @@
    purpose: the wire protocol in realtime.js's header comment. */
 (function () {
   const $ = (id) => document.getElementById(id);
+
+  /* Read the label straight off the raw hash and decode exactly once.
+     URLSearchParams.get() has already percent-decoded, so calling
+     decodeURIComponent() on its result decoded TWICE — a label with a literal
+     % ("50% done", "20% off") made the second pass throw URIError right here,
+     at the top of the IIFE, taking down every control handler below it. Same
+     double-decode bug, same fix, as labelFromHash() in app.js and labelOf()
+     in functions/mcp.js. */
+  function labelFromHash(hashStr) {
+    const m = String(hashStr == null ? "" : hashStr).replace(/^#/, "").match(/(?:^|&)l=([^&]*)/);
+    if (!m) return "";
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  }
+
   const params = new URLSearchParams(location.hash.slice(1));
   const rawT = +params.get("t");
-  const label = decodeURIComponent(params.get("l") || "");
+  const label = labelFromHash(location.hash);
   const sessionId = params.get("c");
   const dirParam = params.get("d");
 

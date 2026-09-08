@@ -72,6 +72,15 @@ const STYLES = {
   minimal: { bg: null, fg: "#1c1c1a", dim: "#6b665f" },
 };
 
+/* An OWN-property check, not `STYLES[name]` truthiness: `?style=constructor`
+   (or __proto__, toString, hasOwnProperty …) resolves up the prototype chain
+   to a truthy value, which sailed past a bare lookup and left renderBadgeSvg
+   emitting fill="undefined" with no background — a broken badge, cached, on
+   whoever's README. mcp.js is immune only because it uses a Set. */
+function knownStyle(name) {
+  return Object.prototype.hasOwnProperty.call(STYLES, name);
+}
+
 /* Coarse on purpose (see the file header) — a fixed instant read back a
    minute after the badge was generated must still describe itself
    honestly, so precision would be a lie by the time anyone sees it, not
@@ -91,7 +100,7 @@ export function badgeTimeText(remainingSeconds) {
    assert on the exact markup for a given input without spinning up a
    Worker. `style` is assumed already validated to a real key of STYLES. */
 export function renderBadgeSvg({ label, style, timeText }) {
-  const c = STYLES[style] || STYLES.board;
+  const c = (knownStyle(style) && STYLES[style]) || STYLES.board;
   const title = escapeXml(`${label ? label + " — " : ""}${timeText} — CountLink`);
   const bgRect = c.bg ? `<rect width="${BADGE_W}" height="${BADGE_H}" rx="10" fill="${c.bg}"/>` : "";
   // Label is optional; when absent the time text moves up to the label's
@@ -147,7 +156,7 @@ export async function onRequest(context) {
 
   const label = (url.searchParams.get("l") || "").slice(0, 60);
   const styleParam = url.searchParams.get("style");
-  const style = STYLES[styleParam] ? styleParam : "board";
+  const style = knownStyle(styleParam) ? styleParam : "board";
   const remainingSeconds = Math.round((end - Date.now()) / 1000);
   const timeText = badgeTimeText(remainingSeconds);
 

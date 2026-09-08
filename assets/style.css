@@ -1141,6 +1141,13 @@ body.overlay-mode .tiles{gap:8px}
 
 /* ---------- run-of-show (agenda print sheet) ---------- */
 .runsheet{margin-top:18px;border-top:1px solid var(--panel-line);padding-top:14px}
+/* Five columns, four of them nowrap numerics, plus an untruncated segment
+   label: on a phone the table's min-content width can exceed the panel, and
+   WebKit (unlike Blink) refuses to shrink a table below that — which dragged
+   the whole agenda page ~25px sideways on iOS. Scroll it inside its own box,
+   the same rule .data-table-wrap already applies to the guide/timer tables.
+   Print is unaffected (no scrollbars on paper; the rows just flow). */
+.runsheet{overflow-x:auto}
 .runsheet table{width:100%;border-collapse:collapse;font-size:.9rem}
 .runsheet th,.runsheet td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--panel-line)}
 .runsheet th{font-family:var(--mono,ui-monospace,monospace);font-size:.7rem;

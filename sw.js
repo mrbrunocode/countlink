@@ -14,6 +14,12 @@
  * none of the staleness risk online.
  */
 const CACHE_NAME = "countlink-shell-v2";
+/* style.css and app.js are always requested with a ?v=<hash> cache-buster, so
+ * their runtime request URL never equals the bare path listed here. The
+ * install-time addAll() below still primes them (the addAll fetch has no ?v=,
+ * which is fine — same bytes), and the fetch handler's offline fallback uses
+ * {ignoreSearch:true} so a cold offline load still matches the network-cached
+ * versioned copy. favicon.svg and manifest.json are requested bare. */
 const SHELL_ASSETS = ["/assets/style.css", "/assets/app.js", "/assets/favicon.svg", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -44,6 +50,11 @@ self.addEventListener("fetch", (event) => {
         if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
         return response;
       })
-      .catch(() => caches.match(event.request))
+      // Offline: try the exact request, then fall back to a query-insensitive
+      // match so a versioned ?v= asset still resolves to whatever copy was
+      // cached online (or the bare precache entry from install).
+      .catch(() =>
+        caches.match(event.request).then((hit) => hit || caches.match(event.request, { ignoreSearch: true }))
+      )
   );
 });

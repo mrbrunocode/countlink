@@ -76,7 +76,12 @@ export function encodeJoinCode(endMs) {
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const code = decodeURIComponent(url.pathname.replace(/^\/j\//, "").replace(/\/$/, ""));
+  const rawCode = url.pathname.replace(/^\/j\//, "").replace(/\/$/, "");
+  /* A stray "%" in the path (e.g. /j/abc%) makes decodeURIComponent throw. A
+     garbled code is a wrong URL, not a server fault, so fall through to the
+     404 branch below rather than letting an uncaught throw 500. */
+  let code = null;
+  try { code = decodeURIComponent(rawCode); } catch (e) { code = null; }
   const end = decodeJoinCode(code);
 
   if (end === null) {
