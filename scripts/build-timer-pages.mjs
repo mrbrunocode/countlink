@@ -610,8 +610,14 @@ export const PAGES = [
       { q: "Will remote and in-office teammates see the same countdown?", a: "Yes — the deadline is one shared instant regardless of device or location, so remote and in-office teammates see identical time remaining." },
     ] },
   { slug: "zoom-meeting-timer", minutes: 10, label: "Time's up", eyebrow: "Zoom Meeting Timer", affiliate: true,
-    h1: "Zoom Meeting Timer — Keep Every Call On Time",
-    meta: "A free shared timer for Zoom calls that doesn't need screen-sharing — copy the link into the chat and everyone's own screen counts down together.",
+    /* Bing ranks this page 7th for "zoom timer on screen" and it earned 0
+       clicks from 33 impressions — the best-ranking zero-click page on the
+       site. The old h1 ("Keep Every Call On Time") answers a question nobody
+       typed; the searcher's words are "on screen", and this page's actual
+       differentiator — you don't have to screen-share to show it — was buried
+       in the meta. Both now lead. */
+    h1: "Zoom Meeting Timer — On Every Screen, No Screen Share",
+    meta: "A free shared timer for Zoom calls that needs no screen-sharing. Drop the link in the chat and it counts down on everyone's own screen, to the same second — no account, no app, no viewer limit.",
     intro: "Screen-sharing a timer inside Zoom works, but it takes over your whole screen. Open this on a second monitor or phone instead, or drop the link in the meeting chat — everyone gets their own synced countdown without you sharing anything.",
     extra: ZOOM_EXTRA,
     faq: [
@@ -656,7 +662,12 @@ export const PAGES = [
     ] },
   { slug: "group-study-timer", minutes: 25, label: "Break time", eyebrow: "Group Study Timer", affiliate: true,
     h1: "Group Study Timer — Study With Me, In Sync",
-    meta: "A free shared study timer for study groups and study-with-me sessions. Set a single focus block, or turn on the optional panel to auto-cycle the whole focus/break rhythm.",
+    /* h1 deliberately unchanged: it already contains "group study timer"
+       verbatim and Bing ranks it 5th for exactly that. The title was never
+       the problem — the description was, opening on mechanism ("turn on the
+       optional panel to auto-cycle") rather than on what a searcher wants to
+       know, which is that everyone in the group sees the same clock. */
+    meta: "A free shared timer for study groups and study-with-me sessions — send one link and every person's screen counts down to the same second. No account, no app, no viewer limit.",
     intro: "Studying with friends or running a study-with-me stream works best when breaks actually line up. Set a single focus block here and share the link, or use the auto-cycling panel further down as an option to run the whole rhythm — breaks included — without restarting anything between rounds.",
     setupHint: "The board above is set to a single 25-minute focus block, and you can change it right there. For the full auto-cycling rhythm instead, use the panel below the board.",
     extra: GROUP_STUDY_EXTRA,

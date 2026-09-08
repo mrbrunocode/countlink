@@ -119,13 +119,13 @@ date stated on the page.
 ### Classroom & exams
 - [Exam Timer](https://countlink.app/timers/exam-timer): A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.
 - [Classroom Timer](https://countlink.app/timers/classroom-timer): A free classroom timer built for transitions, group work and quiz rounds — project it or share the link so every student sees the same countdown.
-- [Group Study Timer](https://countlink.app/timers/group-study-timer): A free shared study timer for study groups and study-with-me sessions. Set a single focus block, or turn on the optional panel to auto-cycle the whole focus/break rhythm.
+- [Group Study Timer](https://countlink.app/timers/group-study-timer): A free shared timer for study groups and study-with-me sessions — send one link and every person's screen counts down to the same second. No account, no app, no viewer limit.
 
 ### Meetings
 - [Meeting Timer](https://countlink.app/timers/meeting-timer): A free shared meeting timer. Set the length, send one link, and every attendee — in the room and remote — sees the identical countdown. No account, no viewer limit, no screen share.
 - [Webinar Countdown](https://countlink.app/timers/webinar-countdown): A shareable pre-webinar countdown. Put the link in your registration email or waiting room so every attendee's screen counts down to the same start time.
 - [Standup Timer](https://countlink.app/timers/standup-timer): A free shareable standup timer for teams. Set the length once, drop the link in Slack, and everyone sees the same countdown to keep standup on time.
-- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer): A free shared timer for Zoom calls that doesn't need screen-sharing — copy the link into the chat and everyone's own screen counts down together.
+- [Zoom Meeting Timer](https://countlink.app/timers/zoom-meeting-timer): A free shared timer for Zoom calls that needs no screen-sharing. Drop the link in the chat and it counts down on everyone's own screen, to the same second — no account, no app, no viewer limit.
 - [Google Meet Timer](https://countlink.app/timers/google-meet-timer): A free shared timer for Google Meet. Copy the link into the meeting chat and everyone's own screen counts down in sync — no extension, no screen share.
 - [Workshop Timer](https://countlink.app/timers/workshop-timer): A free shared timer for workshop facilitators. Set the segment length, share the link, and every table or breakout group sees the identical countdown.
 

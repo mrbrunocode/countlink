@@ -24,7 +24,7 @@
     "date": "2026-09-08"
   },
   "static/index.html": {
-    "hash": "e158f40e7061a36d",
+    "hash": "893c3729315fc2b7",
     "date": "2026-09-08"
   },
   "static/privacy.html": {
@@ -64,8 +64,8 @@
     "date": "2026-07-25"
   },
   "timers/group-study-timer": {
-    "hash": "f72de13326d56e54",
-    "date": "2026-09-06"
+    "hash": "a4fe3b5281f395b7",
+    "date": "2026-09-08"
   },
   "timers/index": {
     "hash": "a6edc55e31a308bf",
@@ -108,7 +108,7 @@
     "date": "2026-09-05"
   },
   "timers/zoom-meeting-timer": {
-    "hash": "50961367d5859d36",
-    "date": "2026-07-24"
+    "hash": "01908514f65ed2f8",
+    "date": "2026-09-08"
   }
 }
