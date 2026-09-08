@@ -1,4 +1,40 @@
 {
+  "static/about.html": {
+    "hash": "e0539a61552b252d",
+    "date": "2026-09-08"
+  },
+  "static/compare.html": {
+    "hash": "4d35ef268e8fe325",
+    "date": "2026-09-08"
+  },
+  "static/contact.html": {
+    "hash": "8a92ccbf1c3d4118",
+    "date": "2026-09-08"
+  },
+  "static/features.html": {
+    "hash": "cb89d7633237ad06",
+    "date": "2026-09-08"
+  },
+  "static/guides-index": {
+    "hash": "390d0bd6a8619238",
+    "date": "2026-09-08"
+  },
+  "static/how-it-works.html": {
+    "hash": "1373323cfb52d8be",
+    "date": "2026-09-08"
+  },
+  "static/index.html": {
+    "hash": "e158f40e7061a36d",
+    "date": "2026-09-08"
+  },
+  "static/privacy.html": {
+    "hash": "99c44fa3bcdab56a",
+    "date": "2026-09-08"
+  },
+  "static/terms.html": {
+    "hash": "f404c5eb2b9a0fa8",
+    "date": "2026-09-08"
+  },
   "timers/agenda-timer": {
     "hash": "44ed1a3bf60c52f1",
     "date": "2026-07-25"

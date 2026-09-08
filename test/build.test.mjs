@@ -43,6 +43,34 @@ test("sitemap.xml lists every timer page exactly once", () => {
   }
 });
 
+/* lastmod has to be a claim about the CONTENT, not about when a script last
+   ran. It used to be the build date on all forty URLs, so every rebuild —
+   a CSS tweak, an asset-version bump, `node --test` — told Google the whole
+   site had just changed. Google discounts lastmod entirely for a site whose
+   values it stops trusting, and this is how that is earned. The exact
+   antipattern content-dates.mjs was written to avoid; it just wasn't wired to
+   the sitemap. See the sitemap block in build-timer-pages.mjs. */
+test("sitemap lastmod reflects content dates, not the build date", () => {
+  const sitemap = readGen("sitemap.xml");
+  const stamps = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
+  const today = new Date().toISOString().slice(0, 10);
+
+  assert.ok(stamps.length >= 30, `expected a full sitemap, got ${stamps.length} lastmod values`);
+  for (const s of stamps) {
+    assert.match(s, /^\d{4}-\d{2}-\d{2}$/, `malformed lastmod: ${s}`);
+    assert.ok(s <= today, `lastmod in the future: ${s}`);
+  }
+
+  // The tell for a regression to BUILD_DATE is every URL agreeing on today.
+  // Pages genuinely edited today are fine and expected; ALL of them is not.
+  const stale = stamps.filter((s) => s !== today);
+  assert.ok(
+    stale.length > stamps.length / 2,
+    `only ${stale.length}/${stamps.length} lastmod values differ from today — ` +
+      "this is what stamping the build date on every URL looks like",
+  );
+});
+
 test("generated page contains its own h1 and canonical URL", () => {
   const p = PAGES[0];
   const html = readGen("timers", `${p.slug}.html`);

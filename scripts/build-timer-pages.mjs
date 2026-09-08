@@ -17,6 +17,9 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+// Sync reads, deliberately: sitemap()'s lastmod hashes hand-written pages off
+// disk, and it is called from inside a template expression that cannot await.
+import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { NAME, SITE_URL, CONTACT_EMAIL, CONTENT_DATE, GROW_SITE_ID, AFFILIATE_NAME, AFFILIATE_URL, AFFILIATE_BLURB } from "./site-config.mjs";
 import { ARTICLES, AUTHOR_NAME, AUTHOR_URL, AUTHOR_BIO } from "./articles.mjs";
@@ -1842,26 +1845,66 @@ const notFoundPage = () => guideShell({
 </article>`,
 });
 
-// Sitemap lastmod reflects when the pages were actually (re)generated, not
-// the hand-bumped CONTENT_DATE used for JSON-LD datePublished/dateModified —
-// derive it from the current date at build time so every rebuild keeps the
-// sitemap fresh automatically instead of freezing on whatever date someone
-// last remembered to type in.
+/* ---------------------------------------------------------------------------
+ * Sitemap lastmod.
+ *
+ * This used to stamp the BUILD DATE on all 40 URLs, on every build — including
+ * a build triggered by a CSS tweak, an asset-version bump or `node --test`.
+ * That is the exact antipattern content-dates.mjs was written to avoid, and
+ * its own header says so: "bumping dateModified on every build is 'content
+ * churn for freshness signals' … and a claim that isn't true (nothing changed;
+ * a script ran)." The sitemap simply wasn't wired to it. Google discounts
+ * lastmod wholesale for a site whose values it doesn't trust, and "all forty
+ * URLs changed today, again" is how a site earns that.
+ *
+ * Every page type already knows its real date; nothing new had to be invented:
+ *   timer pages   dates.dateOf() — the content-hash manifest, already used for
+ *                 the JSON-LD dateModified on the same page
+ *   /guides/<a>   a.date       (hand-set per article, already its dateModified)
+ *   /vs/<c>       c.verified   (the date the rival's pricing was re-checked)
+ *   generated     hashed here the same way the timer pages are
+ *   hand-written  hashed from the file on disk, with the two volatile regions
+ *                 removed: the ?v= asset stamp, and the marker-synced chrome
+ *                 and index rail. Those change when the CSS or the nav
+ *                 changes, which is not the page's own content changing.
+ *
+ * BUILD_DATE survives only as a last-resort fallback for a page that somehow
+ * reaches the sitemap without a date of its own.
+ * ------------------------------------------------------------------------- */
 const BUILD_DATE = new Date().toISOString().split("T")[0];
 
+/* Strip what a rebuild rewrites but an editor didn't: the asset cache-buster,
+   and everything between the CHROME/INDEX sync markers. What's left is the
+   page's own hand-written content. */
+const stripVolatile = (html) =>
+  html
+    .replace(/\?v=[0-9a-f]+/g, "")
+    .replace(/<!-- CHROME_START[\s\S]*?CHROME_END[^>]*-->/g, "")
+    .replace(/<!-- INDEX_START[\s\S]*?INDEX_END[^>]*-->/g, "");
+
+/* Date for a hand-written page, from its bytes. Returns BUILD_DATE if the file
+   isn't there yet (a page being generated for the first time). */
+const dateForFile = (key, absPath) => {
+  if (!existsSync(absPath)) return BUILD_DATE;
+  return dates.dateFor(key, stripVolatile(readFileSync(absPath, "utf-8")));
+};
+
+const loc = (path, lastmod) =>
+  `  <url><loc>${SITE_URL}${path}</loc><lastmod>${lastmod || BUILD_DATE}</lastmod></url>`;
+
 const sitemap = () => {
-  const urls = PAGES.map(p => `  <url><loc>${SITE_URL}${hrefFor(p.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
-  const staticUrls = STATIC_PAGES.map(f => `  <url><loc>${SITE_URL}/${f.replace(/\.html$/, "")}</loc><lastmod>${BUILD_DATE}</lastmod></url>`).join("\n");
-  const featuresUrl = `  <url><loc>${SITE_URL}/features</loc><lastmod>${BUILD_DATE}</lastmod></url>`;
-  const vsUrls = COMPARISONS
-    .map((c) => `  <url><loc>${SITE_URL}${vsHref(c.slug)}</loc><lastmod>${BUILD_DATE}</lastmod></url>`)
+  const urls = PAGES.map(p => loc(hrefFor(p.slug), dates.dateOf(`timers/${p.slug}`))).join("\n");
+  const staticUrls = STATIC_PAGES
+    .map(f => loc(`/${f.replace(/\.html$/, "")}`, dateForFile(`static/${f}`, join(ROOT, f))))
     .join("\n");
-  const guideUrls = [`  <url><loc>${SITE_URL}/guides/</loc><lastmod>${BUILD_DATE}</lastmod></url>`]
-    .concat(ARTICLES.map(a => `  <url><loc>${SITE_URL}/guides/${a.slug}</loc><lastmod>${BUILD_DATE}</lastmod></url>`))
+  const featuresUrl = loc("/features", dateForFile("static/features.html", join(ROOT, "features.html")));
+  const vsUrls = COMPARISONS.map((c) => loc(vsHref(c.slug), c.verified)).join("\n");
+  const guideUrls = [loc("/guides/", dateForFile("static/guides-index", join(ROOT, "guides", "index.html")))]
+    .concat(ARTICLES.map(a => loc(`/guides/${a.slug}`, a.date)))
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE_URL}/</loc><lastmod>${BUILD_DATE}</lastmod></url>
+${loc("/", dateForFile("static/index.html", join(ROOT, "index.html")))}
 ${staticUrls}
 ${featuresUrl}
 ${vsUrls}

@@ -45,6 +45,18 @@ export function makeDateTracker(manifestPath, today) {
     return date;
   }
 
+  /**
+   * The date already recorded for `key` during THIS build, or null.
+   *
+   * Exists so a second consumer (sitemap.xml's lastmod) can reuse a date
+   * dateFor() has already computed, instead of calling dateFor() again with a
+   * second copy of the same content array — two copies that would silently
+   * drift apart and start disagreeing about when the page changed.
+   */
+  function dateOf(key) {
+    return current[key] ? current[key].date : null;
+  }
+
   function save() {
     const ordered = Object.fromEntries(
       Object.keys(current).sort().map((k) => [k, current[k]]),
@@ -56,5 +68,5 @@ export function makeDateTracker(manifestPath, today) {
     return { total: Object.keys(current).length, changed };
   }
 
-  return { dateFor, save };
+  return { dateFor, dateOf, save };
 }
