@@ -49,6 +49,56 @@ test.describe("mobile page layout", () => {
     await expectNoSidewaysDrag(page);
   });
 
+  /* The board opens with the CLOCK, not with a skin picker.
+     Below 640px the style toggle is moved to the end of the board with flex
+     `order` (see style.css). Two things are being protected here and they pull
+     in the same direction: the least important control must not hold the most
+     valuable slot on a phone, and Start has to clear the fold — this site's
+     own stated layout rule is that the tool sits in the first viewport at
+     375x667, which it did not before the toggle moved (Start's bottom edge sat
+     at 664px). Asserted on the real device projects, since the whole thing is
+     a media query. */
+  test("the clock comes before the skin picker, and Start clears the fold", async ({ page }) => {
+    for (const path of ["/", "/timers/classroom-timer"]) {
+      await page.goto(path);
+      await expect(page.locator("#tiles").first()).toBeVisible();
+
+      const geom = await page.evaluate(() => {
+        const box = (sel) => {
+          const el = document.querySelector(sel);
+          const r = el.getBoundingClientRect();
+          return { top: r.top + scrollY, bottom: r.bottom + scrollY };
+        };
+        return {
+          tiles: box("#tiles"),
+          start: box("#boardStartBtn"),
+          toggle: box(".style-toggle"),
+          vh: window.innerHeight,
+        };
+      });
+
+      expect(geom.tiles.top, `${path}: the clock must precede the style toggle`)
+        .toBeLessThan(geom.toggle.top);
+      expect(geom.start.top, `${path}: Start must precede the style toggle`)
+        .toBeLessThan(geom.toggle.top);
+      expect(geom.start.bottom, `${path}: Start must sit inside the first viewport`)
+        .toBeLessThanOrEqual(geom.vh);
+    }
+  });
+
+  /* The 48px above .sub is clearance for the down-chevron that appears when a
+     field is tapped — not decoration, and not something the fold-clearing trim
+     above was allowed to take. Guards the one margin that must survive. */
+  test("a revealed down-chevron still clears the sub-line", async ({ page }) => {
+    await page.goto("/timers/classroom-timer");
+    await page.locator('#tiles .field[data-k="m"]').tap();
+    const chev = await page.locator('#tiles .field[data-k="m"] .chev.down').boundingBox();
+    const sub = await page.locator("#subLine").boundingBox();
+    expect(chev, "the down chevron should be revealed by a tap").not.toBeNull();
+    expect(chev.y + chev.height, "the chevron must not overlap the sub-line")
+      .toBeLessThanOrEqual(sub.y + 1);
+  });
+
   test("a shared link (running board) fits and the page holds still", async ({ page }) => {
     // Far-future instant so the board is unambiguously running, not finished.
     await page.goto("/#t=" + (Date.now() + 45 * 60 * 1000) + "&l=Team%20standup");

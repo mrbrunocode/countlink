@@ -328,6 +328,38 @@ body.viewing .stage-section{padding-top:18px}
   .style-toggle{position:absolute;top:28px;right:26px;margin:0}
   .style-toggle button{padding:6px 12px;font-size:.64rem}
 }
+/* …and on a phone it goes to the END of the board rather than the top.
+   Above 640px the rule directly above already parks it in the corner, which is
+   what "out of the way" means there. Below it, being first in source order put
+   the least important control in the most valuable slot on the screen: the
+   first thing inside the board, above the clock, ahead of Start — a skin
+   picker shown to someone who has not made a timer yet, costing 44px of the
+   first viewport.
+
+   Done with flex `order`, not by moving the markup: the board is hand-written
+   in seven root pages as well as generated into the rest, and only the chassis
+   and index rail are marker-synced (see build-timer-pages.mjs), so a source
+   reorder would have to be repeated by hand in every one of them. #a11yStatus
+   is position:absolute (.sr-only) so it is not a flex item and cannot claim a
+   row. Every other child keeps source order — equal `order` values fall back
+   to it — and no margins collapse differently here, since in each adjacent
+   pair one side is already 0. */
+@media(max-width:639px){
+  .board{display:flex;flex-direction:column}
+  .style-toggle{order:99;margin:18px auto 0}
+  /* The progress hairline carries 20px of air above and another 20 below
+     (.stage-btns' own margin) — 42px around a 2px rule, which is desktop
+     rhythm applied to a screen that cannot spare it. Tightened to 26px total
+     so Start clears the fold; the separation still reads clearly. The 48px
+     above .sub is NOT touched: it is the clearance the revealed down-chevron
+     needs (see the pointer:coarse block), not decoration.
+
+     `.board .bar`, not `.bar` — same trap the pointer:coarse block documents
+     for .sub: both base rules are declared later in this file and a media
+     query adds no specificity, so the bare selectors lose. */
+  .board .bar{margin-top:12px}
+  .board .stage-btns{margin-top:14px}
+}
 
 .evt{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--amber);text-transform:uppercase;
