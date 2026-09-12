@@ -77,6 +77,25 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 
+/* Cross-document view transitions: a soft crossfade between pages on this
+   site (home -> a timer page -> a guide -> back) instead of the usual blank
+   white flash of a normal navigation. Purely declarative and purely additive
+   — one CSS at-rule, no JS, no per-element view-transition-name (the default
+   whole-page crossfade is enough here and keeps this safe to ship without
+   auditing every page pair for a bad morph). Unsupported browsers just do a
+   normal navigation, exactly as today; nothing about how this site works
+   depends on it. Chrome and Safari ship it; Firefox does not yet.
+   `*{animation-duration:.001s}` above does NOT reach this — the browser's
+   default view-transition animations live on ::view-transition-group()
+   pseudo-elements, which the universal selector cannot match, so they need
+   their own reduced-motion rule below. */
+@view-transition{navigation:auto}
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){
+    animation:none!important;
+  }
+}
+
 /* visually hidden, still read by screen readers (live announcements etc.) */
 .sr-only{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
