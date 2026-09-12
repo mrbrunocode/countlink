@@ -57,8 +57,8 @@ scripts/
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
   perception-gap-2026-09-06.md  why assistants called this site "minimalist", and the fix
-  phone-control-setup.md how to turn on pause/adjust/stop from a phone (currently dark — needs an Ably key)
-ads.txt                 AdSense seller-verification file (fill in once approved)
+  phone-control-setup.md pause/adjust/stop from a phone — LIVE since 2026-07-26, opt-in checkbox in the setup panel, Ably key already configured
+ads.txt                 AdSense seller-verification file — already filled in and live; AdSense approval is separate from this file existing
 robots.txt              allows crawling, points to sitemap.xml
 sitemap.xml             generated — do not hand-edit, re-run the build script instead
 archive/                earlier prototype ideas explored before CountLink (kept for reference)
@@ -200,16 +200,18 @@ corpus through both implementations.
 `functions/` ships by default; a test asserts it is never added to that list,
 because doing so would take `/mcp` off the internet with nothing failing.
 
-## Phone control (opt-in, currently dark)
+## Phone control (opt-in, LIVE since 2026-07-26)
 
 `assets/realtime.js` + `control.html` add an optional layer on top of the
-sync mechanic above: pause, ±1 min, and stop, pushed from a phone to
-whatever screen has the countdown open. It's entirely separate from (and
-never a dependency of) the link-is-the-timer mechanic — with no Ably key
-configured, `window.COUNTLINK_ABLY_KEY` is empty, the checkbox that turns
-it on never appears, and every code path in `realtime.js` no-ops. See
-`docs/phone-control-setup.md` for what it does and the one manual signup
-step needed to turn it on.
+sync mechanic above: pause, ±1 min, stop, and a flash message pushed from a
+phone to whatever screen has the countdown open. It's entirely separate from
+(and never a dependency of) the link-is-the-timer mechanic — `assets/
+realtime-config.js` carries a real, scoped Ably key
+(`window.COUNTLINK_ABLY_KEY`), so the "let me pause, adjust, or stop this
+from my phone" checkbox is live in the setup panel; with no key configured
+the same code paths would instead no-op silently. See
+`docs/phone-control-setup.md` for the design and known v1 limitations
+(down-mode only, no presence/connection indicator).
 
 ## Adding a new programmatic landing page
 
@@ -548,22 +550,26 @@ Below 900px the index rail moves *below* the working area via flex `order`, so
 the board is still the first thing on the page on a phone. That is this site's
 one hard layout rule — you open it to hand a room a clock.
 
-## Deployment (once you have a domain — see domain shortlist below)
+## Deployment
 
-Any static host works since there's no backend. Cheapest/simplest options:
+Live at countlink.app since July 2026, on Cloudflare Pages — but not via
+Cloudflare's git-connected dashboard integration. `.github/workflows/deploy.yml`
+runs on every push to `main`: it `rsync`s the repo into a `dist/` staging copy
+with a DENY-list (everything public by default; `scripts/`, `test/`, `e2e/`,
+`docs/`, `.claude/`, `package.json` etc. excluded — see that workflow's own
+header comment for why deny-list over allow-list), guards that nothing private
+leaked in and that every sitemap URL has a real file, then deploys `dist/`
+with `wrangler pages deploy` (direct-upload, not the dashboard integration).
+`.github/workflows/test.yml` runs `node --test` plus the Playwright suite
+across 5 browser projects on the same push, in parallel with the deploy —
+a flaky browser run can never block a content fix from shipping. See both
+workflow files' own comments before changing either.
 
-- **Cloudflare Pages** (recommended) — free, connect a GitHub repo, auto-deploys
-  on push, free SSL, effectively $0/month at this traffic scale.
-- **Netlify** or **GitHub Pages** — same idea, also free for a static site.
-
-Steps (Cloudflare Pages):
-1. Push this repo to GitHub (see "Git / version control" below).
-2. In Cloudflare dashboard → Workers & Pages → Create → Pages → connect the repo.
-3. Build command: none. Output directory: `/` (repo root).
-4. Add your domain under Custom Domains once purchased.
-5. Update `SITE_URL` in `scripts/build-timer-pages.mjs` and the `canonical`/`og:url`
-   values in `index.html` from `countlink.app` to the real domain, then
-   re-run the build script and redeploy.
+To point this setup at a different domain: update `SITE_URL` in
+`scripts/build-timer-pages.mjs` and the `canonical`/`og:url` values in
+`index.html`, re-run the build script, add the new domain under Cloudflare
+Pages → Custom Domains, and add the `CLOUDFLARE_API_TOKEN` /
+`CLOUDFLARE_ACCOUNT_ID` repo secrets the deploy workflow expects.
 
 ## Domain name research
 
@@ -594,9 +600,12 @@ and the premium pricing on `count.link` isn't worth it for the novelty.
 
 ## Git / version control
 
-This folder is a plain directory today; see the setup steps run as part of
-this task (git init, `.gitignore`, initial commit) so it's ready to push to
-GitHub whenever you want.
+Live GitHub repo at `github.com/mrbrunocode/countlink`, `main` as the default
+and only long-lived branch — every push to it triggers the deploy and test
+workflows above. Use HTTPS remotes, not SSH: there is no SSH key set up on
+the machines this gets worked on from, and `gh repo create` defaulting to a
+`git@github.com:` remote has silently left a repo pushless twice before (see
+the family-level `CLAUDE.md` for the fix).
 
 ## Monetization
 
