@@ -52,6 +52,13 @@ let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
    the duration routes through renderReady(), which resets this, so the two can
    never silently disagree. */
 let boardTotal=null,boardTypeBuf="";
+/* Which input methods touched the board before Start was pressed, for the
+   timer_started analytics event's set_via param — a Set so "typed then
+   nudged with a chevron" reports both rather than only the last one.
+   Cleared once read (see start()) so it never leaks into the next
+   countdown. */
+let boardSetMethods=new Set();
+function touchBoardMethod(m){boardSetMethods.add(m);}
 /* The duration the board was last set to from OUTSIDE itself — page load, or a
    quick-timer preset. Escape restores this. It can't just re-read #customMin,
    because the board writes its own value there on every edit (see
@@ -536,7 +543,9 @@ function start(ms,lab){
   render();
   connectRealtimeIfNeeded();
   updateControlLinkUI();
-  if(typeof gtag==="function")gtag("event","timer_started",{mode:"down",phone_control:!!controlSession});
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"down",phone_control:!!controlSession,
+    set_via:boardSetMethods.size?[...boardSetMethods].join("+"):"form"});
+  boardSetMethods.clear();
 }
 function startUp(lab){
   direction="up";
@@ -550,7 +559,8 @@ function startUp(lab){
   saveRecent();
   setState("running");
   render();
-  if(typeof gtag==="function")gtag("event","timer_started",{mode:"up",phone_control:false});
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"up",phone_control:false,set_via:"form"});
+  boardSetMethods.clear();
 }
 /* Interval mode: `end` is the cycle START instant (like "up"), and every tick
    derives the current phase/round from elapsed time modulo (work+rest) —
@@ -573,7 +583,8 @@ function startInterval(workSec,restSec,rounds,lab,longRestSec=0,longEvery=0){
   saveRecent();
   setState("running");
   render();
-  if(typeof gtag==="function")gtag("event","timer_started",{mode:"interval",phone_control:false});
+  if(typeof gtag==="function")gtag("event","timer_started",{mode:"interval",phone_control:false,set_via:"form"});
+  boardSetMethods.clear();
 }
 /* Stop is honest about what it can do: with no server, there is no way to
    halt a countdown on screens that already have the link — the link IS the
@@ -583,6 +594,10 @@ function startInterval(workSec,restSec,rounds,lab,longRestSec=0,longEvery=0){
    explicit broadcast rather than the passive link-timestamp mechanic. */
 function stopTimer(){
   const hadControl=!!controlSession;
+  // Captured before any of the resets below — "New timer" (dismissing an
+  // already-finished board) routes through this same function, and that is
+  // not the same user action as cutting a running countdown short.
+  if(typeof gtag==="function")gtag("event","timer_stopped",{mode:direction,was_finished:state==="finished"});
   resetLaps();
   clearInterval(tick);tick=null;end=null;fired=false;prevValues=null;lastSecond=null;ivPhaseKey=null;
   history.replaceState(null,"",location.pathname+location.search);
@@ -936,6 +951,7 @@ function dropBoardHours(){
     const chev=e.target.closest(".chev");
     if(chev){
       e.preventDefault();
+      touchBoardMethod("chevron");
       bumpBoardField(chev.closest(".field").dataset.k,chev.classList.contains("up")?1:-1);
       return;
     }
@@ -947,8 +963,8 @@ function dropBoardHours(){
     const fld=e.target.closest(".field");
     if(!fld)return;
     const k=fld.dataset.k,step=e.shiftKey?10:1;
-    if(e.key==="ArrowUp"){e.preventDefault();bumpBoardField(k,step);}
-    else if(e.key==="ArrowDown"){e.preventDefault();bumpBoardField(k,-step);}
+    if(e.key==="ArrowUp"){e.preventDefault();touchBoardMethod("arrow_key");bumpBoardField(k,step);}
+    else if(e.key==="ArrowDown"){e.preventDefault();touchBoardMethod("arrow_key");bumpBoardField(k,-step);}
     else if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
       e.preventDefault();
       const order=boardFieldEls().map(el=>el.dataset.k);
@@ -959,7 +975,7 @@ function dropBoardHours(){
         const g=$("addHrsBtn");if(g)g.focus();
       }
     }
-    else if(/^\d$/.test(e.key)){e.preventDefault();typeBoardDigit(e.key);}
+    else if(/^\d$/.test(e.key)){e.preventDefault();touchBoardMethod("typed");typeBoardDigit(e.key);}
     else if(e.key==="Backspace"){
       e.preventDefault();
       boardTypeBuf=boardTypeBuf.slice(0,-1);
@@ -1007,6 +1023,7 @@ function dropBoardHours(){
     clearTimeout(wheelTimer);
     wheelTimer=setTimeout(()=>{wheelKey=null;wheelAcc=0;},400);
     if(Math.abs(wheelAcc)>=WHEEL_STEP){
+      touchBoardMethod("scrolled");
       bumpBoardField(k,wheelAcc<0?1:-1);
       wheelAcc=0;
     }
@@ -1028,6 +1045,7 @@ function dropBoardHours(){
     const txt=cb.getData("text");
     const parsed=parsePastedDuration(txt);
     if(parsed==null){announce("Couldn't read that as a duration");return;}
+    touchBoardMethod("pasted");
     boardTypeBuf="";setBoardTotal(parsed);
     announce(spokenDuration(parsed));
   });
@@ -1044,6 +1062,7 @@ function dropBoardHours(){
        over a board that fills half the phone screen rolls digits instead of
        scrolling the page. */
     if(!fld.contains(document.activeElement)&&document.activeElement!==fld)return;
+    touchBoardMethod("dragged");
     dragKey=fld.dataset.k;dragY=e.clientY;dragAcc=0;
   });
   window.addEventListener("pointermove",e=>{
@@ -1906,6 +1925,7 @@ function draw(){
       $("barFill").style.width="100%";
       if(!fired){
         fired=true;beep();flashFinish();
+        if(typeof gtag==="function")gtag("event","timer_completed",{mode:"interval"});
         /* Nothing left to draw — stop the 250ms loop before flipping state.
            It used to keep running over a finished board, which was harmless
            while the board was a readout and is not now: it repainted 00:00
@@ -1965,6 +1985,7 @@ function draw(){
     $("barFill").style.width="100%";
     if(!fired){
       fired=true;beep();flashFinish();
+      if(typeof gtag==="function")gtag("event","timer_completed",{mode:direction});
       // See the interval branch above: the loop must stop before the board
       // becomes settable again, or it repaints zero over the user's input.
       clearInterval(tick);tick=null;
@@ -2124,6 +2145,7 @@ if($("evtName"))$("evtName").addEventListener("input",e=>{
 
 if($("shareBtn"))$("shareBtn").addEventListener("click",async e=>{
   const link=makeLink();
+  if(typeof gtag==="function")gtag("event","share_action",{type:"link"});
   // On touch devices, the native share sheet (WhatsApp/Messages/etc.) beats a
   // silent clipboard copy; everywhere else, copy is the pro move.
   if(navigator.share&&matchMedia("(pointer:coarse)").matches){
@@ -2232,6 +2254,7 @@ function renderJoinCode(){
 if($("joinCopyBtn"))$("joinCopyBtn").addEventListener("click",()=>{
   const code=$("joinCodeText").textContent;
   if(!code)return;
+  if(typeof gtag==="function")gtag("event","share_action",{type:"join_code"});
   const url=location.origin+"/j/"+code;
   const btn=$("joinCopyBtn");
   // Same shape as every other copy button here: navigator.clipboard can be
@@ -2256,6 +2279,7 @@ if($("joinEntry"))$("joinEntry").addEventListener("submit",(e)=>{
     $("joinInput").focus();
     return;
   }
+  if(typeof gtag==="function")gtag("event","join_code_redeemed",{});
   location.href="/j/"+String(raw).trim().toUpperCase().replace(/[\s-]/g,"");
 });
 
@@ -2269,6 +2293,7 @@ if(window.CountlinkRealtime&&window.CountlinkRealtime.enabled&&$("phoneControlRo
 if($("controlLinkBtn"))$("controlLinkBtn").addEventListener("click",async e=>{
   const link=makeControlLink();
   if(!link)return;
+  if(typeof gtag==="function")gtag("event","share_action",{type:"control_link"});
   if(navigator.share&&matchMedia("(pointer:coarse)").matches){
     try{await navigator.share({title:"Control "+(label||"this countdown"),url:link});return}
     catch(err){if(err&&err.name==="AbortError")return}
@@ -2306,6 +2331,7 @@ if($("howBtn"))$("howBtn").addEventListener("click",()=>{
    see docs/battle-plan-sharemytimer.md §2 and the SXO audit finding that this
    feature existed in code but was never surfaced on its own landing pages. */
 if($("overlayBtn"))$("overlayBtn").addEventListener("click",async e=>{
+  if(typeof gtag==="function")gtag("event","share_action",{type:"overlay_link"});
   const u=new URL(makeLink());
   u.searchParams.set("overlay","1");
   /* Serve it from /embed/, exactly as the general embed snippet below does.
@@ -2387,6 +2413,7 @@ if($("embedBtn"))$("embedBtn").addEventListener("click",()=>{
   if($(id))$(id).addEventListener("input",renderEmbedCode);
 });
 if($("embedCopyBtn"))$("embedCopyBtn").addEventListener("click",async e=>{
+  if(typeof gtag==="function")gtag("event","share_action",{type:"embed_code"});
   const done=flashCopyResult($("embedCopyBtn"),"Copied ✓","Couldn't copy — select the code above");
   done(await copyText($("embedCode").value));
 });
@@ -2406,6 +2433,7 @@ if($("alarmToneSelect")){
   $("alarmToneSelect").addEventListener("change",e=>{
     alarmTone=e.target.value;
     try{localStorage.setItem("samesecond_alarm_tone",alarmTone)}catch(err){}
+    if(typeof gtag==="function")gtag("event","alarm_tone_changed",{tone:alarmTone});
     if(sound){const tones=alarmTones();(tones[alarmTone]||tones.chime)(ctx());} // preview
   });
 }

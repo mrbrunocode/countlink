@@ -104,17 +104,29 @@
     draw();
   });
 
+  // One event name with an `action` param rather than five distinct events —
+  // this page has no other GA4 events to disambiguate against, and it keeps
+  // "how is phone control actually used" a single report instead of five.
+  function trackControl(action) {
+    if (typeof gtag === "function") gtag("event", "phone_control_action", { action: action });
+  }
+
   $("pauseResumeBtn").addEventListener("click", () => {
-    window.CountlinkRealtime.publishCommand(sessionId, { type: curState === "paused" ? "resume" : "pause" });
+    const action = curState === "paused" ? "resume" : "pause";
+    trackControl(action);
+    window.CountlinkRealtime.publishCommand(sessionId, { type: action });
   });
   $("minusBtn").addEventListener("click", () => {
+    trackControl("adjust_minus");
     window.CountlinkRealtime.publishCommand(sessionId, { type: "adjust", deltaMs: -60000 });
   });
   $("plusBtn").addEventListener("click", () => {
+    trackControl("adjust_plus");
     window.CountlinkRealtime.publishCommand(sessionId, { type: "adjust", deltaMs: 60000 });
   });
   $("ctrlStopBtn").addEventListener("click", () => {
     if (!confirm("Stop this countdown on every connected screen?")) return;
+    trackControl("stop");
     window.CountlinkRealtime.publishCommand(sessionId, { type: "stop" });
     $("ctrlStatus").textContent = "Stop sent.";
   });
@@ -132,6 +144,7 @@
   function sendFlash() {
     const text = cleanFlashText($("flashInput").value);
     if (!text) return;
+    trackControl("flash");
     window.CountlinkRealtime.publishCommand(sessionId, { type: "flash", text });
     $("flashInput").value = "";
     $("flashHint").textContent = "Sent.";
