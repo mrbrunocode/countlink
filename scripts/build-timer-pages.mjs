@@ -1219,9 +1219,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=b202d56e" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=b202d56e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=b202d56e"></noscript>
+<link rel="preload" href="../assets/style.css?v=49347cd5" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=49347cd5"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1385,9 +1385,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=b202d56e" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=b202d56e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=b202d56e"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=49347cd5" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=49347cd5"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>

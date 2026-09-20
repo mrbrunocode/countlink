@@ -561,14 +561,18 @@ body.viewing .stage-section{padding-top:18px}
 .board.settable .field.can-retract:focus-within .chev.down{display:none}
 .retract:hover{border-color:var(--amber);color:var(--amber)}
 .retract:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-/* "+hr" ghost. Slim on purpose — a full-width dashed placeholder the size of
-   the hours pair competed with the digits on a board most people only read. */
+/* "+hr" ghost. Slim on purpose — a full-width placeholder the size of the
+   hours pair competed with the digits on a board most people only read.
+   Slim, but NOT dashed: the only other dashed box on the site is .ad-frame,
+   the empty ad placeholder, so a dashed border here said "nothing loaded
+   yet" about the entry point to the settable board — the one thing vClock
+   and online-stopwatch.com don't do. Solid hairline, same restraint. */
 .ghost{
   width:clamp(22px,3.4vw,30px);height:var(--th);flex:none;
   display:none;place-items:center;background:transparent;
-  border:1px dashed var(--panel-line);color:var(--paper-dim);cursor:pointer;
+  border:1px solid var(--panel-line);color:var(--paper-dim);cursor:pointer;
   font-family:var(--mono);font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;
-  padding:0;opacity:.55;margin-right:clamp(1px,.5vw,5px);
+  padding:0;opacity:.7;margin-right:clamp(1px,.5vw,5px);
   transition:border-color .14s,color .14s,background .14s,opacity .14s;
 }
 .board.settable .ghost{display:grid}
