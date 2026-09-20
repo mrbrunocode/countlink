@@ -82,6 +82,9 @@ const OBS_OVERLAY_EXTRA = `
           <p>The button above copies a link to the countdown currently on the board. You don't have to use it — an overlay URL can be typed from scratch, which is handy for a scene you set up once and reuse, or a duration you'd rather not set by hand first:</p>
           <p><code class="obs-url">https://countlink.app/embed/?overlay=1#for=10m&amp;go=1</code></p>
           <p>Change <code>10m</code> to whatever you need — <code>5m</code>, <code>1h30m</code>, <code>90s</code>, <code>25m</code>. The <code>go=1</code> on the end is what makes it start counting the moment the scene loads, which is what you want for a "starting soon" screen: because OBS keeps the URL you gave it, every reload starts the countdown fresh rather than resuming one that already ran out. Add <code>&amp;l=Starting+soon</code> to put a label under the digits.</p>
+          <h3>Counting up instead of down</h3>
+          <p>The same overlay runs the other direction. Pick <b>Count up (stopwatch)</b> on the board before you start, then copy the overlay link exactly as above — the URL it gives you carries <code>&amp;d=up</code> and holds the <i>start</i> instant rather than an end one. Two things follow from that: an OBS reload resumes the clock where it actually is instead of restarting it, and there's no deadline to reach, so it keeps counting past 24 hours for a marathon, a subathon or an "on air for" readout. (<code>go=1</code> is a countdown-only shortcut and doesn't apply here — start the count-up on the board and copy its link.)</p>
+
           <p><b>Only use <code>go=1</code> for your own overlay, never for a link you send to people.</b> A link that starts itself starts <i>per person</i> — everyone opening it would begin their own countdown from whenever they clicked. For a mod or co-streamer who needs to watch the same clock as you, share the regular sync link instead: it carries one fixed end instant, so their screen and yours land on zero together.</p>
         </div>`;
 
@@ -639,12 +642,21 @@ export const PAGES = [
   // the same OBS browser-source workflow twice, once with the word "Twitch" in
   // it. Twitch-specific answers are kept below rather than dropped.
   { slug: "obs-countdown-timer", minutes: 5, label: "Starting soon", eyebrow: "Stream Countdown (OBS)",
-    h1: "OBS & Twitch Countdown Timer — Free Browser Source",
-    meta: "A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.",
+    h1: "OBS & Twitch Countdown or Count-Up Timer — Browser Source",
+    /* "Count-Up" is in the h1 (and so the title) because of what Bing shows:
+       this page ranks 1-3 for "count up link for obs", "…that doesn't end at
+       24" and "…that doesn't expire", the best positions on the whole site —
+       while the title and description said "countdown" only. A searcher who
+       asked for a count-up was being shown a snippet promising the opposite,
+       which is the likeliest reason those 14 impressions earned one click.
+       "Free" moved to the description to keep the title under ~70 chars; the
+       brand stays last, same reasoning as the homepage rewrite in e3da93f. */
+    meta: "Free countdown or count-up overlay for OBS, Twitch and YouTube — a transparent browser source with no watermark, and the stopwatch keeps running past 24 hours.",
     intro: "Add the overlay version of this page as an OBS Browser Source and it drops onto your scene with a transparent background — no green screen, no chroma key setup. Set your stream-start countdown, copy the link into OBS, and it's live. Share the regular link with mods or co-streamers and their screens match yours exactly.",
     extra: OBS_OVERLAY_EXTRA,
     faq: [
       { q: "Will the background really be transparent in OBS?", a: "Yes — the overlay link removes the page background entirely (not just visually dark, genuinely transparent), so only the countdown digits appear on your scene, with no chroma key or green screen needed." },
+      { q: "Can it count up instead of down, for an \"on air for\" clock?", a: "Yes — choose \"Count up (stopwatch)\" on the board before you start, then copy the overlay link the same way. It counts from the instant you started and keeps going past 24 hours rather than stopping or rolling back to zero, so it suits a long stream, a marathon or a subathon." },
       { q: "Does the countdown keep running if I switch OBS scenes?", a: "Yes, as long as the Browser Source stays loaded — if you enable \"Shutdown source when not visible,\" OBS will reload it when the scene becomes active again and it will recalculate against the same shared deadline correctly." },
       { q: "Can I resize the overlay without it looking blurry?", a: "Yes — the digits are rendered as live text (not an image), so resizing the Browser Source in OBS stays sharp at any size." },
       { q: "Will viewers on Twitch see the same countdown as my screen?", a: "Yes — whatever is on your OBS scene is what viewers see, and the overlay's countdown is calculated from the same shared deadline, so there's nothing separate to keep in sync." },

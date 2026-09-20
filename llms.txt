@@ -130,7 +130,7 @@ date stated on the page.
 - [Workshop Timer](https://countlink.app/timers/workshop-timer): A free shared timer for workshop facilitators. Set the segment length, share the link, and every table or breakout group sees the identical countdown.
 
 ### Streaming
-- [Stream Countdown (OBS)](https://countlink.app/timers/obs-countdown-timer): A free stream-starting countdown for OBS, Twitch and YouTube — a transparent browser-source overlay with no watermark, plus a link to share with mods and co-streamers.
+- [Stream Countdown (OBS)](https://countlink.app/timers/obs-countdown-timer): Free countdown or count-up overlay for OBS, Twitch and YouTube — a transparent browser source with no watermark, and the stopwatch keeps running past 24 hours.
 
 ### Focus & intervals
 - [Pomodoro Timer](https://countlink.app/timers/pomodoro-timer): A free pomodoro timer you can share: auto-cycling focus and break rounds with a long break every fourth, or a single 25-minute block — the whole study group or team stays on the same clock.
