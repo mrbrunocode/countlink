@@ -35,8 +35,9 @@ here should ever interrupt him one item at a time.
 For every target in the ledger with status `pending`:
 
 1. If `execution: "script"` — just run the script. These are real,
-   documented APIs meant to be called unattended (IndexNow today; Search
-   Console API once credentials exist).
+   documented APIs meant to be called unattended (IndexNow; the Search
+   Console + GA4 APIs via the `boring-apps-reporter` service account, live
+   since 2026-09-06 — see `boring-apps/scripts/`).
 2. If `execution: "agent-browser"` — attempt it directly using browser
    automation tools, using the copy from `docs/submission-kit.json`. This is
    the core of "let the agent do it, not just prep it for a human" — a
@@ -85,7 +86,13 @@ being true and "this reads as fake/spam" starts.
 - Publish the Product Hunt draft or post to Reddit/HN without Bruno
   explicitly choosing the day and being available to reply.
 
-## Everything is currently gated on one thing: buying the domain
+## ~~Everything is currently gated on one thing: buying the domain~~
+
+**[Obsolete since mid-July 2026 — kept for the rename procedure only.]**
+countlink.app is bought, deployed and verified in Search Console and Bing.
+Nothing in the ledger is domain-gated any more; a `blocked` status now always
+means a real wall (signup, CAPTCHA, broken form), recorded in its notes. The
+original text follows.
 
 Check `docs/outreach-ledger.json` and nearly every target reads `blocked —
 waiting on real domain purchase + deploy`. That's not overcaution — a
@@ -182,3 +189,51 @@ replies, having an account with a history, and standing behind the thing. An
 agent doing that is impersonation, and on Reddit and HN specifically it is also
 the fastest way to get the domain blacklisted. The drafts exist so the posting
 is quick; the posting itself is his.
+
+---
+
+## 2026-09-24: the month-later measurement, and where to point effort now
+
+The 08-03 section asked for the referring-domain count to be re-checked "in a
+month". Done, from Bing Webmaster Tools → Backlinks:
+
+| | 2026-08-03 | 2026-09-24 |
+|---|---|---|
+| Referring domains | 1 (saashub.com) | **2** (saashub.com, **nologin.tools** ×4 links — new, not from our outreach) |
+| Of which from embeds | 0 | **0** |
+
+**The embed-as-link-engine thesis has not produced anything in seven weeks.**
+Nobody has embedded a countdown on a site that Bing has crawled. That doesn't
+make the embed useless (it's a feature), but it is not a link strategy to wait
+on. What did appear unprompted, nologin.tools, is a directory of no-account
+tools — the "no account" positioning getting picked up on its own.
+
+**Point the human-required effort at streamers first.** Every measured channel
+converges on one audience and one page:
+
+- ChatGPT: `/timers/obs-countdown-timer` is the #2 AI landing page (181 of 494
+  AI sessions in 28 days).
+- Copilot: grounding queries include "twitch timer countdown", "countdown timer
+  for twitch", "timer link for stream".
+- Bing: the largest non-branded cluster (twitch/obs, pos 8–10).
+- Google: the OBS page is the #2 click page after the homepage.
+
+New ledger target **`obs-forum-resource`** (OBS Forums → Resources → Tools),
+vetted 2026-09-24 rather than guessed: the category already carries web-based
+browser-source overlays and several countdown timers (Countdown Timer / Stream
+Timer, TwitchTimer, Ashmanix Countdown Timer), and those resource pages rank on
+Bing with star ratings — so a listing is a referral venue *and* a second
+indexed page for "obs countdown timer". It needs Bruno's forum account and
+someone to answer questions in the resource thread. Suggested order of the
+human-required list, by fit with the evidence:
+
+1. **Product Hunt launch** — 28 referring domains for Stagetimer; draft ready.
+2. **`obs-forum-resource`** — highest audience fit; small, low-risk post.
+3. Show HN, then the subreddits (r/Teachers last — classroom is not where the
+   traffic is coming from).
+
+**One non-search signal worth a decision:** GA4 shows 27 referral sessions in
+28 days from `teams.public.onecdn.static.microsoft` at ~10 minutes each —
+CountLink links being opened inside Microsoft Teams meetings. There is a Zoom
+page and a Google Meet page but no Teams page. See `docs/seo-strategy.md`
+§ Current priorities (it's a new page, so after the AdSense re-review).

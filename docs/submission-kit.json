@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T17:32:49.623Z",
+  "generated_at": "2026-09-24T13:24:16.684Z",
   "copy": {
     "name": "CountLink",
     "url": "https://countlink.app",
@@ -189,6 +189,15 @@
       "url": "https://www.reddit.com/r/Teachers/",
       "gated_on_domain": true,
       "notes": "Frame as a free classroom/exam tool, not a launch announcement — different norms than r/SideProject."
+    },
+    {
+      "id": "obs-forum-resource",
+      "name": "OBS Forums — Resources › Tools listing",
+      "category": "authentic-human-post",
+      "execution": "human-required",
+      "url": "https://obsproject.com/forum/resources/",
+      "gated_on_domain": true,
+      "notes": "Added 2026-09-24 on evidence: every channel converges on /timers/obs-countdown-timer (ChatGPT's #2 landing page, Bing's largest non-brand cluster, Copilot's Twitch grounding queries). The Tools category (467 resources) already lists web-based browser-source overlays and several countdown timers (Countdown Timer / Stream Timer, TwitchTimer, Ashmanix Countdown Timer), and those listing pages rank on Bing with star ratings — so a listing is both a referral venue and a second indexed page for 'obs countdown timer'. Needs Bruno's own forum account, and whoever lists it has to answer reviews/questions in the resource thread, which is why it is not agent-postable. Prefix 'Free', category Tools; link the overlay how-to on the OBS page, not the homepage."
     },
     {
       "id": "blog-roundup-outreach",

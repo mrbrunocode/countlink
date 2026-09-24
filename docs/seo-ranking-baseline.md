@@ -1,5 +1,11 @@
 # SEO ranking baseline
 
+> **2026-09-24: superseded as a method.** This doc checks rankings by hand
+> against Google only. Real Search Console + Bing data now exists and is
+> better: `boring-apps/scripts/trend.py` (weekly), `report.py --pages`, and
+> `bing.py`. Current picture: `docs/seo-strategy.md` § Status. The
+> sections below are kept as the July baseline — no longer re-run.
+
 A point-in-time snapshot of where CountLink stands on Google for its target
 keywords. Re-run this same check periodically (monthly-ish, or after a
 meaningful traffic/backlink milestone) and append a new dated section below

@@ -2,6 +2,14 @@
 
 *Written 2026-07-07, based on a live teardown of their site, pricing page, robots/sitemap, and the surrounding SERPs.*
 
+> **2026-09-24: historical.** Its launch steps (buy the domain, fix
+> canonicals, AlternativeTo) are done or dead — AlternativeTo rejected the
+> site on 2026-07-28. Where it stands now: Google shows CountLink at pos 7–8
+> for the query "sharemytimer" (~187 impressions / 56 days, 1 click) — that's
+> people looking for ShareMyTimer itself, so low CTR is expected. The live
+> competitive picture is `docs/perception-gap-2026-09-06.md` and
+> `docs/seo-strategy.md` § Status.
+
 ## Verdict first (you asked for honesty)
 
 **Go — but with a corrected target.** Beating sharemytimer.live is achievable: it's a low-authority indie site (~3 indexable pages, no content strategy, keyword-stuffed meta tags Google ignores, Gmail support address). What is **not** achievable is the README's implied goal of taking vClock-style head terms. "Online timer", "5 minute timer", "countdown timer" are owned by vClock, timeanddate.com, online-stopwatch.com and Google's own SERP timer widget — decade-old domains with massive link profiles. A new domain will not displace them in any timeframe worth funding.
