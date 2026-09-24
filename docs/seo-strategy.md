@@ -110,12 +110,14 @@ in its first full week. **Look at the SERP before any title/meta work.**
 5. **Measure the 2026-09-20 OBS rewrite** before any further on-page change.
    If Twitch queries are still pos 8–10 in mid-October, the next change is a
    Streamlabs/Twitch-setup section on that page, not a new Twitch page.
-6. **Mark `timer_started` and `share_action` as GA4 key events** (admin
-   change; Bruno's approval). Makes "which channel produces real use" a
-   standard report instead of a custom query.
-7. **Add `sameAs` to the homepage Organization JSON-LD** — public GitHub repo
-   now, Product Hunt page after launch — to help Google separate CountLink
-   from the "Count Link" BI product its AI Overview currently describes.
+6. ~~Mark `timer_started` and `share_action` as GA4 key events~~ **Done
+   2026-09-24.** Key-event data starts from that date — GA4 does not backfill,
+   so channel comparisons on key events are only meaningful from then on.
+7. ~~Add `sameAs` to the homepage Organization JSON-LD~~ **Done 2026-09-24
+   (fb2c475)** — public GitHub repo. **Add the Product Hunt URL to the same
+   array once the launch is live.** Check the "countlink" SERP's AI Overview
+   again in a few weeks; entity changes are slow, so no change before
+   November is not evidence it failed.
 
 ### Tooling that answers "is it improving?"
 
