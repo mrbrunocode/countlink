@@ -110,7 +110,13 @@ in its first full week. **Look at the SERP before any title/meta work.**
    appearing in GSC/Bing. Never before an AdSense verdict: a new, uncrawled
    page in the same platform-timer family as zoom/meet is the wrong thing to
    add while a "low value content" judgement is pending.
-4. **AdSense re-review** after 2026-10-16 (`scripts/adsense-preflight.py`).
+4. ~~AdSense re-review after 2026-10-16~~ **Requested 2026-09-24 ("Getting
+   ready"). The site is FROZEN until the verdict** — no deploys that change
+   what it serves; any on-page follow-up from item 5 waits for it. Measuring,
+   docs and tooling are fine. `boring-apps/scripts/adsense-preflight.py` shows review state and
+   lists any site change pushed since the request. If rejected, fix the
+   stated reason specifically; don't re-request on a timer
+   (`boring-apps/docs/adsense-approval-2026-09-06.md`, top update).
 5. **Measure the 2026-09-20 OBS rewrite** before any further on-page change.
    If Twitch queries are still pos 8–10 in mid-October, the next change is a
    Streamlabs/Twitch-setup section on that page, not a new Twitch page.
@@ -268,7 +274,7 @@ the "2026-09-24" column is the checkpoint two months in):
 
 | Metric | 2026-07-24 | 2026-09-24 | Target ~2027-01 |
 |---|---|---|---|
-| AdSense | Not approved | Not approved; re-review gated to 2026-10-16 | Approved and serving |
+| AdSense | Not approved | Review re-requested 2026-09-24, pending | Approved and serving |
 | Referring domains | ~1 | **2** | 5–10 (quality, not volume) |
 | Indexed pages (Google) | 36 | **40** (nothing left to submit) | no new thin pages |
 | Google non-branded top-20 terms | ~0 | ~0 (competitor-brand only) | 5–10 in top 20 |
