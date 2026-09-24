@@ -48,6 +48,51 @@ is study *trackers* (hours, streaks, leaderboards) — a product CountLink isn't
 2026-09-08 snippet rewrite of group-study-timer got 110 impressions and 0 clicks
 in its first full week. **Look at the SERP before any title/meta work.**
 
+### Google Analytics review (2026-09-24)
+
+- **Data is clean.** Hostname filter works (only countlink.app, plus 11
+  zero-engagement sessions on `countlink.pages.dev`, which canonicalises to
+  countlink.app). The 14 Aug localhost spam has aged out.
+- **Usage by channel** (`timer_started`, 28d): AI Assistant 398 events / 125
+  users, Organic 121 / 44, Direct 105 / 36, Referral 36 / 7. AI traffic is
+  both the biggest and the one that actually uses the tool.
+- **No key events are configured.** `timer_started`, `share_action` and
+  `timer_completed` fire correctly but none is marked as a key event, so GA4
+  cannot report which channel produces real use without a custom report.
+  Marking `timer_started` and `share_action` is a one-time GA admin change.
+- **Direct is inflated by a handful of loyal users, not bots.** 66 German
+  sessions landing on `/timers/new-year-countdown` in September are three
+  returning iOS Safari users keeping it open (Safari starts a new session each
+  time the tab wakes). Real, harmless — but don't read Direct growth as reach.
+- Engagement rate: Organic 68%, AI Assistant 55%, Direct 34%. Desktop 654
+  sessions / mobile 511. New 808 / returning 87 users.
+
+### Search Console review (2026-09-24)
+
+- **Indexing:** 40 indexed; the 7 "not indexed" are benign http/www
+  redirects. Sitemap read 2026-09-20, 0 errors. Nothing to submit.
+- **Manual actions / security:** none. **Core Web Vitals:** "not enough usage
+  data" on both devices — too little Chrome traffic for field data. Lab check:
+  TTFB 55–110 ms, DOMContentLoaded ~350 ms, 9 KB HTML. Not a constraint.
+- **Links report: 1 external link — brunofk.dev (Bruno's own site).** Google
+  does not yet count saashub.com, nologin.tools or claudecode.directory. In
+  Google's eyes CountLink has no third-party links at all.
+- **Rich results:** none. FAQPage markup no longer produces FAQ rich results
+  for sites like this (Google restricted them in 2023), so its value now is
+  AI-assistant extraction, not SERP features. Keep it, don't expect snippets.
+- **Devices:** mobile pos 9.4 / CTR 10.5%; desktop pos 48.5 / CTR 3.2% — the
+  deep-rank impressions are almost all desktop.
+- **The brand query is the Google growth signal.** "countlink": 223 impr at pos
+  1.2, **47 clicks, +135% on the previous 28 days** — people are searching the
+  name, most plausibly after ChatGPT mentions it. CTR is only 21% because the
+  name collides: that SERP also carries a YouTube gaming channel "CountLink",
+  an Instagram @countlink, and a **Google AI Overview describing an unrelated BI
+  product "Count Link"** ($49/editor/month, sourced from ITQlick). Our result
+  is #1 with sitelinks, above the AI Overview. Partial mitigation: the homepage
+  Organization/WebApplication JSON-LD has no `sameAs`; adding the public GitHub
+  repo (and the Product Hunt page once launched) is a truthful entity signal.
+  Not done yet — see priorities.
+
 ### Current priorities (replaces the P0–P3 list further down)
 
 1. **Referral clicks from where the audience already is — human-posted.** The
@@ -65,6 +110,12 @@ in its first full week. **Look at the SERP before any title/meta work.**
 5. **Measure the 2026-09-20 OBS rewrite** before any further on-page change.
    If Twitch queries are still pos 8–10 in mid-October, the next change is a
    Streamlabs/Twitch-setup section on that page, not a new Twitch page.
+6. **Mark `timer_started` and `share_action` as GA4 key events** (admin
+   change; Bruno's approval). Makes "which channel produces real use" a
+   standard report instead of a custom query.
+7. **Add `sameAs` to the homepage Organization JSON-LD** — public GitHub repo
+   now, Product Hunt page after launch — to help Google separate CountLink
+   from the "Count Link" BI product its AI Overview currently describes.
 
 ### Tooling that answers "is it improving?"
 
