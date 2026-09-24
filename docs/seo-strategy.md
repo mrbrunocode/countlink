@@ -101,11 +101,15 @@ in its first full week. **Look at the SERP before any title/meta work.**
    are in `docs/seo-outreach-plan.md` § 2026-09-24. Bruno posts; agents draft.
 2. **Product Hunt launch** (draft in progress, `docs/producthunt-draft.md`).
    Gave Stagetimer 28 referring domains — still the highest-value single item.
-3. **Microsoft Teams page — a decision for Bruno, not yet built.** 27 Teams
-   referral sessions/28d at ~10 min each is real usage with no page behind it;
-   zoom-meeting-timer and google-meet-timer are the precedent. It is a *new
-   page*, so it goes after the AdSense re-review (preflight gate 2026-10-16),
-   not before — don't change what Google is about to judge.
+3. ~~Microsoft Teams page~~ **Parked 2026-09-24 on evidence.** The Teams
+   referral traffic is ~14 existing users over 90 days opening shared links
+   inside Teams (mostly to `/`), and **zero** Google or Bing queries containing
+   "teams" have ever been recorded for this site. That is usage by people who
+   already found CountLink, not unmet search demand — a page wouldn't serve
+   them and has no measured audience. Revisit only if "teams" queries start
+   appearing in GSC/Bing. Never before an AdSense verdict: a new, uncrawled
+   page in the same platform-timer family as zoom/meet is the wrong thing to
+   add while a "low value content" judgement is pending.
 4. **AdSense re-review** after 2026-10-16 (`scripts/adsense-preflight.py`).
 5. **Measure the 2026-09-20 OBS rewrite** before any further on-page change.
    If Twitch queries are still pos 8–10 in mid-October, the next change is a
