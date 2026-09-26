@@ -12,36 +12,36 @@
     "date": "2026-09-08"
   },
   "static/features.html": {
-    "hash": "cb89d7633237ad06",
-    "date": "2026-09-08"
+    "hash": "5c52864102f2fa44",
+    "date": "2026-09-26"
   },
   "static/guides-index": {
-    "hash": "390d0bd6a8619238",
-    "date": "2026-09-08"
+    "hash": "84b2a5f9e1e3427f",
+    "date": "2026-09-26"
   },
   "static/how-it-works.html": {
-    "hash": "1373323cfb52d8be",
-    "date": "2026-09-08"
+    "hash": "29c29ef419a94497",
+    "date": "2026-09-26"
   },
   "static/index.html": {
-    "hash": "4bb7c458cc8747c3",
-    "date": "2026-09-24"
+    "hash": "04e7f4755bb6a304",
+    "date": "2026-09-26"
   },
   "static/privacy.html": {
-    "hash": "99c44fa3bcdab56a",
-    "date": "2026-09-08"
+    "hash": "a1e015a89f61f1bf",
+    "date": "2026-09-26"
   },
   "static/terms.html": {
-    "hash": "f404c5eb2b9a0fa8",
-    "date": "2026-09-08"
+    "hash": "7b8fca24f44040eb",
+    "date": "2026-09-26"
   },
   "timers/agenda-timer": {
     "hash": "44ed1a3bf60c52f1",
     "date": "2026-07-25"
   },
   "timers/auction-countdown": {
-    "hash": "5f136ed7bf102731",
-    "date": "2026-07-25"
+    "hash": "05c85d3e053c649e",
+    "date": "2026-09-26"
   },
   "timers/christmas-countdown": {
     "hash": "30cf7d089010463a",
@@ -52,8 +52,8 @@
     "date": "2026-09-06"
   },
   "timers/exam-timer": {
-    "hash": "cf92cbfdbaad86d2",
-    "date": "2026-07-24"
+    "hash": "2b89e97e0ebbb96e",
+    "date": "2026-09-26"
   },
   "timers/game-night-timer": {
     "hash": "ed0cc00aeabac7d5",
@@ -68,8 +68,8 @@
     "date": "2026-09-08"
   },
   "timers/index": {
-    "hash": "a6edc55e31a308bf",
-    "date": "2026-08-14"
+    "hash": "5ea1ef0cde080f88",
+    "date": "2026-09-26"
   },
   "timers/interval-timer": {
     "hash": "ec0c3cae08deb590",

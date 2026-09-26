@@ -335,7 +335,7 @@ const EXTRA_BY_SLUG = {
           <h3>Why a shared clock matters when money is involved</h3>
           <p>Bidding disputes almost always come down to whose clock was authoritative. If the auctioneer's phone said eight seconds and a bidder's said two, there is no way to settle it afterwards — and in a charity auction or a club sale, that argument sours the whole evening. Putting one countdown on a screen everyone can see removes the ambiguity before it happens rather than adjudicating it after.</p>
           <p>Share the link rather than just projecting it if remote or phone bidders are involved: they then count to the identical instant instead of to whatever their connection lag suggests. Announce the rule out loud at the start — "the screen is the clock" — so it's understood as the agreed reference and not just decoration.</p>
-          <p>One honest caveat for anything with real money attached: accuracy depends on each device's own clock, typically within a second. That's ample for a room auction or a raffle, but this is not a certified timing system and shouldn't be treated as one where a legally binding cutoff is at stake.</p>`,
+          <p>One honest caveat for anything with real money attached: every screen checks its clock against a reference time and corrects it, so screens agree to within about a second, but a device that can't reach the site falls back to its own clock. That's ample for a room auction or a raffle, but this is not a certified timing system and shouldn't be treated as one where a legally binding cutoff is at stake.</p>`,
   "stopwatch": `
         <div class="obs-extra">
           <h3>A stopwatch several people can watch at once</h3>
@@ -503,7 +503,7 @@ export const PAGES = [
           <p>Nothing is actually “running” anywhere, which is why closing the tab doesn't lose it — the link records when the stopwatch started, so reopening it later shows the correct elapsed time as if it had been running the whole while. There's deliberately no lap or split function; for lap timing you want a single-device sports stopwatch. This tool's job is showing one agreed elapsed time on many screens.</p>
         </div>`,
     faq: [
-      { q: "How accurate is a shared timer across devices?", a: "Accurate to about a second. Each device counts down independently against the same shared deadline using its own clock, so there's no server lag to introduce drift between screens." },
+      { q: "How accurate is a shared timer across devices?", a: "Accurate to about a second. Each device counts down independently against the same shared deadline, after checking its clock against a reference time and correcting it if it's out, so there's no server lag to introduce drift between screens and a wrong clock doesn't show the wrong time." },
       { q: "Is there a limit to how many people can open the link?", a: "No limit. Since there's no server tracking viewers, showing the countdown to one person or a thousand costs exactly the same — nothing. Each device just does its own math against the timestamp in the URL." },
       { q: "Does it still work if I close the tab and reopen it?", a: "Yes. Reopening the link re-reads the same deadline from the URL and picks up exactly where the countdown should be — nothing resets." },
       { q: "Does the timer keep going if the Wi-Fi drops?", a: "Yes, on any device that already has the page open. The countdown is calculated locally against a timestamp in the URL, so it doesn't need an ongoing connection to keep counting." },
@@ -524,7 +524,7 @@ export const PAGES = [
     ],
     faq: [
       { q: "Can students see the same countdown on their own devices during a test?", a: "Yes, if your exam rules permit devices — every device that opens the link shows the identical time remaining. Many exam contexts restrict student devices entirely, in which case display it on the room's front screen only." },
-      { q: "What happens if a student's device clock is wrong?", a: "It doesn't matter — the countdown is calculated from the shared deadline in the link, not from the device's own clock, so display accuracy only depends on the device's clock being roughly correct (typically accurate to within a second), not on it being manually set right." },
+      { q: "What happens if a student's device clock is wrong?", a: "CountLink corrects for it. When the page opens, the device checks its clock against a reference time; if it's off, the countdown runs on corrected time and a line under the board says by how much. So a laptop whose clock is two minutes out still shows the same time left as everyone else. Only a device that can't reach the site at that moment falls back to its own clock." },
       { q: "Is this accurate enough for a formal, timed exam?", a: "It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy." },
     ] },
   { slug: "classroom-timer", minutes: 10, label: "Back to it", eyebrow: "Classroom Timer", affiliate: true,
@@ -1033,6 +1033,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
         <label class="alarm-tone-picker" for="alarmToneSelect">
+          <span class="tone-lbl" aria-hidden="true">Tone</span>
           <select id="alarmToneSelect" aria-label="Alarm sound">
             <option value="chime">Chime</option>
             <option value="gentle">Gentle</option>
@@ -1101,7 +1102,7 @@ const page = (p) => { const stageBlock = p.multiTimer ? multiDashboardSection : 
       <button class="btn icon-btn" id="qrBtn" style="margin-top:10px">${QR_ICON}<span id="qrBtnLabel">Show QR code</span></button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
-        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
+        <div class="hint" style="margin-top:6px">Drawn right here in your browser — the link isn't sent anywhere to make it.</div>
       </div>
       <button class="btn icon-btn" id="icsBtn" style="display:none;margin-top:10px">Add to calendar (.ics)</button>
       <button class="btn icon-btn" id="printPosterBtn" style="display:none;margin-top:10px">Print poster</button>
@@ -1219,9 +1220,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=49347cd5" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=49347cd5"></noscript>
+<link rel="preload" href="../assets/style.css?v=6f3c6804" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=6f3c6804"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1289,7 +1290,7 @@ ${instrumentIndex(p.slug)}
     </div>
     <div class="foot-in">
       <div><div class="fb">${BRAND}</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
-      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.<br>
+      <div>Every screen checks its clock against a reference time and corrects it — screens agree to within a second.<br>No account, no database: the timer lives entirely in the link.<br>
       Built and maintained by <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a>.</div>
     </div>
   </div>
@@ -1311,7 +1312,8 @@ ${instrumentIndex(p.slug)}
 </div>
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
-<script src="../assets/app.js?v=3c49000e" defer></script>
+<script src="../assets/clock.js?v=2d9e48f3" defer></script>
+<script src="../assets/app.js?v=f2033f47" defer></script>
 </body>
 </html>
 `; };
@@ -1368,11 +1370,10 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 }</script>
 <title>${title} | ${NAME}</title>
 <meta name="description" content="${description}">
-<link rel="canonical" href="${SITE_URL}${canonicalPath}">
-<meta property="og:title" content="${title}">
+${canonicalPath ? `<link rel="canonical" href="${SITE_URL}${canonicalPath}">\n` : ""}<meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <meta property="og:type" content="article">
-<meta property="og:url" content="${SITE_URL}${canonicalPath}">
+${canonicalPath ? `<meta property="og:url" content="${SITE_URL}${canonicalPath}">\n` : ""}
 <meta property="og:image" content="${SITE_URL}/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${SITE_URL}/assets/og-image.png">
@@ -1385,9 +1386,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=49347cd5" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=49347cd5"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=6f3c6804" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=6f3c6804"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1411,7 +1412,7 @@ ${main}
     </div>
     <div class="foot-in">
       <div><div class="fb">${NAME}</div>A timer you can hand to a room. · <a href="/guides/">Guides</a> · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
-      <div>No data leaves your browser; the timer lives entirely in the link.</div>
+      <div>No account, no database: the timer lives entirely in the link.</div>
     </div>
   </div>
 </footer>
@@ -1496,7 +1497,10 @@ const timersForGuide = (guideSlug) => {
     .join("\n      ");
 };
 
-const byline = (a) => `<p class="byline">By <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a> · <time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.read} min read</p>`;
+/* `updated` is optional and hand-set, like `date`: set it when an article's
+   substance changes (not for a typo), and the byline, the Article JSON-LD and
+   the sitemap all say so. Absent, the article has not changed since `date`. */
+const byline = (a) => `<p class="byline">By <a href="${AUTHOR_URL}" rel="author noopener" target="_blank">${AUTHOR_NAME}</a> · <time datetime="${a.date}">${fmtDate(a.date)}</time>${a.updated ? ` · updated <time datetime="${a.updated}">${fmtDate(a.updated)}</time>` : ""} · ${a.read} min read</p>`;
 
 const authorBox = () => `
   <aside class="author-box">
@@ -1513,7 +1517,7 @@ const guidePage = (a) => {
     author: { "@type": "Person", name: AUTHOR_NAME, url: AUTHOR_URL },
     publisher: { "@type": "Organization", name: NAME },
     datePublished: a.date,
-    dateModified: a.date,
+    dateModified: a.updated || a.date,
     mainEntityOfPage: `${SITE_URL}/guides/${a.slug}`,
   })}</script>
 <script type="application/ld+json">${JSON.stringify({
@@ -1602,7 +1606,7 @@ export const FEATURES = [
   ["Sharing", [
     ["One link, unlimited viewers", "Copy the link and send it to as many people as you like. There is no device cap, no seat count and no paid tier, because nothing is held open per viewer."],
     ["Join code you can say out loud", "Every running countdown also gets a five-character code — countlink.app/j/K3M7Q — for reading to a room or writing on a whiteboard when nobody can copy a URL off a projector."],
-    ["QR code", "Show a QR for the share link so a room can scan it off the screen instead of typing anything."],
+    ["QR code", "Show a QR for the share link so a room can scan it off the screen instead of typing anything. It's drawn in your browser — the link isn't sent to a QR service to make it."],
     ["Share sheet on mobile", "On a phone the share button opens the native sheet, so the link goes straight into whatever messaging app is already open."],
     ["Recent timers", "The last few countdowns you started are kept in your own browser, so a link you closed by accident is one click back."],
   ]],
@@ -1615,11 +1619,12 @@ export const FEATURES = [
     ["Interval timer", "Work/rest cycles with a round count: Tabata 20/10, boxing rounds, HIIT, or any split you set."],
     ["Several timers on one screen", "Named countdowns running side by side for cooking, stations, or parallel exam sections."],
     ["Sound alerts, free", "A choice of end-of-timer tones, on by default. Competitors charge for this; it is the single most common thing a timer needs to do."],
+    ["Clock correction", "Every screen checks its clock against a reference time as the page loads and corrects it, so a projector PC whose clock has drifted by minutes still shows the room the same time left as everyone's phones — and says so under the board."],
     ["Wrap-up warning", "A countdown visibly changes state as it runs low, so the room gets a warning before zero rather than a surprise at it."],
     ["Event labels", "Name the countdown — \"Break ends\", \"Quiz round 2\" — and the label travels with the link."],
   ]],
   ["Control", [
-    ["Phone control", "Turn it on before you start and you get a second link that pauses, adds or removes a minute, and stops the countdown live on every screen that has it open. Free, with no viewer cap on the screens it reaches."],
+    ["Phone control", "Turn it on before you start and you get a second link that pauses, adds or removes a minute, and stops the countdown live on every screen that has it open. Only that control link can drive it — the share link watches every change but can't cause one. Free, with no viewer cap on the screens it reaches."],
     ["Flash a message to every screen", "Send a short line of text from the controller — \"five more minutes\", \"wrap up\" — and it appears over the countdown everywhere."],
     ["The board is the input", "Roll the digits with a click, the arrow keys, the scroll wheel or a drag; or type the time; or paste 1h30m, 5:00 or 90s onto it."],
     ["Sealed once running", "The controls are removed from the page entirely the moment a countdown starts, so nobody opening a shared link can change what the room sees."],
@@ -1628,7 +1633,7 @@ export const FEATURES = [
     ["Three board styles", "Board (mechanical split-flap), Minimal (plain digits), and Light (dark digits on white, for a projector in a bright room)."],
     ["Fullscreen", "One button to fill a projector, a smart TV or an interactive whiteboard."],
     ["Printable poster", "A print-ready sheet with the countdown's QR code and end time, for a door or a wall."],
-    ["Installable app", "Add it to a home screen or dock from the browser's own install prompt. It opens fullscreen and the board keeps working offline."],
+    ["Installable app", "Add it to a home screen or dock from the browser's own install prompt. It opens fullscreen and works with no connection — the start page and any timer page you've opened load offline, and a shared countdown keeps counting."],
     ["Offline copy", "Download a running countdown as a single self-contained HTML file that keeps counting with no network at all, forever."],
   ]],
   ["Embedding and integrations", [
@@ -1637,6 +1642,7 @@ export const FEATURES = [
     ["README badge", "A Markdown or HTML snippet for a GitHub README, a forum post, or anywhere only an image is allowed."],
     ["Add to calendar (.ics)", "Export a countdown's end time as a calendar event."],
     ["Zoom, Google Meet, Teams", "No extension and no screen share — paste the link into the call chat and everyone's own screen counts down together."],
+    ["Tools for in-browser AI agents", "Every timer page registers WebMCP tools, so an agent working in your browser can start a shared countdown, set one up for you to start, read what's running and stop it — through the page's own logic, not by guessing where to click."],
     ["MCP server for AI assistants", "countlink.app/mcp lets an assistant mint a working timer, build a whole agenda from a meeting outline, produce an embed or a badge, and read back what any CountLink link means. No other shared-timer tool has one."],
     ["Setup links anyone can write", "countlink.app/#for=25m opens the board ready at that duration — writable by hand, in advance, from a lesson plan, a bookmark or a calendar invite."],
     ["Link inspector", "Ask any CountLink link what it is: running or ready, its label, and how long is left."],
@@ -1849,11 +1855,18 @@ const STATIC_PAGES = ["privacy.html", "compare.html", "about.html", "how-it-work
 // typo'd or stale URL returned a full page — a soft 404, which inflates the
 // index with near-duplicates and reads as auto-generated content to a reviewer.
 // noindex is belt-and-braces: the 404 status alone keeps it out of the index.
+/* No canonical and no og:url: the page is served at whatever wrong address
+   was asked for, so there is no URL it is the canonical copy OF — and "/404"
+   was one that 404s itself. The title is bare because the shell appends
+   " | CountLink"; it used to read "Page not found — CountLink | CountLink".
+   navPath null: no site section is "current" on an error page (it used to
+   mark Guides as the page you were on). */
 const notFoundPage = () => guideShell({
   rel: "",
-  title: `Page not found — ${NAME}`,
+  title: "Page not found",
   description: "That page doesn't exist. Browse the timers or start a new countdown.",
-  canonicalPath: "/404",
+  canonicalPath: null,
+  navPath: null,
   headJsonLd: `<meta name="robots" content="noindex">`,
   noAds: true,
   main: `
@@ -1883,7 +1896,7 @@ const notFoundPage = () => guideShell({
  * Every page type already knows its real date; nothing new had to be invented:
  *   timer pages   dates.dateOf() — the content-hash manifest, already used for
  *                 the JSON-LD dateModified on the same page
- *   /guides/<a>   a.date       (hand-set per article, already its dateModified)
+ *   /guides/<a>   a.updated || a.date  (hand-set per article, already its dateModified)
  *   /vs/<c>       c.verified   (the date the rival's pricing was re-checked)
  *   generated     hashed here the same way the timer pages are
  *   hand-written  hashed from the file on disk, with the two volatile regions
@@ -1923,7 +1936,7 @@ const sitemap = () => {
   const featuresUrl = loc("/features", dateForFile("static/features.html", join(ROOT, "features.html")));
   const vsUrls = COMPARISONS.map((c) => loc(vsHref(c.slug), c.verified)).join("\n");
   const guideUrls = [loc("/guides/", dateForFile("static/guides-index", join(ROOT, "guides", "index.html")))]
-    .concat(ARTICLES.map(a => loc(`/guides/${a.slug}`, a.date)))
+    .concat(ARTICLES.map(a => loc(`/guides/${a.slug}`, a.updated || a.date)))
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -2012,6 +2025,10 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 - **\`describe_timer_link\`** — given any \`${SITE_URL}\` URL (single timer or agenda), explains what it is (setup or running, label, time left, which segment is live).
 
 Full submission/testing detail: \`docs/mcp-submission.md\`.
+
+## In-browser tools (WebMCP)
+
+An agent running inside the visitor's own browser (Chrome's WebMCP, \`document.modelContext\`) gets the same abilities on any CountLink timer page without leaving it: \`start_shared_countdown\` (duration, optional label, optional phone control — returns the share link and join code), \`prepare_countdown\` (sets the board without starting it), \`get_countdown_status\` and \`stop_countdown\`. They do only what the page's own buttons do, and a running board stays sealed: there is no tool that edits a live countdown.
 
 ## Features
 
@@ -2124,25 +2141,30 @@ function instrumentIndex(currentSlug) {
  * directly.
  */
 async function assertAssetVersionsAreCurrent() {
-  const stamped = (await readFile(join(ROOT, "index.html"), "utf8"));
-  // Filename kept in two pieces on purpose: bump-asset-version.mjs rewrites the
-  // literal "assets/<name>" wherever it appears, and a plain string here would
-  // be rewritten into a path that does not exist. The regexes below are safe
-  // because their slashes are escaped, so they don't contain that literal.
-  for (const [name, re] of [
-    ["style.css", /assets\/style\.css\?v=([0-9a-f]{8})/],
-    ["app.js", /assets\/app\.js\?v=([0-9a-f]{8})/],
-  ]) {
-    const referenced = stamped.match(re)?.[1];
-    if (!referenced) continue;
-    const actual = createHash("sha256").update(await readFile(join(ROOT, "assets", name))).digest("hex").slice(0, 8);
-    if (referenced !== actual) {
-      throw new Error(
-        `assets/${name} has changed (${referenced} -> ${actual}) but the ?v= stamp was not updated.\n` +
-        `Run:  node scripts/bump-asset-version.mjs\n` +
-        `That patches every page and re-runs this build. Shipping without it serves ` +
-        `returning visitors a cached stylesheet against new markup.`,
-      );
+  // Filenames are built from pieces on purpose: bump-asset-version.mjs
+  // rewrites any src/href attribute naming an asset, and a literal reference
+  // here would be rewritten into a path that does not exist. index.html
+  // loads every board script; control.html is the one page that loads
+  // control.js.
+  const pages = ["index.html", "control.html"];
+  const names = ["style.css", "app.js", "clock.js", "realtime-config.js", "realtime.js", "control.js"];
+  for (const page of pages) {
+    const stamped = await readFile(join(ROOT, page), "utf8");
+    for (const name of names) {
+      const re = new RegExp("assets/" + name.replace(/\./g, "\\.") + "(\\?v=([0-9a-f]{8}))?\"");
+      const m = stamped.match(re);
+      if (!m) continue; // this page doesn't load it
+      const referenced = m[2];
+      const actual = createHash("sha256").update(await readFile(join(ROOT, "assets", name))).digest("hex").slice(0, 8);
+      if (referenced !== actual) {
+        throw new Error(
+          `${page} loads assets/${name} with ${referenced ? `?v=${referenced}` : "no ?v= stamp"}, but its content hash is ${actual}.\n` +
+          `Run:  node scripts/bump-asset-version.mjs\n` +
+          `That patches every page and re-runs this build. Assets are cached for 4 hours, so shipping ` +
+          `without it serves returning visitors a stale file against new markup — or, for the scripts, ` +
+          `a stale file against a new script that calls it.`,
+        );
+      }
     }
   }
 }

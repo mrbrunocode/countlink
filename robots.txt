@@ -1,28 +1,36 @@
 User-agent: *
 Allow: /
 
-# 2026-07-16: this file used to also carry explicit `Allow: /` lines for
-# GPTBot and ClaudeBot themselves (the training-purpose tokens), on the
-# stated intent that the wildcard rule above shouldn't get silently shadowed
-# by an accidental training-bot block. That assumption no longer holds —
-# Cloudflare now auto-injects a "Managed content" robots.txt block (edge-
-# level, prepended ahead of everything below) that disallows GPTBot and
-# ClaudeBot account-wide. Having the same user-agent token in two conflicting
-# groups in one served file is undefined behavior across parsers (some take
-# the first match, some the last, some union-with-tie-break-to-least-
-# restrictive) — so those two lines were live but not reliably honored.
-# Removed them rather than leave an ambiguous contradiction; this also
-# brings countlink in line with the family-wide policy now documented in
-# boring-app-factory/docs/seo-outreach-plan.md — block training-only
-# crawlers, leave every search/citation crawler (which actually sends
-# traffic or gets cited) explicitly allowed below, unambiguously.
+# Every crawler is allowed. The groups below say so explicitly for the
+# search and citation crawlers — the ones that send people here or cite this
+# site in an answer — so a future blanket rule can't silently shadow them.
+#
+# History, because this file was wrong about itself for two months: from
+# 2026-07-16 a comment here said Cloudflare prepended a "managed" block at the
+# edge disallowing AI crawlers (GPTBot, ClaudeBot, and — it later turned out
+# the dashboard listed — Google-Extended among eight). On 2026-09-25 that was
+# checked against production (docs/gemini-visibility-2026-09-25.md at the
+# family level): /robots.txt is served byte-for-byte as this file, under every
+# user agent tried, with nothing prepended. So nothing is blocked. If that ever
+# changes, re-check with `curl -s -A "Google-Extended" https://countlink.app/robots.txt`
+# — the served file, not the dashboard, is what crawlers obey.
+
+# ChatGPT search and in-chat browsing — CountLink's largest AI channel.
 User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: ChatGPT-User
 Allow: /
 
+# Claude: search indexing, and fetches made on a user's behalf.
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: Claude-User
+Allow: /
+
+# Gemini: grounding answers in Gemini Apps honours this token, not Googlebot.
+User-agent: Google-Extended
 Allow: /
 
 User-agent: PerplexityBot
@@ -31,18 +39,8 @@ Allow: /
 User-agent: Perplexity-User
 Allow: /
 
+# Bing — and through it, Copilot's citations.
 User-agent: Bingbot
 Allow: /
-
-# Training-only crawlers (not search/citation) — uncomment to opt out of
-# training use while still allowing the search/citation crawlers above.
-# (GPTBot and ClaudeBot are already blocked by Cloudflare's own managed
-# rule above this file; these three aren't, so they're spelled out.)
-# User-agent: CCBot
-# Disallow: /
-# User-agent: anthropic-ai
-# Disallow: /
-# User-agent: cohere-ai
-# Disallow: /
 
 Sitemap: https://countlink.app/sitemap.xml

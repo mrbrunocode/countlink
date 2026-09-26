@@ -58,19 +58,23 @@ Whichever URL is used, the resulting page loads no ads, no analytics and no thir
 
 Full submission/testing detail: `docs/mcp-submission.md`.
 
+## In-browser tools (WebMCP)
+
+An agent running inside the visitor's own browser (Chrome's WebMCP, `document.modelContext`) gets the same abilities on any CountLink timer page without leaving it: `start_shared_countdown` (duration, optional label, optional phone control — returns the share link and join code), `prepare_countdown` (sets the board without starting it), `get_countdown_status` and `stop_countdown`. They do only what the page's own buttons do, and a running board stays sealed: there is no tool that edits a live countdown.
+
 ## Features
 
 Every one of these is free, with no account and no paid tier. Full page: https://countlink.app/features
 
 **Sharing** — One link, unlimited viewers; Join code you can say out loud; QR code; Share sheet on mobile; Recent timers
 
-**The timer itself** — Countdown to a duration; Countdown to a date and time; Count up — a shared stopwatch; Laps; Agenda timer; Interval timer; Several timers on one screen; Sound alerts, free; Wrap-up warning; Event labels
+**The timer itself** — Countdown to a duration; Countdown to a date and time; Count up — a shared stopwatch; Laps; Agenda timer; Interval timer; Several timers on one screen; Sound alerts, free; Clock correction; Wrap-up warning; Event labels
 
 **Control** — Phone control; Flash a message to every screen; The board is the input; Sealed once running
 
 **Display** — Three board styles; Fullscreen; Printable poster; Installable app; Offline copy
 
-**Embedding and integrations** — Stream overlay for OBS; Website embed; README badge; Add to calendar (.ics); Zoom, Google Meet, Teams; MCP server for AI assistants; Setup links anyone can write; Link inspector
+**Embedding and integrations** — Stream overlay for OBS; Website embed; README badge; Add to calendar (.ics); Zoom, Google Meet, Teams; Tools for in-browser AI agents; MCP server for AI assistants; Setup links anyone can write; Link inspector
 
 What CountLink deliberately does not do:
 

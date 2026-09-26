@@ -15,7 +15,7 @@
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, extname, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const PORT = Number(process.argv[2]) || 4173;
@@ -33,9 +33,53 @@ const TYPES = {
   ".ico": "image/x-icon",
 };
 
+/* Pages Functions, run in-process so local preview and the e2e suite exercise
+   the exact modules that deploy (functions/ is self-contained on purpose, see
+   each file's header). Mirrors Pages' file-based routing for the routes this
+   site has: an exact file (/mcp -> functions/mcp.js, /api/now ->
+   functions/api/now.js, /badge.svg -> functions/badge.svg.js) or a one-level
+   [param] file (/j/<code> -> functions/j/[code].js). `env` comes from this
+   process's environment, so e.g. ABLY_API_KEY=… node scripts/dev-server.mjs
+   gives local phone control a real key; without it /api/realtime-token
+   answers 503, exactly as production does when the secret is missing. */
+async function functionFor(path) {
+  const fnRoot = join(ROOT, "functions");
+  const exact = join(fnRoot, path.replace(/\/$/, "") + ".js");
+  try { await stat(exact); return exact; } catch { /* try a [param] route */ }
+  const m = path.match(/^\/([^/]+)\/[^/]+\/?$/);
+  if (m) {
+    const dyn = join(fnRoot, m[1], "[code].js");
+    try { await stat(dyn); return dyn; } catch { /* no function */ }
+  }
+  return null;
+}
+
+async function runFunction(file, req, res) {
+  const mod = await import(pathToFileURL(file).href + "?t=" + (await stat(file)).mtimeMs);
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  const body = chunks.length ? Buffer.concat(chunks) : undefined;
+  const request = new Request(new URL(req.url, `http://localhost:${PORT}`), {
+    method: req.method,
+    headers: req.headers,
+    body: req.method === "GET" || req.method === "HEAD" ? undefined : body,
+  });
+  const env = {
+    ...process.env,
+    // Pages' static-asset binding, which j/[code].js uses to serve the real 404 page.
+    ASSETS: { fetch: async (u) => new Response(await readFile(join(ROOT, new URL(u).pathname))) },
+  };
+  const out = await mod.onRequest({ request, env });
+  const headers = Object.fromEntries(out.headers);
+  res.writeHead(out.status, headers);
+  res.end(Buffer.from(await out.arrayBuffer()));
+}
+
 const server = createServer(async (req, res) => {
   try {
     let path = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
+    const fn = await functionFor(path);
+    if (fn) { await runFunction(fn, req, res); return; }
     if (path.endsWith("/")) path += "index.html";
     let filePath = join(ROOT, path);
 

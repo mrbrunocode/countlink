@@ -15,9 +15,9 @@
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="assets/style.css?v=49347cd5" as="style">
-<link rel="stylesheet" href="assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/style.css?v=49347cd5"></noscript>
+<link rel="preload" href="assets/style.css?v=6f3c6804" as="style">
+<link rel="stylesheet" href="assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="assets/style.css?v=6f3c6804"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -121,7 +121,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <div class="hero-inner">
       <span class="eyebrow">Legal</span>
       <h1 style="font-size:clamp(1.8rem,3.4vw,2.6rem)">Privacy Policy</h1>
-      <p class="lede">Last updated: July 8, 2026</p>
+      <p class="lede">Last updated: September 26, 2026</p>
     </div>
   </section>
   <section class="seo-intro" style="max-width:70ch;padding-bottom:50px">
@@ -129,44 +129,70 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     set are encoded only in the URL in your own browser's address bar — they are never sent to, or stored on,
     any server operated by CountLink. There is no account system and no database.</p>
 
-    <p style="margin-bottom:16px"><b>QR codes.</b> If you click "Show QR code" or "Print poster," the current share
-    link is sent to a third-party QR generation API (goqr.me) to render the image — this is the only feature of the
-    countdown itself that makes an external request, it only ever happens if you explicitly click one of those two
-    buttons, and it only ever sends the share link itself (a duration and label, not anything personal).</p>
+    <p style="margin-bottom:16px"><b>Clock check.</b> When a timer page loads, it asks
+    <code>countlink.app/api/now</code> for the current time, so a device whose clock is wrong can be corrected
+    and still show the same countdown as everyone else. The request carries nothing about you or your timer —
+    no duration, no label, no identifier — and the answer is simply the time. The result is remembered in your
+    browser's session storage for ten minutes so moving between pages doesn't repeat it.</p>
+
+    <p style="margin-bottom:16px"><b>QR codes.</b> "Show QR code" and "Print poster" draw the code in your own
+    browser. Your link is not sent anywhere to make it.</p>
+
+    <p style="margin-bottom:16px"><b>Phone control (optional, off unless you tick it).</b> If you tick "Let me pause,
+    adjust, or stop this from my phone," control messages for that countdown — pause, resume, adjust, stop, a
+    short flash message you type, and the countdown's end time and label — are relayed between your screens through
+    <a href="https://ably.com/privacy" style="text-decoration:underline">Ably</a>, a real-time messaging provider.
+    To connect, your browser first fetches a short-lived access token from <code>countlink.app/api/realtime-token</code>;
+    that request carries only the countdown's session id or control key, never anything about you. Nothing is
+    stored by CountLink. Ably processes the messages to deliver them, under its own privacy policy. The control key
+    is kept in your browser's local storage for two days so the screen that started the countdown stays in charge of
+    it after a reload. None of this happens for a countdown without phone control.</p>
 
     <p style="margin-bottom:16px"><b>The AI assistant endpoint (<code>/mcp</code>).</b> CountLink publishes a
     Model Context Protocol server so an AI assistant — ChatGPT, Claude or similar — can build a timer link for
     you when you ask it for one. It receives only what the assistant sends it: a duration, and optionally a
     short label you chose. It has no account system, no database and no storage of any kind; it does not
-    receive, and could not store, who you are. It replies with a countlink.app URL and keeps nothing. Requests
-    are handled by Cloudflare, which keeps standard server request logs (such as IP address and timestamp) as
-    part of operating the network, under its own privacy policy. You never touch this endpoint by using the
-    website normally — only an assistant you have asked to make a timer does.</p>
+    receive, and could not store, who you are. It replies with a countlink.app URL and keeps nothing. You never
+    touch this endpoint by using the website normally — only an assistant you have asked to make a timer does.</p>
+
+    <p style="margin-bottom:16px"><b>Hosting.</b> The site and its small server endpoints (the clock check, phone
+    control tokens, join codes, the badge image and <code>/mcp</code>) run on Cloudflare, which keeps standard
+    request logs (such as IP address and timestamp) as part of operating the network, under
+    <a href="https://www.cloudflare.com/privacypolicy/" style="text-decoration:underline">its own privacy policy</a>.</p>
 
     <p style="margin-bottom:16px"><b>Advertising.</b> This site shows, or intends to show, ads served by Google
     AdSense. Google uses cookies — including the DoubleClick cookie, now part of Google's advertising products —
     to serve ads based on your prior visits to this website or other websites on the internet. Third-party
     vendors, including Google, use cookies to serve ads based on someone's prior visits to this site and/or
     other sites. Google's use of advertising cookies enables it and its partners to serve ads based on your
-    visit to this site and/or other sites on the internet. You can opt out of personalized advertising by
+    visit to this site and/or other sites on the internet. In the UK, the EEA and Switzerland, Google's consent
+    message asks for your choice before personalised ads are shown. You can opt out of personalized advertising by
     visiting <a href="https://adssettings.google.com" style="text-decoration:underline">Google's Ads Settings</a>,
     or generally at <a href="https://optout.aboutads.info" style="text-decoration:underline">optout.aboutads.info</a>.</p>
 
     <p style="margin-bottom:16px"><b>Analytics.</b> This site uses Google Analytics (GA4) to
-    understand aggregate traffic — which pages are visited and roughly how, not who you are individually.
-    Analytics data is processed by Google under its own privacy policy. You can block this with a browser
-    extension such as Google's own
+    understand aggregate traffic — which pages are visited, and events such as a timer being started, shared or
+    finished — not who you are individually. Analytics data is processed by Google under its own privacy policy.
+    You can block this with a browser extension such as Google's own
     <a href="https://tools.google.com/dlpage/gaoptout" style="text-decoration:underline">Analytics opt-out add-on</a>.</p>
 
-    <p style="margin-bottom:16px"><b>Cookies.</b> Advertising and analytics providers may set cookies in your
-    browser as described above. CountLink itself does not set any first-party cookies or use browser storage
-    beyond the countdown state already visible in the page URL.</p>
+    <p style="margin-bottom:16px"><b>Grow by Mediavine.</b> Pages on this site (other than the embeddable widget)
+    load <a href="https://www.mediavine.com/legal-and-privacy-center/" style="text-decoration:underline">Grow</a>, a
+    third-party script from Mediavine that adds the floating share and bookmark button. Grow may set cookies and use
+    browser storage, and processes data under Mediavine's privacy policy; anything you choose to give it (for
+    example signing in to save a page) is handled by Mediavine, not CountLink.</p>
+
+    <p style="margin-bottom:16px"><b>Cookies and browser storage.</b> Advertising, analytics and Grow may set
+    cookies in your browser as described above. CountLink itself sets no cookies. It keeps a few things in your
+    own browser's storage, where they never leave your device: your most recent timers (so you can find a link
+    again), your chosen board style and alarm sound, the phone-control key described above, and the clock-check
+    result. Clearing your browser's site data removes all of them.</p>
 
     <p style="margin-bottom:16px"><b>Children's privacy.</b> This site does not knowingly collect personal
     information from children and is not directed at children under 13.</p>
 
-    <p style="margin-bottom:16px"><b>Changes.</b> This policy may be updated as the site's advertising or
-    analytics setup changes. Continued use of the site after a change constitutes acceptance of the update.</p>
+    <p style="margin-bottom:16px"><b>Changes.</b> This policy may be updated as the site's features, advertising or
+    analytics setup change. Continued use of the site after a change constitutes acceptance of the update.</p>
 
     <p><b>Contact.</b> Questions about this policy can be sent to
     <a href="mailto:hello@countlink.app" style="text-decoration:underline">hello@countlink.app</a>.</p>

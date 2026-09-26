@@ -251,6 +251,22 @@ body.viewing .stage-section{padding-top:18px}
   }
 }
 @media(min-width:1100px){.hero-fig{width:360px}}
+/* Short desktop screens — a 1366×768 laptop, a 1024×768 classroom projector.
+   The full-height hero put the board's Start button at ~876px, below the fold
+   on exactly the screens this site is most often projected from. Same
+   content, less air: the tool has to be reachable without scrolling. */
+@media(min-width:640px) and (max-height:900px){
+  .hero{padding:20px 0 12px}
+  h1{font-size:clamp(1.55rem,3.6vw,2.5rem)}
+  .lede{margin-top:10px}
+  .use-line{display:none}
+  .hero-checks{margin-top:10px}
+  .stage-section{padding-top:14px}
+}
+@media(min-width:760px) and (max-height:900px){
+  .hero-fig{width:230px}
+  .hero-fig figcaption{display:none}
+}
 
 /* Figure internals. Stroke weights are hairline on purpose: at 300px wide the
    drawing has to sit BESIDE the headline without competing with it, so it
@@ -740,13 +756,32 @@ body.viewing .stage-section{padding-top:18px}
 .icon-btn{width:auto}
 .icon-btn .qr-ico{flex:none}
 .btn.copied{background:var(--ok);border-color:var(--ok);color:#fff}
-.alarm-tone-picker{display:inline-flex;align-items:center}
+/* The alarm-sound picker reads as a labelled control ("TONE  CHIME ⌄"), not a
+   sixth button: on its own, a select showing "CHIME" beside "SOUND: ON" looked
+   like another toggle and nobody could say what it did. The label is inside
+   the same bordered box so the pair reads as one instrument control. */
+.alarm-tone-picker{
+  display:inline-flex;align-items:center;gap:0;border:1px solid var(--panel-line);background:var(--board-deep);
+  min-height:46px;cursor:pointer;
+}
+.alarm-tone-picker .tone-lbl{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-dim);
+  padding:0 0 0 14px;
+}
 .alarm-tone-picker select{
   font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;
-  padding:0 14px;min-height:46px;border:1px solid var(--panel-line);background:var(--board-deep);color:var(--paper-text);
+  padding:0 12px 0 8px;min-height:44px;border:0;background:transparent;color:var(--paper-text);
   border-radius:0;cursor:pointer;
 }
-.alarm-tone-picker select:hover{border-color:var(--amber);color:var(--amber)}
+.alarm-tone-picker:hover{border-color:var(--amber)}
+.alarm-tone-picker:hover select{color:var(--amber)}
+.alarm-tone-picker select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+/* Phones: the stage buttons fill their rows, so the picker does too rather
+   than sitting half-width on a row of its own. */
+@media(max-width:479px){
+  .stage-btns .alarm-tone-picker{flex:1 1 100%}
+  .stage-btns .alarm-tone-picker select{flex:1;text-align:left}
+}
 .sync-note{
   display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-family:var(--mono);font-size:.7rem;color:var(--paper-dim);
 }
@@ -771,6 +806,10 @@ body.viewing .stage-section{padding-top:18px}
    differently from both the normal blinking-live and the fully-off states,
    without introducing a second colour to the one-signal panel. */
 .sync-note .dot.is-paused{animation:none;opacity:.45}
+/* Clock correction (see assets/clock.js): one quiet line under the sync note,
+   only when this device's clock is two or more seconds out. Same mono voice
+   as the sync note, no colour — it's an explanation, not an alarm. */
+.clock-note{margin:6px 0 0;font-family:var(--mono);font-size:.66rem;line-height:1.5;color:var(--paper-dim);opacity:.85;max-width:60ch}
 
 /* ============ AD SLOT — placed exactly where vClock places theirs: ============ */
 /* directly below the timer stage/controls, above supporting content.        */
@@ -1133,7 +1172,7 @@ body.overlay-mode .board{
 @media(min-width:640px){body.overlay-mode .board{--tw:78px;--th:110px;--fs:4rem}}
 body.overlay-mode .board .bolt-br,body.overlay-mode .board .bolt-bl,
 body.overlay-mode .board::before,body.overlay-mode .board::after,
-body.overlay-mode .style-toggle,body.overlay-mode .sync-note,
+body.overlay-mode .style-toggle,body.overlay-mode .sync-note,body.overlay-mode .clock-note,
 body.overlay-mode .bar,body.overlay-mode .stage-btns{display:none}
 body.overlay-mode .tiles{gap:8px}
 
@@ -1167,6 +1206,13 @@ body.overlay-mode .tiles{gap:8px}
   .chassis-spec{display:none}       /* the claim repeats in the lede and footer */
   .chassis-nav{gap:16px}
   .idx-in{columns:1}
+}
+/* Five nav items at .14em tracking wrapped "About" onto a line of its own on a
+   375px phone. Tighter tracking and gap fit all five on one line down to 360px;
+   below that flex-wrap still catches it rather than overflowing. */
+@media(max-width:420px){
+  .chassis-nav{gap:12px}
+  .chassis-nav a{letter-spacing:.08em}
 }
 
 /* ---------- stopwatch laps ----------

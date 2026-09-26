@@ -49,15 +49,15 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=49347cd5" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=49347cd5"></noscript>
+<link rel="preload" href="../assets/style.css?v=6f3c6804" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=6f3c6804"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/exam-timer","description":"A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Bruno FK","url":"https://brunofk.dev"},"datePublished":"2026-07-08","dateModified":"2026-07-24"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CountLink","url":"https://countlink.app/timers/exam-timer","description":"A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Bruno FK","url":"https://brunofk.dev"},"datePublished":"2026-07-08","dateModified":"2026-09-26"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"CountLink","item":"https://countlink.app/"},{"@type":"ListItem","position":2,"name":"Exam Timer","item":"https://countlink.app/timers/exam-timer"}]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can students see the same countdown on their own devices during a test?","acceptedAnswer":{"@type":"Answer","text":"Yes, if your exam rules permit devices — every device that opens the link shows the identical time remaining. Many exam contexts restrict student devices entirely, in which case display it on the room's front screen only."}},{"@type":"Question","name":"What happens if a student's device clock is wrong?","acceptedAnswer":{"@type":"Answer","text":"It doesn't matter — the countdown is calculated from the shared deadline in the link, not from the device's own clock, so display accuracy only depends on the device's clock being roughly correct (typically accurate to within a second), not on it being manually set right."}},{"@type":"Question","name":"Is this accurate enough for a formal, timed exam?","acceptedAnswer":{"@type":"Answer","text":"It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can students see the same countdown on their own devices during a test?","acceptedAnswer":{"@type":"Answer","text":"Yes, if your exam rules permit devices — every device that opens the link shows the identical time remaining. Many exam contexts restrict student devices entirely, in which case display it on the room's front screen only."}},{"@type":"Question","name":"What happens if a student's device clock is wrong?","acceptedAnswer":{"@type":"Answer","text":"CountLink corrects for it. When the page opens, the device checks its clock against a reference time; if it's off, the countdown runs on corrected time and a line under the board says by how much. So a laptop whose clock is two minutes out still shows the same time left as everyone else. Only a device that can't reach the site at that moment falls back to its own clock."}},{"@type":"Question","name":"Is this accurate enough for a formal, timed exam?","acceptedAnswer":{"@type":"Answer","text":"It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to use the Exam Timer","step":[{"@type":"HowToStep","position":1,"text":"Set the exam length straight on the board — click the minutes and use the arrows, or just type it (type 90 00 for an hour and a half). You can also count down to a fixed finish time using \"…or until a date & time\"."},{"@type":"HowToStep","position":2,"text":"Put the board on the room's front screen and press Fullscreen so the countdown is readable from the back."},{"@type":"HowToStep","position":3,"text":"If your exam rules permit candidate devices, press Show QR code so students can open the identical countdown on their own screens."},{"@type":"HowToStep","position":4,"text":"Press Start countdown as you begin the paper — every screen hits zero at the same instant and plays the chime."}]}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2653891546345771" crossorigin="anonymous"></script>
 <script data-grow-initializer="">
@@ -172,6 +172,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
         <label class="alarm-tone-picker" for="alarmToneSelect">
+          <span class="tone-lbl" aria-hidden="true">Tone</span>
           <select id="alarmToneSelect" aria-label="Alarm sound">
             <option value="chime">Chime</option>
             <option value="gentle">Gentle</option>
@@ -240,7 +241,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <button class="btn icon-btn" id="qrBtn" style="margin-top:10px"><svg class="qr-ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><rect x="0.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="2" height="2" fill="currentColor"/><rect x="10.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="12" y="2" width="2" height="2" fill="currentColor"/><rect x="0.5" y="10.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="12" width="2" height="2" fill="currentColor"/><rect x="9" y="9" width="2" height="2" fill="currentColor"/><rect x="12" y="9" width="2" height="2" fill="currentColor"/><rect x="9" y="12" width="2" height="2" fill="currentColor"/><rect x="12" y="12" width="2" height="2" fill="currentColor"/></svg><span id="qrBtnLabel">Show QR code</span></button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
-        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
+        <div class="hint" style="margin-top:6px">Drawn right here in your browser — the link isn't sent anywhere to make it.</div>
       </div>
       <button class="btn icon-btn" id="icsBtn" style="display:none;margin-top:10px">Add to calendar (.ics)</button>
       <button class="btn icon-btn" id="printPosterBtn" style="display:none;margin-top:10px">Print poster</button>
@@ -328,7 +329,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     <h2>Common questions</h2>
     <dl class="faq-grid">
       <div class="faq-item"><h3>Can students see the same countdown on their own devices during a test?</h3><dd>Yes, if your exam rules permit devices — every device that opens the link shows the identical time remaining. Many exam contexts restrict student devices entirely, in which case display it on the room's front screen only.</dd></div>
-      <div class="faq-item"><h3>What happens if a student's device clock is wrong?</h3><dd>It doesn't matter — the countdown is calculated from the shared deadline in the link, not from the device's own clock, so display accuracy only depends on the device's clock being roughly correct (typically accurate to within a second), not on it being manually set right.</dd></div>
+      <div class="faq-item"><h3>What happens if a student's device clock is wrong?</h3><dd>CountLink corrects for it. When the page opens, the device checks its clock against a reference time; if it's off, the countdown runs on corrected time and a line under the board says by how much. So a laptop whose clock is two minutes out still shows the same time left as everyone else. Only a device that can't reach the site at that moment falls back to its own clock.</dd></div>
       <div class="faq-item"><h3>Is this accurate enough for a formal, timed exam?</h3><dd>It's accurate to about a second across every device, since each one counts down independently against the same shared timestamp — the same underlying approach used by any client-side countdown. For extremely high-stakes timing, follow your institution's official exam-clock policy.</dd></div>
     </dl>
   </section>
@@ -365,7 +366,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     </div>
     <div class="foot-in">
       <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
-      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.<br>
+      <div>Every screen checks its clock against a reference time and corrects it — screens agree to within a second.<br>No account, no database: the timer lives entirely in the link.<br>
       Built and maintained by <a href="https://brunofk.dev" rel="author noopener" target="_blank">Bruno FK</a>.</div>
     </div>
   </div>
@@ -387,6 +388,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 </div>
 
 <script>window.COUNTLINK_DEFAULT={"minutes":60,"label":"Time is up — pens down"};</script>
-<script src="../assets/app.js?v=3c49000e" defer></script>
+<script src="../assets/clock.js?v=2d9e48f3" defer></script>
+<script src="../assets/app.js?v=f2033f47" defer></script>
 </body>
 </html>

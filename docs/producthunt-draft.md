@@ -19,6 +19,10 @@ Productivity, Education, Web App
 - Twitter/X: (none yet)
 
 ## First comment (maker comment, post immediately after launch)
+_Updated 2026-09-26 — the original draft (Aug 3) predated join codes, phone control and
+the MCP server; 2026-09-26 added clock correction, the offline app, local QR codes and
+in-browser agent tools. Revise again if more time passes before the actual launch day._
+
 Hey everyone 👋
 
 I built CountLink because every "shared countdown" tool I found required an account,
@@ -27,28 +31,47 @@ on exactly how much time is left) doesn't need any of that.
 
 Set a duration or a target time, copy the link, send it anywhere. The deadline is a
 timestamp embedded in the URL itself, so every device that opens the link counts down
-to the exact same instant — no signup, no server, no drift between devices.
+to the exact same instant — no signup, no timer server, no drift between devices.
 
 A few things I focused on:
-- A fullscreen "projector" mode for classrooms/exams/webinars
-- Three display styles: a mechanical split-flap board, a minimal flat-digit view, and a
-  light theme for projecting in bright rooms
+- A fullscreen "projector" mode for classrooms/exams/webinars, plus a mechanical
+  split-flap board, a minimal flat-digit view, and a light theme for bright rooms
+- A five-character join code (`countlink.app/j/K3M7Q`) for reading aloud or writing on
+  a whiteboard when nobody can copy a URL off a projector
+- Opt-in phone control — a second link that pauses, adds a minute, or flashes a message
+  to every screen live, for the one-person-driving case, with no viewer cap. Only that
+  link can drive it; the link you share with the room can only watch
+- Clock correction — every screen checks its clock against a reference time and corrects
+  it, so a classroom PC whose clock has drifted still shows the same second as
+  everyone's phones
+- An MCP server (`countlink.app/mcp`) so an AI assistant can mint a working timer, build
+  a whole agenda from a meeting outline, or produce an embed — no other shared-timer
+  tool has one, and it's turned out to be a bigger traffic source than Google search
 - Completely free — the zero-backend architecture means one more viewer costs nothing
 
 Would love feedback, especially from anyone who's dealt with the "wait, whose timer is
 right?" problem in a classroom or meeting.
 
-## Gallery / screenshots needed before posting
-- [ ] Homepage hero (board + timer)
-- [ ] Fullscreen projector mode
-- [ ] Light board style
-- [ ] Mobile view
+## Gallery / screenshots
+Recaptured live 2026-09-17 in `docs/producthunt-gallery/` (also copied to
+`~/Desktop/countlink-producthunt/` for drag-and-drop upload — the upload tool only
+accepts files shared into the session, not repo paths):
+- [x] Homepage hero (`01-hero.png`) — now shows the three-screens sync illustration, not
+      the old "00 servers" stat
+- [x] Running countdown (`02-running-board.png`) — now includes the Download offline
+      copy button
+- [x] Comparison table (`03-compare.png`)
+- [x] Features page (`04-features.png`) — new; 32 named features, worth the 4th slot
+      since PH's own audience reads feature lists closely
 
 ## Description (long form)
 CountLink is a free, no-signup shared countdown timer. Set a duration or a target time,
 copy the generated link, and send it anywhere — Slack, email, a projector screen, a
 webinar waiting room. Every device that opens the link counts down to the same instant,
-computed from a timestamp embedded in the URL, so there's no account, no backend, and no
-drift between devices. Includes a fullscreen "projector" mode and three display styles
-(a mechanical split-flap board, a minimal flat-digit view, and a light theme for
-projecting in bright rooms). Completely free, no paid tier.
+computed from a timestamp embedded in the URL (each device's clock checked and corrected
+first), so there's no account, no timer backend, and no drift between devices. Includes a fullscreen "projector" mode, three display styles (a
+mechanical split-flap board, a minimal flat-digit view, and a light theme for projecting
+in bright rooms), a sayable five-character join code as an alternative to the link, and
+opt-in phone control for live pause/adjust/message without a viewer cap. Also ships an
+MCP server so AI assistants can create and manage timers directly. Completely free, no
+paid tier.

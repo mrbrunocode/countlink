@@ -65,7 +65,8 @@ test("the built /embed/ page still has the board and the app script", () => {
   const html = embedHtml();
   assert.match(html, /id="tiles"/, "/embed/ lost the board");
   assert.match(html, /src="\/assets\/app\.js/, "/embed/ lost app.js");
-  assert.match(html, /src="\/assets\/realtime\.js"/, "/embed/ lost realtime.js");
+  assert.match(html, /src="\/assets\/realtime\.js\?v=[0-9a-f]{8}"/, "/embed/ lost realtime.js");
+  assert.match(html, /src="\/assets\/clock\.js\?v=[0-9a-f]{8}"/, "/embed/ lost clock.js");
 });
 
 test("buildEmbedHtml rewrites relative asset refs and leaves absolute ones alone", () => {

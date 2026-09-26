@@ -6,6 +6,63 @@ submit it. Nothing here has been posted anywhere.
 
 ---
 
+## Answering existing threads — prefer this to launch posts (added 2026-09-26)
+
+**Why:** ChatGPT sends 492 of 494 AI-assistant sessions, and published
+analyses of ChatGPT's citations in 2026 agree it leans heavily on Reddit (and
+Wikipedia, review sites) for "what tool should I use" questions — more than on
+any one site's own pages. A handful of genuinely useful, disclosed answers in
+threads where people are *already asking* is the most durable mention there
+is: it's the kind of text assistants quote, and unlike a launch post it keeps
+getting found. Bing's AI Performance report (checked 2026-09-26) shows where
+the demand already is — Copilot's grounding queries for this site are
+"shared timer" (40 citations, 26% share), "group timer" (16, 29%) and a
+Twitch cluster: "twitch timer countdown" (18, 19%), "countdown timer for
+twitch" (10, 14%), "timer link for stream" (6, 19%).
+
+**How, so it helps rather than gets removed:**
+- Search the sub for the question first (r/Twitch, r/obs, r/streaming,
+  r/Teachers, r/remotework): "countdown overlay", "starting soon timer",
+  "shared timer", "timer everyone can see". Answer threads under ~6 months
+  old that are still open.
+- **Always disclose** — "I made this" in the first line. Undisclosed
+  self-promotion gets removed and the account flagged; disclosed and useful
+  is usually welcome. Follow each sub's self-promo rule (many use roughly
+  "no more than 1 in 10 of your posts").
+- Answer the question they asked first. Mention CountLink only where it
+  genuinely fits, alongside the other good options (Stream Elements, OBS's
+  own text source, ShareMyTimer) — a one-tool answer reads as an ad.
+- One reply per thread; never paste the same text twice.
+
+**Draft — OBS/Twitch "how do I add a starting soon countdown?"**
+
+> The simplest no-plugin way is a Browser Source pointed at a countdown page
+> with a transparent background. Disclosure: I made one — countlink.app —
+> but the method works with any of them.
+>
+> 1. Sources → + → Browser.
+> 2. URL: `https://countlink.app/embed/?overlay=1#for=10m&go=1` (change `10m`
+>    to your length; it starts when the scene loads).
+> 3. Size about 400×160, and style it with the source's own CSS box if you
+>    want a different font colour.
+>
+> No account, no watermark, and nothing to install. If you'd rather have mods
+> see the same countdown on their own screens, start one on the site and send
+> them the link instead — every screen shows the same second. StreamElements'
+> countdown widget is the other good option if you already use their overlays.
+
+**Draft — "timer everyone on the call / in the room can see"**
+
+> If the problem is everyone seeing the *same* time (not a screen-share that
+> drops when you switch windows), a shared-link timer works well: you start it
+> once and paste the link in the chat, and every device counts to the same
+> instant. Disclosure: I built countlink.app for exactly this — free, no
+> accounts, no viewer cap. ShareMyTimer does something similar with a live
+> server and a free-tier device limit; Stagetimer is the pro option for
+> events with a producer.
+
+---
+
 ## Show HN (news.ycombinator.com/submit)
 
 **Title** (HN strips "Show HN:" formatting oddities, keep it plain and factual —
@@ -99,7 +156,7 @@ not the launch. Don't call it "my project" as the headline.
 
 **Title:**
 
-> Free tool for a synced classroom timer — no accounts, no ads for students, works on the projector + every student device at once
+> Free tool for a synced classroom timer — no accounts for you or students, works on the projector + every student device at once
 
 **Body:**
 

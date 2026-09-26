@@ -52,5 +52,10 @@ export default defineConfig({
     timeout: 60_000,
     stdout: "ignore",
     stderr: "pipe",
+    // Lets the dev server's in-process /api/realtime-token sign tokens, so the
+    // phone-control suite runs the real endpoint. A dummy, not an Ably key:
+    // e2e/phone-control.spec.mjs swaps the Ably SDK for a stand-in that reads
+    // the capability and never talks to Ably.
+    env: { ABLY_API_KEY: "e2e.dummy:not-a-real-secret-at-all" },
   },
 });

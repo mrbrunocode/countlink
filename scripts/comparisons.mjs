@@ -94,8 +94,8 @@ export const COMPARISONS = [
     <p><b>Nothing is metered.</b> The reason ShareMyTimer counts your viewers is
     that each one holds a connection open on their servers, and connections
     cost money — three free, ninety for $6. CountLink writes the countdown's end
-    time into the link itself, so every device does its own arithmetic against
-    its own clock and nothing is held open for anyone. A viewer costs us
+    time into the link itself, so every device does its own arithmetic locally
+    and nothing is held open for anyone. A viewer costs us
     nothing, so there is no cap and nothing to sell you.</p>
     <p><b>Sound is free.</b> A timer that cannot make a noise at zero is doing
     half its job, and it sits behind their $6/month tier.</p>

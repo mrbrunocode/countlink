@@ -33,8 +33,11 @@ assets/
   style.css             all styling, shared by index.html and every /timers/ page
   app.js                all timer logic, shared the same way
   control.js             control.html's logic — separate file, different DOM shape
-  realtime.js            thin Ably pub/sub wrapper for phone control, inert with no key configured
-  realtime-config.js     the on/off switch — window.COUNTLINK_ABLY_KEY, empty by default
+  clock.js               clock correction: measures this device against /api/now, exposes CountlinkClock.now()
+  realtime.js            phone-control pub/sub over Ably, plus the key→sid derivation (see "Phone control")
+  realtime-config.js     the on/off switch — window.COUNTLINK_PHONE_CONTROL (no key here any more)
+  vendor/qrcode-2.0.4.js QR codes drawn locally (MIT, Kazuhiko Arase), loaded on first use
+sw.js                   service worker — network-first; caches pages as visited so the app opens offline
 features.html           generated — every capability, named (see "The feature inventory")
 timers/                 programmatic SEO landing pages (see docs/monetization.md)
   meeting-timer.html     the Meetings cluster hub
@@ -45,6 +48,8 @@ guides/                 generated long-form articles
 vs/                     generated head-to-head comparison pages (/vs/<competitor>)
 functions/              Cloudflare Pages Functions — the only server-side code here
   mcp.js                 the MCP server at /mcp
+  api/now.js             the current time, for clock.js
+  api/realtime-token.js  phone-control tokens (holds the only Ably key, Pages secret ABLY_API_KEY)
   badge.svg.js           the README badge image
   j/[code].js            join codes: /j/<code> -> the ordinary #t= link
 scripts/
@@ -57,7 +62,8 @@ scripts/
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
   perception-gap-2026-09-06.md  why assistants called this site "minimalist", and the fix
-  phone-control-setup.md pause/adjust/stop from a phone — LIVE since 2026-07-26, opt-in checkbox in the setup panel, Ably key already configured
+  phone-control-setup.md pause/adjust/stop from a phone — LIVE; who may control what, and the Ably key rotation step
+  webmcp.md              the in-browser agent tools, and the origin-trial token step
 ads.txt                 AdSense seller-verification file — already filled in and live; AdSense approval is separate from this file existing
 robots.txt              allows crawling, points to sitemap.xml
 sitemap.xml             generated — do not hand-edit, re-run the build script instead
@@ -66,16 +72,22 @@ archive/                earlier prototype ideas explored before CountLink (kept 
 
 ## Running it locally
 
-No build step, no dependencies. Any static file server works, but use the
-included one during development — it sends `Cache-Control: no-store` so
-edits always show up on reload (a plain file server can leave your browser
-serving stale CSS/JS after a change):
+No build step for the pages themselves. Use the included server during
+development: it sends `Cache-Control: no-store` so edits always show up on
+reload, and it runs `functions/` in-process with Pages-style routing, so
+`/api/now`, `/api/realtime-token`, `/j/<code>`, `/badge.svg` and `/mcp` all
+answer locally exactly as they do in production:
 
 ```bash
-cd /Users/bruno/onepage
+cd /Users/bruno/Code/boring-apps/countlink
 node scripts/dev-server.mjs 4173
 # open http://localhost:4173
+# phone control locally needs a key: ABLY_API_KEY=<key> node scripts/dev-server.mjs 4173
 ```
+
+After editing any file in `assets/` that a page loads by URL (the stylesheet
+or any script), run `node scripts/bump-asset-version.mjs`. Assets are cached
+for 4 hours, and the build refuses to run if a page references a stale hash.
 
 (This is also what `.claude/launch.json` runs when using the Claude Code preview.)
 
@@ -83,9 +95,12 @@ node scripts/dev-server.mjs 4173
 
 `assets/app.js` writes the countdown's end-timestamp and label into the URL
 hash on start, e.g. `#t=1783378107213&l=Workshop%20resumes`. Opening that same
-URL on any other device reads the same timestamp and counts down to it using
-the device's own clock — so there's nothing to host, nothing to keep running,
-and no possibility of the "server" going down.
+URL on any other device reads the same timestamp and counts down to it — so
+there's nothing to host, nothing to keep running, and no possibility of the
+"server" going down. Each page first checks the device's clock against
+`/api/now` and corrects for any error it can distinguish from network jitter
+(`assets/clock.js`); with the network gone it falls back to the device clock,
+which is all it ever used before 2026-09-26.
 
 ## The URL contract: `#t=` vs `#for=`
 
@@ -205,13 +220,29 @@ because doing so would take `/mcp` off the internet with nothing failing.
 `assets/realtime.js` + `control.html` add an optional layer on top of the
 sync mechanic above: pause, ±1 min, stop, and a flash message pushed from a
 phone to whatever screen has the countdown open. It's entirely separate from
-(and never a dependency of) the link-is-the-timer mechanic — `assets/
-realtime-config.js` carries a real, scoped Ably key
-(`window.COUNTLINK_ABLY_KEY`), so the "let me pause, adjust, or stop this
-from my phone" checkbox is live in the setup panel; with no key configured
-the same code paths would instead no-op silently. See
-`docs/phone-control-setup.md` for the design and known v1 limitations
-(down-mode only, no presence/connection indicator).
+(and never a dependency of) the link-is-the-timer mechanic.
+
+**Only the control link can drive it (since 2026-09-26).** Starting a
+controlled countdown mints a secret *key*, which stays in the host tab and the
+control link, and a *session id* derived from it by SHA-256, which goes in the
+share link. `functions/api/realtime-token.js` hands a session id a
+watch-only Ably token and a key a publish token, and holds the only Ably key.
+Before that date the share link alone could pause or stop the room's screen.
+See `docs/phone-control-setup.md` for the model, the one-time key-rotation
+step, and the known limitations (down-mode only, no presence indicator).
+
+## Clock correction (since 2026-09-26)
+
+A shared link carries an absolute instant, so a device with a wrong clock
+used to show the wrong time left, and classroom and venue PCs are the ones
+that drift. `assets/clock.js` asks `/api/now` for the time on load, NTP-style
+(the midpoint of the fastest of two round trips). It corrects only when the
+error is clearly bigger than the measurement's own uncertainty, so
+well-synced devices are left alone. It caches the result for 10 minutes in
+`sessionStorage`. `app.js` reads time through `clockNow()` everywhere a
+countdown is measured or minted, and shows one line under the board when a
+correction of 2s or more is in effect. Offline, it falls back to the device
+clock, which is all it ever used before.
 
 ## Adding a new programmatic landing page
 
@@ -462,7 +493,9 @@ npm run test:all  # both
 ```
 
 `node --test` covers the duration model, hash parsing, phone-control maths and
-the page/URL invariants. It stays dependency-free and fast, and it is what the
+permissions (`test/realtime.test.mjs`: the SHA-256, the token endpoint's
+roles, the TokenRequest signature), clock correction, and the page/URL
+invariants. It stays dependency-free and fast, and it is what the
 build guard leans on.
 
 The Playwright suite (`e2e/`) covers what pure tests structurally cannot:
@@ -470,6 +503,11 @@ whether the settable board's *interaction* survives a different engine. It runs
 Chromium, Firefox, WebKit, and real device emulation for iPhone (WebKit) and
 Pixel (Chromium) — the last two matter because touch has no hover at all, so
 tap-to-reveal is the only way to reach the chevrons there.
+
+E2E specs added 2026-09-26: `phone-control` (a host, a viewer in a separate
+browser context and a controller, over a stand-in Ably that enforces token
+capabilities), `clock`, `offline` (a real service worker through a real
+offline switch), `qr` (every QR decoded back with jsQR) and `webmcp`.
 
 Two real bugs were invisible to Chromium alone and only surfaced once the
 suite ran cross-browser:
@@ -564,6 +602,12 @@ with `wrangler pages deploy` (direct-upload, not the dashboard integration).
 across 5 browser projects on the same push, in parallel with the deploy —
 a flaky browser run can never block a content fix from shipping. See both
 workflow files' own comments before changing either.
+
+One Pages secret lives outside the repo: **`ABLY_API_KEY`** (production),
+read by `functions/api/realtime-token.js`. Without it phone control fails
+quietly (the endpoint answers 503) and everything else is unaffected. Set or
+rotate it with `npx wrangler pages secret put ABLY_API_KEY --project-name countlink`;
+see `docs/phone-control-setup.md`.
 
 To point this setup at a different domain: update `SITE_URL` in
 `scripts/build-timer-pages.mjs` and the `canonical`/`og:url` values in

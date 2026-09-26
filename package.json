@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "pdf-parse": "^1.1.4"
+    "jsqr": "^1.4.0",
+    "pdf-parse": "^1.1.4",
+    "qrcode-generator": "^2.0.4"
   }
 }

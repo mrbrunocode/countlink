@@ -477,15 +477,17 @@ test("create_agenda refuses what the page cannot show, naming the segment", () =
   }
 });
 
-test("a single over-long segment clamps to the board's maximum, exactly like create_timer", () => {
-  // parseDuration() caps one value at 99h59m59s rather than refusing it, and
-  // create_timer's own tests pin that behaviour — an agenda must not quietly
-  // disagree with it. Only the SUM of segments can be refused.
+test("a single over-long segment is refused, exactly like an over-long create_timer setup link", () => {
+  // Until 2026-09-26 both quietly capped "100h" at 99h 59m 59s — a different
+  // timer from the one asked for, with nothing said. Both now refuse it, and
+  // must keep agreeing.
   const r = callTool("create_agenda", { segments: [{ duration: "100h" }] }, FIXED_NOW);
-  assert.equal(r.isError, undefined, r.content[0].text);
-  assert.equal(r.structuredContent.totalSeconds, 99 * 3600 + 59 * 60 + 59);
-  assert.equal(callTool("create_timer", { duration: "100h" }).structuredContent.durationSeconds, r.structuredContent.totalSeconds,
-    "agenda and single-timer clamping must agree");
+  assert.equal(r.isError, true);
+  assert.match(r.content[0].text, /Segment 1 runs 4d 4h/);
+  assert.equal(callTool("create_timer", { duration: "100h" }).isError, true, "agenda and single-timer limits must agree");
+  // …and the board's maximum itself is still fine in both.
+  assert.ok(!callTool("create_agenda", { segments: [{ duration: "99:59:59" }] }, FIXED_NOW).isError);
+  assert.ok(!callTool("create_timer", { duration: "99:59:59" }).isError);
 });
 
 test("agenda labels are trimmed and capped like timer labels", () => {
@@ -829,10 +831,10 @@ test("humanDuration reads naturally at every scale", () => {
   assert.equal(humanDuration(5430), "1h 30m 30s");
 });
 
-test("durations are clamped to what the board can display", () => {
+test("the setup-link parser still clamps (it mirrors the board's), and a share link stops at 366 days", () => {
   const MAX = 99 * 3600 + 59 * 60 + 59;
-  assert.equal(parseDuration("200h"), MAX);
-  assert.equal(shareUrl(1e9, "", FIXED_NOW), `https://countlink.app/#t=${FIXED_NOW + MAX * 1000}`);
+  assert.equal(parseDuration("200h"), MAX, "parseDuration must keep matching the board's parser");
+  assert.equal(shareUrl(1e9, "", FIXED_NOW), `https://countlink.app/#t=${FIXED_NOW + 366 * 86400 * 1000}`);
 });
 
 /* ======================= it has to actually deploy ======================= */
@@ -968,4 +970,62 @@ test("labelOf decodes exactly once and tolerates a broken escape", () => {
   assert.equal(labelOf("t=1&l=" + encodeURIComponent("C++ review")), "C++ review");
   assert.equal(labelOf("t=1&l=100%"), "100%");
   assert.equal(labelOf("t=1&intl=Nope"), "", "a key ending in 'l' is not the label");
+});
+
+// ── Long durations (2026-09-26) ─────────────────────────────────────────────
+//
+// create_timer's own description offers "10 days until launch" as an example,
+// and until this date any duration over 99h59m59s came back silently capped
+// to 99h 59m 59s. A setup link genuinely can't hold more (six digits), but a
+// fixed-instant link — start_now, embed_on_website, a badge — counts down in
+// days on the board. So: longer durations work where they can, and say why
+// where they can't, instead of quietly becoming a different timer.
+
+test("parseLongDuration reads days, and hours past 99, without a ceiling below a year", () => {
+  assert.equal(mcp.parseLongDuration("10d"), 10 * 86400);
+  assert.equal(mcp.parseLongDuration("10 days"), 10 * 86400);
+  assert.equal(mcp.parseLongDuration("1 day"), 86400);
+  assert.equal(mcp.parseLongDuration("10d 6h"), 10 * 86400 + 6 * 3600);
+  assert.equal(mcp.parseLongDuration("240h"), 240 * 3600);
+  assert.equal(mcp.parseLongDuration("25m"), 25 * 60, "short durations read exactly as parseDuration reads them");
+  assert.equal(mcp.parseLongDuration("1:30:00"), 5400);
+  assert.equal(mcp.parseLongDuration("soon"), null);
+  assert.equal(mcp.parseLongDuration(""), null);
+});
+
+const NOW = 1_790_000_000_000;
+const endOf = (url) => +String(url).match(/[#?&]t=(\d+)/)[1];
+
+test("a 10-day embed counts down to 10 days from now, not 99h 59m 59s", () => {
+  const r = mcp.callTool("create_timer", { duration: "10 days", label: "Launch", embed_on_website: true }, NOW);
+  assert.ok(!r.isError, r.content?.[0]?.text);
+  assert.match(r.content[0].text, /10d/);
+  assert.equal(endOf(r.content[0].text.match(/src="([^"]+)"/)[1]), NOW + 10 * 86400e3);
+});
+
+test("start_now accepts 240h and mints a #t= exactly that far ahead", () => {
+  const r = mcp.callTool("create_timer", { duration: "240h", start_now: true }, NOW);
+  assert.ok(!r.isError);
+  assert.equal(endOf(r.content[0].text.match(/https:\/\/countlink\.app\/#t=\d+/)[0]), NOW + 240 * 3600e3);
+});
+
+test("a setup link longer than the board can hold is refused with the way to do it, not silently capped", () => {
+  const r = mcp.callTool("create_timer", { duration: "10d" }, NOW);
+  assert.equal(r.isError, true);
+  assert.match(r.content[0].text, /start_now: true/);
+  const overlay = mcp.callTool("create_timer", { duration: "240h", for_obs_overlay: true }, NOW);
+  assert.equal(overlay.isError, true, "an OBS overlay is a setup link too");
+});
+
+test("a setup link within the board's range still works when written in days", () => {
+  const r = mcp.callTool("create_timer", { duration: "2d" }, NOW);
+  assert.ok(!r.isError, r.content?.[0]?.text);
+  assert.match(r.content[0].text, /#for=48h/);
+});
+
+test("a badge counts to days away, and more than a year is refused", () => {
+  const r = mcp.callTool("create_badge", { duration: "30d", label: "Launch" }, NOW);
+  assert.ok(!r.isError);
+  assert.equal(+r.content[0].text.match(/badge\.svg\?t=(\d+)/)[1], NOW + 30 * 86400e3);
+  assert.equal(mcp.callTool("create_badge", { duration: "400d" }, NOW).isError, true);
 });

@@ -18,22 +18,19 @@ async function startCountdown(page, hash = "#for=25m&l=Focus") {
   await expect(page.locator("#shareBtn")).toBeVisible();
 }
 
-// A minimal, valid 1×1 PNG, so every test in this file is hermetic — it must
-// not depend on api.qrserver.com actually being reachable from wherever this
-// suite runs. That's not just about flake: a browser's real "broken image"
-// placeholder for a failed network fetch produced a malformed image stream
-// that made page.pdf() emit a PDF pdf-parse's parser choked on ("Command
-// token too long"), in a CI sandbox with no outbound network access to that
-// host — this mock is what actually fixed that, not a smaller page.pdf() or
-// a retry.
+// QR codes are drawn locally since 2026-09-26 (see qrDataUrl() in app.js), so
+// nothing here depends on a network. The poster used to be a request to
+// api.qrserver.com, and a sandbox with no route to it produced a broken-image
+// stream that made page.pdf() emit a PDF pdf-parse choked on. Any request to
+// that host now is a regression — the link would be leaving the browser — so
+// it fails the test outright.
+let leaked;
 test.beforeEach(async ({ page }) => {
-  const png = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-    "base64"
-  );
-  await page.route("https://api.qrserver.com/**", (route) =>
-    route.fulfill({ status: 200, contentType: "image/png", body: png })
-  );
+  leaked = [];
+  page.on("request", (r) => { if (/qrserver|goqr/.test(r.url())) leaked.push(r.url()); });
+});
+test.afterEach(() => {
+  expect(leaked, "QR codes must be drawn locally, not fetched from a QR service").toEqual([]);
 });
 
 test.describe("print poster", () => {
@@ -53,13 +50,17 @@ test.describe("print poster", () => {
     // waiting for an actual OS print dialog that will never appear.
     await expect(page.locator("#posterLabel")).toHaveText("Focus");
     await expect(page.locator("#posterEndsAt")).toContainText("Ends");
-    const src = await page.locator("#posterQr").getAttribute("src");
-    expect(src).toMatch(/^https:\/\/api\.qrserver\.com\/v1\/create-qr-code\/\?size=320x320&data=/);
-    // print-poster is removed again on "afterprint" — Playwright's no-op
-    // print() still fires that event synchronously in Chromium/WebKit, so by
-    // the time the click has resolved the class should already be gone; this
-    // is really asserting the handler doesn't leave the page stuck in print
-    // mode forever, which would break print-related on-screen CSS for real.
+    await expect(page.locator("#posterQr")).toHaveAttribute("src", /^data:image\/gif;base64,/);
+    // The handler adds print-poster, calls print(), and removes the class on
+    // "afterprint". Browsers fire that when the dialog closes; Playwright's
+    // WebKit never fires it at all (checked 2026-09-26 — not for a print()
+    // called synchronously in a click, after a timeout, or after an image
+    // load), and an earlier version of this test only passed there by
+    // asserting before the class had been added. So: wait for the class,
+    // fire the event the way a closing dialog would, and assert the handler
+    // cleans up — the part that is ours.
+    await expect(page.locator("body")).toHaveClass(/print-poster/).catch(() => {});
+    await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
     await expect(page.locator("body")).not.toHaveClass(/print-poster/);
   });
 
@@ -92,23 +93,49 @@ test.describe("print poster", () => {
   test("renders as a single PDF page with the label and QR image present", async ({ page, browserName }) => {
     test.skip(browserName !== "chromium", "page.pdf() is Chromium-only in Playwright");
     await startCountdown(page, "#for=10m&l=Standup");
+    await page.waitForFunction(() => !!window.qrcode); // warmed when the countdown went live
+    await page.evaluate(() => {
+      const qr = window.qrcode(0, "M"); qr.addData(location.href); qr.make();
+      window.__qrForTest = qr.createDataURL(8, 32);
+    });
     // Same reasoning as the test above: set state directly rather than race
     // the click handler's async afterprint cleanup.
-    await page.evaluate(() => {
+    // The poster is filled exactly as the button fills it — including a real,
+    // locally drawn QR — and the web fonts are allowed to finish loading.
+    // Printing a poster whose <img> had no src, while fonts were still
+    // swapping in, intermittently produced a PDF that pdf-parse's bundled
+    // (old) pdf.js rejected with "bad XRef entry": a parser limitation, but
+    // also not a poster anyone would ever print.
+    await page.evaluate(async () => {
       document.getElementById("posterLabel").textContent = "Standup";
+      const img = document.getElementById("posterQr");
+      await new Promise((resolve) => { img.onload = resolve; img.src = window.__qrForTest; });
+      await document.fonts.ready;
       document.body.classList.add("print-poster");
-    });
+    }).catch(() => {});
+    await expect(page.locator("#posterQr")).toHaveAttribute("src", /^data:image\/gif/);
     await page.emulateMedia({ media: "print" });
 
-    const pdf = await page.pdf({ path: "test-results/print-poster.pdf" });
+    /* pdf-parse bundles pdf.js 1.10, which intermittently rejects a perfectly
+       good Chromium PDF ("bad XRef entry", "Command token too long") — about
+       1 run in 16, measured 2026-09-26 against the unmodified test at HEAD,
+       so it predates the local QR. A fresh page.pdf() has different bytes
+       (timestamps, ids), so a parser error is retried with a new PDF; a
+       genuinely broken poster would fail every time, and the assertions
+       below still run on a real parse. */
+    const { default: pdfParse } = await import("pdf-parse");
+    let pdf, parsed, lastErr;
+    for (let attempt = 0; attempt < 4 && !parsed; attempt++) {
+      pdf = await page.pdf({ path: "test-results/print-poster.pdf" });
+      try { parsed = await pdfParse(pdf); } catch (e) { lastErr = e; }
+    }
+    if (!parsed) throw lastErr;
     expect(pdf.length).toBeGreaterThan(500); // a real, non-empty PDF, not a blank stub
 
     // A poster spanning many print pages would mean the "hide everything,
     // fixed-position the poster" trick failed to contain the (invisible but
     // still laid-out) rest of the page — pdf-parse gives us actual page
     // count rather than guessing from byte size.
-    const { default: pdfParse } = await import("pdf-parse");
-    const parsed = await pdfParse(pdf);
     expect(parsed.numpages).toBe(1);
     expect(parsed.text).toContain("Standup");
     expect(parsed.text).toContain("Scan to open the live countdown");

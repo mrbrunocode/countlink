@@ -70,10 +70,81 @@ export function parseDuration(txt) {
   return null;
 }
 
-export function clampSeconds(t) {
+export function clampSeconds(t, max = MAX_SECONDS) {
   t = Math.floor(Number(t));
   if (!isFinite(t)) return 0;
-  return Math.max(0, Math.min(MAX_SECONDS, t));
+  return Math.max(0, Math.min(max, t));
+}
+
+/* ---------------------------------------------------------------------------
+ * Long durations — for fixed-instant links only.
+ *
+ * parseDuration() above stops at 99h59m59s because that is what a SETUP link
+ * (#for=) can hold: the settable board has six digits. A fixed-instant link
+ * (#t=) has no such limit — the board shows days (mode "days" in app.js) — and
+ * "10 days until launch" is the example create_timer's own description gives.
+ * Until 2026-09-26 that request came back silently capped at 99h 59m 59s.
+ *
+ * So this is the same grammar with an optional leading days term ("10d",
+ * "10 days", "10d 6h") and no ceiling below MAX_FIXED_SECONDS. It's a
+ * separate function rather than a change to parseDuration(), whose grammar
+ * is cross-checked against the board's own parser (test/mcp-server.test.mjs)
+ * and must keep matching it: the board can't be pasted a number of days.
+ * ------------------------------------------------------------------------- */
+export const MAX_FIXED_SECONDS = 366 * 86400;
+
+export function parseLongDuration(txt) {
+  const t = String(txt == null ? "" : txt).trim().toLowerCase();
+  if (!t) return null;
+  const m = t.match(/^(?:(\d{1,3})\s*d(?:ays?)?)?\s*(.*)$/);
+  const days = m && m[1] ? +m[1] : 0;
+  const rest = m ? m[2].trim() : t;
+  let secs = 0;
+  if (rest) {
+    const colon = rest.match(/^(\d{1,3}):(\d{1,2})(?::(\d{1,2}))?$/);
+    const units = rest.match(/^(?:(\d{1,4})\s*h)?\s*(?:(\d{1,4})\s*m(?!s))?\s*(?:(\d{1,5})\s*s)?$/);
+    if (colon) secs = colon[3] !== undefined ? +colon[1] * 3600 + +colon[2] * 60 + +colon[3] : +colon[1] * 60 + +colon[2];
+    else if (units && (units[1] || units[2] || units[3])) secs = (+units[1] || 0) * 3600 + (+units[2] || 0) * 60 + (+units[3] || 0);
+    else if (/^\d{1,5}$/.test(rest) && !days) secs = +rest * 60;
+    else return null;
+  } else if (!days) return null;
+  return days * 86400 + secs;
+}
+
+/** "10d 6h", "3d", "1h 30m" — humanDuration() with days, for long results. */
+export function humanLongDuration(seconds) {
+  const s = clampSeconds(seconds, MAX_FIXED_SECONDS);
+  if (s <= MAX_SECONDS) return humanDuration(s);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+  return [d + "d", h ? h + "h" : "", m ? m + "m" : ""].filter(Boolean).join(" ");
+}
+
+/* The duration a tool call asked for, or a tool error. `fixed` is whether the
+   result is a fixed-instant link (start_now, embed_on_website, a badge),
+   which may run past 99h59m59s. */
+function durationFor(raw, fixed) {
+  const short = parseDuration(raw);
+  const long = parseLongDuration(raw);
+  const bad = () => toolError(
+    `Could not read ${JSON.stringify(String(raw ?? ""))} as a duration. ` +
+      'Try "25m", "1h30m", "90s", "5:00" or a plain number of minutes like "45"' +
+      (fixed ? ', or days like "10d".' : "."),
+  );
+  if (long !== null && long > MAX_SECONDS) {
+    if (!fixed) {
+      return toolError(
+        `${humanLongDuration(long)} is longer than a setup link can hold — its board shows at most ` +
+          `99h 59m 59s. For a longer countdown, such as days until a launch, pass start_now: true ` +
+          `(or embed_on_website: true for a web page): those fix the end instant, and the board ` +
+          `then counts down in days.`,
+      );
+    }
+    if (long > MAX_FIXED_SECONDS) return toolError("That is more than a year away. A CountLink countdown can run up to 366 days.");
+    return { seconds: long };
+  }
+  const seconds = short !== null ? short : long;
+  if (seconds === null || seconds <= 0) return bad();
+  return { seconds };
 }
 
 /** "1h 30m", "25m", "90s" — for prose back to the model and the user. */
@@ -147,7 +218,7 @@ export function setupUrl(seconds, label, opts) {
 }
 
 export function shareUrl(seconds, label, now) {
-  const end = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+  const end = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds, MAX_FIXED_SECONDS) * 1000;
   const u = `${SITE_URL}/#t=${end}`;
   return label ? `${u}&l=${encodeURIComponent(label)}` : u;
 }
@@ -181,7 +252,7 @@ export function shareUrl(seconds, label, now) {
  *     self-start flag (that flag only exists for the #for= setup shape).
  * ------------------------------------------------------------------------- */
 export function embedTargetUrl(seconds, label, now, style) {
-  const end = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+  const end = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds, MAX_FIXED_SECONDS) * 1000;
   let u = `${SITE_URL}/embed/?overlay=1#t=${end}`;
   if (label) u += `&l=${encodeURIComponent(label)}`;
   // "board" is the default the client omits too — see embedSrc() in
@@ -378,9 +449,14 @@ export function normaliseAgendaSegments(raw) {
     if (seconds === null || seconds <= 0) {
       return { error: `Segment ${i + 1}: could not read ${JSON.stringify(String(s.duration ?? ""))} as a duration. Try "10m", "1h", "90s" or a plain number of minutes.` };
     }
-    // parseDuration() already clamps a single value to MAX_SECONDS, the same
-    // way create_timer does — so one over-long segment is capped, not refused.
-    // Only the SUM can exceed what the board shows, hence the total check below.
+    // parseDuration() caps a single value at MAX_SECONDS. Until 2026-09-26 an
+    // over-long segment was quietly capped here, turning "100h" into 99h 59m
+    // 59s without saying so — the same silent substitution create_timer used
+    // to make. The segment's real length is refused instead.
+    const asked = parseLongDuration(s.duration);
+    if (asked !== null && asked > MAX_SECONDS) {
+      return { error: `Segment ${i + 1} runs ${humanLongDuration(asked)}, longer than the board can show (max ${humanDuration(MAX_SECONDS)}).` };
+    }
     total += seconds;
     const label = typeof s.label === "string" ? s.label.trim().slice(0, 60) : "";
     // Round away float noise (100s → 1.6666…7) so the JSON in the URL stays
@@ -509,7 +585,9 @@ export function labelOf(hashStr) {
 
 const DURATION_DESC =
   'How long the timer runs. Accepts "25m", "1h30m", "90s", "5:00", "1:30:00", ' +
-  'or a plain number read as minutes ("45"). Maximum 99h59m59s.';
+  'or a plain number read as minutes ("45"). A setup link or OBS overlay holds up to 99h59m59s. ' +
+  'With start_now or embed_on_website, longer countdowns of up to 366 days are fine: "10d", ' +
+  '"10 days", "10d 6h" or "240h".';
 
 export const TOOLS = [
   {
@@ -712,13 +790,10 @@ export function callTool(name, args, now) {
   const a = args && typeof args === "object" ? args : {};
 
   if (name === "create_timer") {
-    const seconds = parseDuration(a.duration);
-    if (seconds === null || seconds <= 0) {
-      return toolError(
-        `Could not read ${JSON.stringify(String(a.duration ?? ""))} as a duration. ` +
-          'Try "25m", "1h30m", "90s", "5:00" or a plain number of minutes like "45".'
-      );
-    }
+    const fixedInstant = a.embed_on_website === true || (a.start_now === true && a.for_obs_overlay !== true);
+    const parsed = durationFor(a.duration, fixedInstant);
+    if (parsed.isError) return parsed;
+    const seconds = parsed.seconds;
     const label = typeof a.label === "string" ? a.label.trim().slice(0, 60) : "";
     const overlay = a.for_obs_overlay === true;
     const embed = a.embed_on_website === true;
@@ -734,12 +809,12 @@ export function callTool(name, args, now) {
       const style = EMBED_STYLES.has(a.embed_style) ? a.embed_style : "board";
       const src = embedTargetUrl(seconds, label, now, style);
       const { html, width, height } = embedSnippet(src, label, a.embed_width, a.embed_height);
-      const pretty = humanDuration(seconds);
+      const pretty = humanLongDuration(seconds);
       // The same fixed instant embedTargetUrl() just minted into the #t= it
       // emitted — recomputed rather than parsed back out of `src`, since the
       // arithmetic (now + clampSeconds(seconds)*1000) is one line either way.
       const nowMs = typeof now === "number" ? now : Date.now();
-      const endMs = nowMs + clampSeconds(seconds) * 1000;
+      const endMs = nowMs + clampSeconds(seconds, MAX_FIXED_SECONDS) * 1000;
       // DTSTAMP must be a real instant, not the raw `now` argument — that is
       // `undefined` on every real production call (only the tests pass a
       // fixed one), and new Date(undefined) is an Invalid Date, which
@@ -779,13 +854,13 @@ export function callTool(name, args, now) {
     // .ics branch has the same fixed instant shareUrl() encodes into #t=,
     // without re-deriving it from a string.
     const nowMs = typeof now === "number" ? now : Date.now();
-    const endMs = nowMs + clampSeconds(seconds) * 1000;
+    const endMs = nowMs + clampSeconds(seconds, MAX_FIXED_SECONDS) * 1000;
     const url = overlay
       ? setupUrl(seconds, label, { overlay: true })
       : startNow
         ? shareUrl(seconds, label, now)
         : setupUrl(seconds, label);
-    const pretty = humanDuration(seconds);
+    const pretty = humanLongDuration(seconds);
 
     const text = overlay
       ? `Here is a ${pretty} countdown overlay for OBS${label ? ` called "${label}"` : ""}:\n\n${url}\n\n` +
@@ -910,19 +985,15 @@ export function callTool(name, args, now) {
   }
 
   if (name === "create_badge") {
-    const seconds = parseDuration(a.duration);
-    if (seconds === null || seconds <= 0) {
-      return toolError(
-        `Could not read ${JSON.stringify(String(a.duration ?? ""))} as a duration. ` +
-          'Try "25m", "1h30m", "90s", "5:00" or a plain number of minutes like "45".'
-      );
-    }
+    const parsed = durationFor(a.duration, true); // a badge is always a fixed instant
+    if (parsed.isError) return parsed;
+    const seconds = parsed.seconds;
     const label = typeof a.label === "string" ? a.label.trim().slice(0, 60) : "";
     const style = EMBED_STYLES.has(a.badge_style) ? a.badge_style : "board";
     // Same fixed-instant #t= rule as embed_on_website, and for the same
     // reason: a README or forum post has many readers who must all see the
     // same deadline, never a #for=&go=1 link that would restart per reader.
-    const endMs = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds) * 1000;
+    const endMs = (typeof now === "number" ? now : Date.now()) + clampSeconds(seconds, MAX_FIXED_SECONDS) * 1000;
     const pageUrl = shareUrl(seconds, label, now);
     let badgeUrl = `${SITE_URL}/badge.svg?t=${endMs}`;
     if (label) badgeUrl += `&l=${encodeURIComponent(label)}`;
@@ -930,7 +1001,7 @@ export function callTool(name, args, now) {
     const alt = label || "CountLink countdown";
     const markdown = `[![${escapeMarkdownAlt(alt)}](${badgeUrl})](${pageUrl})`;
     const html = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${escapeHtmlAttr(alt)}"></a>`;
-    const pretty = humanDuration(seconds);
+    const pretty = humanLongDuration(seconds);
     const text =
       `Here is a ${pretty} countdown badge${label ? ` called "${label}"` : ""} for a README, ` +
       `forum post or anywhere only an image is allowed:\n\nMarkdown:\n${markdown}\n\nHTML:\n${html}\n\n` +

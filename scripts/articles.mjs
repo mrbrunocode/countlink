@@ -153,17 +153,22 @@ export const ARTICLES = [
   {
     slug: "the-pomodoro-technique",
     title: "The Pomodoro Technique, explained — solo and as a group",
+    // 2026-09-26: sections re-headed as the questions this page is actually
+    // searched for ("pomodoro meaning", "how does the pomodoro method work"),
+    // each answered directly beneath — no new material, same length.
     description:
       "The Pomodoro Technique in practice: why 25-minute focus blocks work, how to run them, common mistakes, and how to keep a whole study group or team in sync.",
     date: "2026-07-23",
+    updated: "2026-09-26",
     read: 6,
     excerpt:
       "25 minutes of focus, then a short break, repeated. Simple — but the details matter, and doing it as a group needs everyone on the same clock.",
     bodyHtml: `
-    <p>The Pomodoro Technique is one of those productivity methods that's genuinely useful precisely because it's simple: work in focused blocks of about 25 minutes, take a short break, repeat. It was devised by Francesco Cirillo in the late 1980s (named after the tomato-shaped kitchen timer he used — <em>pomodoro</em> is Italian for tomato), and its staying power comes from the psychology underneath it. Here's how it works, why, and how to run it with other people.</p>
+    <h2>What is the Pomodoro Technique?</h2>
+    <p>The Pomodoro Technique is a time-management method: you work on one task for 25 minutes, take a 5-minute break, and after four of those rounds take a longer break of 15 to 30 minutes. Francesco Cirillo devised it in the late 1980s and named it after the tomato-shaped kitchen timer he used — <em>pomodoro</em> is Italian for tomato, and one 25-minute block is called "a pomodoro". It works because it makes starting easy and focus finite. Here's how to run it, why it works, and how to do it with other people.</p>
 
-    <h2>The basic rhythm</h2>
-    <p>One "pomodoro" is a single unbroken 25-minute block of focus on one task, followed by a 5-minute break. After four pomodoros, you take a longer break — 15 to 30 minutes. That's the whole method:</p>
+    <h2>How does the Pomodoro Technique work?</h2>
+    <p>One pomodoro is a single unbroken 25-minute block of focus on one task, followed by a 5-minute break. After four pomodoros, you take a longer break — 15 to 30 minutes. That's the whole method:</p>
     <ol>
       <li>Pick one task.</li>
       <li>Set a timer for 25 minutes and work on only that until it rings.</li>
@@ -190,10 +195,10 @@ export const ARTICLES = [
       </table>
     </div>
     <p>Two hours and change for four pomodoros is the number worth internalising, because it is the one that makes the technique plannable: an afternoon holds two sets, not five, and a day that needs six sets is a day that was never going to work.</p>
-    <h2>Why 25 minutes works</h2>
+    <h2>Why 25 minutes?</h2>
     <p>The length isn't arbitrary. Twenty-five minutes is long enough to make real progress but short enough that starting doesn't feel like a commitment — which is the whole battle, because the hardest part of focused work is usually beginning. "I'll work for 25 minutes" is a much easier promise to make yourself than "I'll work on this until it's done." The fixed end also creates a mild, useful urgency: a deadline you can see tends to pull attention forward and keep it from wandering. And the enforced breaks matter as much as the focus blocks — they're what make the method sustainable across a whole day instead of burning you out by lunch.</p>
 
-    <h2>The common mistakes</h2>
+    <h2>What are the most common Pomodoro mistakes?</h2>
     <ul>
       <li><strong>Skipping the break because you're "in flow."</strong> Tempting, but the breaks are load-bearing — they're what let you do the next block, and the one after. If you're genuinely deep in flow, finishing the thought is fine; making a habit of skipping breaks is how the method stops working by mid-afternoon.</li>
       <li><strong>Letting the block be interrupted.</strong> A pomodoro is meant to be unbroken. If something urgent genuinely can't wait, the honest move is to end the pomodoro and start fresh later, not to pause halfway and pretend it counted.</li>
@@ -201,7 +206,7 @@ export const ARTICLES = [
       <li><strong>Treating 25 as sacred.</strong> It's a starting point. Some people work better on 50/10. Use what fits — the rhythm matters more than the exact number.</li>
     </ul>
 
-    <h2>Doing it as a group</h2>
+    <h2>How do you do the Pomodoro Technique as a group?</h2>
     <p>Pomodoro is effective solo and even better with company — a study group, a co-working room, a "study with me" stream, or a team doing focused work together. The catch is that the benefit depends on everyone being on the <em>same</em> block: the point is that you all focus together and, crucially, break together, so the room stays in phase instead of one person breaking while another is mid-flow.</p>
     <p>That only works if everyone sees the same clock. Rather than each person running their own timer (which drift apart within minutes), one person opens the <a href="/timers/pomodoro-timer">pomodoro timer</a>, sets it to auto-cycle through focus and break rounds — long break included every fourth — and shares the one link: everyone opens it and sees the identical round and phase, advancing on its own with nothing to restart between blocks. It turns a solo discipline into a shared rhythm, which for a lot of people is exactly what makes it stick.</p>
 

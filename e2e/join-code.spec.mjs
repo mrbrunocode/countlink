@@ -57,6 +57,7 @@ test.describe("join code entry", () => {
   test("starting a countdown offers a code, and the code opens the same countdown", async ({ page }) => {
     await page.goto("/");
     await page.locator("#boardStartBtn").click();
+    const startedT = +new URL(page.url()).hash.match(/t=(\d+)/)[1];
 
     const code = page.locator("#joinCodeText");
     await expect(code).toBeVisible();
@@ -70,13 +71,14 @@ test.describe("join code entry", () => {
     await page.locator("#joinInput").fill(typed);
     await page.locator(".join-entry-row .btn").click();
 
-    // The dev server has no Pages Functions, so /j/ cannot resolve here — the
-    // redirect is covered by test/join-code.test.mjs and verified against
-    // production. What this asserts is the client half: the form accepts a
-    // garbled code and navigates to the canonical /j/<CODE> for it, rather
-    // than rejecting what the person actually typed.
-    await page.waitForURL(/\/j\//, { timeout: 5000 });
-    expect(new URL(page.url()).pathname).toBe(`/j/${value}`);
+    // The dev server runs the real Pages Functions (scripts/dev-server.mjs),
+    // so this is the whole round trip: the form accepts a garbled code,
+    // navigates to /j/<CODE>, and functions/j/[code].js redirects to the
+    // SAME countdown — the same instant, to the second (a code carries whole
+    // seconds, so the millisecond part is rounded away).
+    await page.waitForURL(/#t=\d+/, { timeout: 5000 });
+    const landedT = +new URL(page.url()).hash.match(/t=(\d+)/)[1];
+    expect(Math.abs(landedT - startedT)).toBeLessThanOrEqual(500);
   });
 
   test("count-up mode is offered no code, because a code cannot carry one", async ({ page }) => {

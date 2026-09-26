@@ -5,13 +5,34 @@ Bruno** — it starts behind a login at platform.openai.com, and signing in (or
 signing up) on someone's behalf is not something the assistant does. Nothing
 below requires code changes; the endpoint is live and passing.
 
-## Prerequisites
+## Why this is the top AI-channel action (2026-09-26)
+
+ChatGPT sends 492 of CountLink's 494 AI-assistant sessions (28 days to
+2026-09-23). Every one of those today comes from ChatGPT *searching the web*
+and citing a page. A directory listing is a different door: the plugin is
+installed in ChatGPT itself and called directly. OpenAI opened public
+submissions on 2026-04-27 and on 2026-07-09 renamed the App directory the
+**Plugin directory** (plugins can bundle apps, skills and templates; the
+directory shows in ChatGPT web, desktop, Work and Codex).
+
+## Prerequisites (re-checked against OpenAI's submission page 2026-09-26)
 
 1. **Sign in / create an OpenAI account** at
    [platform.openai.com](https://platform.openai.com) with `mrbruno@gmail.com`.
    The submission portal is under the developer platform, not chatgpt.com.
-2. There may be an org-verification step before submissions are enabled — if
-   the portal asks for it, that's expected, not a sign anything is wrong.
+2. **Verify your identity as the publisher.** OpenAI now requires "a verified
+   individual or business identity in the OpenAI Platform" and rejects
+   submissions from an unverified or mismatched publisher. Individual
+   verification is fine; the website, privacy and terms URLs must be public
+   and match the publisher (they're all countlink.app).
+3. **Your org role needs "Apps Management" write access** — automatic if it's
+   your own personal org.
+4. **Domain verification.** The portal issues a token to host at
+   `https://countlink.app/.well-known/openai-apps-challenge`. Paste it into a
+   file at `countlink/.well-known/openai-apps-challenge` (just the token, no
+   HTML) and push; the deploy rsync copies dot-directories other than
+   `.git`/`.github`/`.claude`/`.wrangler`. Or send the token and it can be
+   added for you.
 
 ## The endpoint (already live, already verified)
 
@@ -21,6 +42,7 @@ below requires code changes; the endpoint is live and passing.
 | Transport | Streamable HTTP (JSON-RPC 2.0 over POST) |
 | Protocol versions | `2025-06-18`, `2025-03-26`, `2024-11-05` |
 | Authentication | **None.** No account, no API key, no OAuth. |
+| Tool annotations | Every tool sets `readOnlyHint`, `destructiveHint` and `openWorldHint` (now **required** for every tool) — all `true`/`false`/`false`, honestly: a call is string arithmetic and creates no state. |
 | Tools | `create_timer` (share links, OBS overlays, website `<iframe>` embeds via `embed_on_website: true`, and an `.ics` calendar file for any fixed-instant result), `create_agenda` (an ordered, auto-advancing sequence of timed segments — one link, an optional `start_at` for a scheduled start, plus a per-segment `.ics`), `create_badge` (a linked image badge for READMEs/forums, for where an iframe can't go), `describe_timer_link` (reads timers and agendas alike, scheduled-but-not-started included) |
 
 No test credentials are needed — the "fully-featured demo account" requirement
@@ -124,9 +146,30 @@ Each is a prompt a reviewer can type, with what should happen.
    → calls `describe_timer_link`; explains it is a not-yet-started setup link
    for 25 minutes, labelled Pomodoro.
 
-6. **Error case — "make me a timer for ages."**
-   → `create_timer` returns a tool error (not a crash) asking for a duration
-   it can read, and suggests the accepted formats.
+7. **"A countdown for my website: 10 days until our launch."**
+   → `create_timer` with `duration: "10d"`, `embed_on_website: true`; the
+   embed counts down 10 days, showing days on the board. (Before 2026-09-26
+   anything over 99h 59m 59s was silently capped — the tool's own
+   description used this exact example.)
+
+**Negative cases — the portal now asks for at least three.** Each should be a
+tool error the model relays, never a crash or a wrong timer:
+
+N1. **"Make me a timer for ages."**
+   → `create_timer` returns a tool error asking for a duration it can read,
+   and lists the accepted formats.
+
+N2. **"Give me a setup link for a 10-day countdown."** (no start_now)
+   → a tool error: a setup link's board holds at most 99h 59m 59s; it says to
+   use `start_now: true` or `embed_on_website: true`, which count in days.
+
+N3. **"What is this link? https://example.com/#t=123"**
+   → `describe_timer_link` returns an error: it isn't a CountLink timer link,
+   with an example of what one looks like.
+
+N4. **"Build an agenda with 30 five-minute segments."**
+   → `create_agenda` refuses: at most 24 segments, because the agenda page is a
+   readable run sheet.
 
 ## Why this should qualify
 
@@ -140,7 +183,7 @@ Worth having to hand if the review comes back with questions:
   apps in the family get none.
 - **No login, no signup, no paywall, no trial.** Each of those is an explicit
   auto-rejection; the app has none of them.
-- **Correct annotations.** Both tools are `readOnlyHint: true`,
+- **Correct annotations.** All four tools are `readOnlyHint: true`,
   `destructiveHint: false`, `openWorldHint: false` — and that is honest, not
   defensive: there is no backend, so a call is pure string arithmetic over a
   duration and creates no state anywhere.
@@ -148,7 +191,7 @@ Worth having to hand if the review comes back with questions:
 - **Nothing in the prohibited categories.**
 
 Honest risk, so it isn't a surprise: the most likely objection is *scope* —
-two tools over a single small utility is a modest app, and directories often
+four tools over a single small utility is a modest app, and directories often
 favour richer integrations. That is a judgement call by the reviewer, not
 something to pre-emptively pad the app for.
 

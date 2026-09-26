@@ -1,14 +1,14 @@
 /* Phone-control feature switch — see assets/realtime.js and docs/phone-control-setup.md.
-   Empty by default: every board/setup-panel/control-page code path checks
-   COUNTLINK_ABLY_KEY before doing anything, so an unconfigured site behaves
-   in every observable way exactly like it did before this file existed —
-   no "Enable phone control" checkbox, no Ably script ever loaded, nothing
-   to review differently on any other page.
 
-   To turn it on: create a free Ably account (no card required) at
-   ably.com, add an API key scoped ONLY to "Publish, Subscribe, Presence"
-   capability on channels matching "countlink:*", and paste the key below.
-   That scoping matters because this key ships in public page source (there
-   is no server to hide it behind) — restrict it so a copy of the key is
-   only ever good for countdown pub/sub, never account admin. */
-window.COUNTLINK_ABLY_KEY = "FxZdIQ.RZbDhg:p33VhtJrZoHQuTl6JQJHGKV2s6kplQWtGNy_4hOQs0o";
+   This file used to hold the Ably API key itself, which made it public and
+   let anyone holding a share link control the room's screen. Since
+   2026-09-26 the key lives only in the Cloudflare Pages secret ABLY_API_KEY,
+   read by functions/api/realtime-token.js, and this file is just the on/off
+   switch for the UI.
+
+   false -> no "control from my phone" checkbox, no control link, no Ably
+            script ever loaded; every realtime code path is inert.
+   true  -> the feature appears. It also needs ABLY_API_KEY set on the Pages
+            project, or /api/realtime-token answers 503 and the feature fails
+            quietly (the countdown itself is unaffected either way). */
+window.COUNTLINK_PHONE_CONTROL = true;

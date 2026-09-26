@@ -1,13 +1,15 @@
 // Regression tests for the phone-control pure math (assets/app.js) — the
 // part of the pause/resume/adjust feature that's actually worth locking in,
-// since the pub/sub wiring around it (realtime.js) can't be exercised without
-// a live Ably connection. See test/helpers/load-app.mjs for how this is
+// since the pub/sub wiring around it (realtime.js) needs a network. The
+// crypto and the token endpoint are in test/realtime.test.mjs; the
+// who-may-publish rules are exercised end to end in e2e/phone-control.spec.mjs
+// against a stand-in Ably. See test/helpers/load-app.mjs for how this is
 // loaded without a browser.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadDuration } from "./helpers/load-app.mjs";
 
-const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, genSessionId, remoteStateAction, sanitizeFlashText } = loadDuration();
+const { clampAdjustedEnd, clampAdjustedRemaining, computeResumeEnd, remoteStateAction, sanitizeFlashText } = loadDuration();
 
 // ── remoteStateAction ─────────────────────────────────────────────────────
 //
@@ -90,13 +92,8 @@ test("computeResumeEnd recomputes a deadline from 'now' plus the frozen remainin
   assert.equal(computeResumeEnd(now, 90_000), now + 90_000);
 });
 
-test("genSessionId produces a short, URL-safe, non-empty id, and doesn't repeat back to back", () => {
-  const a = genSessionId();
-  const b = genSessionId();
-  assert.match(a, /^[a-z0-9]+$/);
-  assert.ok(a.length >= 6);
-  assert.notEqual(a, b);
-});
+// Session ids are no longer minted here — see test/realtime.test.mjs for the
+// key/sid pair that replaced genSessionId() on 2026-09-26.
 
 // ── sanitizeFlashText ──────────────────────────────────────────────────────
 //

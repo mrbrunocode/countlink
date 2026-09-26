@@ -37,14 +37,19 @@ let ivPhaseKey=null;
    already gone by the time they've read the page. */
 let state="ready";
 /* Phone control (see realtime.js, control.html, realtime-config.js): entirely
-   optional and off by default (COUNTLINK_ABLY_KEY empty). controlSession is
-   the channel id shared between this board and its controller; null means
-   "no phone control on this countdown", and every realtime code path below
-   guards on it being set. pausedRemaining is the frozen ms-left snapshot
+   optional, opt-in per countdown. controlSession is the session id (sid) —
+   the channel name, carried in the share link so every screen can LISTEN;
+   null means "no phone control on this countdown", and every realtime code
+   path below guards on it. controlKey is the secret that grants the right to
+   CONTROL: set only on the tab that pressed Start (recovered from
+   localStorage on a reload, never read from the address bar) and carried
+   only by the control link. A viewer has a sid and no key, so it sees every
+   pause live and cannot cause one — see realtime.js's header for why the two
+   were split. pausedRemaining is the frozen ms-left snapshot
    taken the instant a "pause" command lands — direction "down" only, since
    a moving reference point (stopwatch elapsed / interval cycle position)
    doesn't have a single clean "remaining" value to freeze the same way. */
-let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
+let controlSession=null,controlKey=null,pausedRemaining=0,hashPausedRemaining=null;
 /* Settable board: the duration currently shown on a READY board, in seconds,
    or null for "the board hasn't been touched — use the form". Non-null makes
    the board authoritative over #customMin at start, which is what lets someone
@@ -52,6 +57,11 @@ let controlSession=null,pausedRemaining=0,hashPausedRemaining=null;
    the duration routes through renderReady(), which resets this, so the two can
    never silently disagree. */
 let boardTotal=null,boardTypeBuf="";
+/* True while the countdown on screen was opened from a link rather than
+   started here — its `total` and tile layout were derived from the time left
+   at load, and clock.js's correction can land a moment AFTER that (see the
+   onChange handler near renderClockNote), so they may need deriving again. */
+let bootedFromLink=false;
 /* Which input methods touched the board before Start was pressed, for the
    timer_started analytics event's set_via param — a Set so "typed then
    nudged with a chevron" reports both rather than only the last one.
@@ -99,7 +109,7 @@ if (typeof module !== "undefined" && module.exports) {
     fmtStartsIn: fmtStartsIn,
     alarmTones: alarmTones,
     clampAdjustedEnd: clampAdjustedEnd, clampAdjustedRemaining: clampAdjustedRemaining,
-    computeResumeEnd: computeResumeEnd, genSessionId: genSessionId,
+    computeResumeEnd: computeResumeEnd,
     // settable board (see "the duration model" block below charsFor)
     clampTotalSeconds: clampTotalSeconds, fieldsFromTotal: fieldsFromTotal,
     totalFromFields: totalFromFields, needsHours: needsHours,
@@ -131,6 +141,16 @@ if ("serviceWorker" in navigator) {
 }
 
 function fmt2(n){return String(n).padStart(2,"0")}
+/* "Now" for everything that measures a countdown: the device clock plus the
+   correction clock.js measured against /api/now, so a projector PC whose
+   clock is two minutes out still shows the room the right time. Falls back to
+   the bare device clock when clock.js isn't loaded or couldn't reach the
+   network — which is exactly how every countdown ran before it existed.
+   Everything that writes an instant into a link (start(), startUp(), …) uses
+   this too, so a link minted on a wrong clock is still right for everyone. */
+function clockNow(){
+  return typeof window!=="undefined"&&window.CountlinkClock?window.CountlinkClock.now():Date.now();
+}
 
 /* One escaper for every innerHTML interpolation in this file. There were
    three near-copies before — two inline in template literals, one local to
@@ -326,25 +346,34 @@ function formMinutes(){
   return pickMinutes(el&&el.value,d.minutes||10);
 }
 function setDefaultUntil(){
-  const d=new Date(Date.now()+3600e3);d.setSeconds(0,0);
+  const d=new Date(clockNow()+3600e3);d.setSeconds(0,0);
   const p=n=>String(n).padStart(2,"0");
   $("untilTime").value=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+/* "&l=<label>", or nothing for an unlabelled countdown — every link used to
+   end in a bare "&l=", which read as a truncated URL when pasted into chat.
+   An absent l and an empty one parse identically (labelFromHash → ""). */
+function labelParam(lab){
+  return lab?`&l=${encodeURIComponent(lab)}`:"";
 }
 function makeLink(){
   const u=new URL(location.href);
   const dirParam=direction==="up"?"&d=up":direction==="interval"?`&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}${ivLongEvery>0?`&lr=${ivLongRest}&le=${ivLongEvery}`:""}`:"";
   const ctrlParam=controlSession?`&c=${controlSession}`:"";
   const pauseParam=(state==="paused")?`&p=${Math.round(pausedRemaining)}`:"";
-  u.hash=`t=${end}&l=${encodeURIComponent(label)}${dirParam}${ctrlParam}${pauseParam}`;
+  u.hash=`t=${end}${labelParam(label)}${dirParam}${ctrlParam}${pauseParam}`;
   return u.toString();
 }
-/* The controller (control.html) needs the same t/l/c — but never d/p, since
-   phone control only exists for down-mode and the controller tracks
-   paused-ness itself from live state broadcasts, not from a URL snapshot. */
+/* The controller (control.html) needs t/l plus the KEY, never the bare sid:
+   the key is what lets it publish, and control.js derives the sid from it.
+   Never d/p either — phone control only exists for down-mode, and the
+   controller tracks paused-ness from live state broadcasts, not a URL
+   snapshot. Empty for a viewer: holding the share link is not permission to
+   control, so a viewer's page has no control link to offer. */
 function makeControlLink(){
-  if(!controlSession)return "";
+  if(!controlSession||!controlKey)return "";
   const u=new URL(location.origin+"/control.html");
-  u.hash=`t=${end}&l=${encodeURIComponent(label)}&c=${controlSession}`;
+  u.hash=`t=${end}${labelParam(label)}&k=${controlKey}`;
   return u.toString();
 }
 // A link that's been truncated by a chat client, hand-edited, or just
@@ -370,6 +399,8 @@ function readHash(){
       ivLongRest=ivLongEvery>0?Math.max(0,numOr(m.get("lr"),0)):0;
     }else direction="down";
     controlSession=m.get("c")||null;
+    // Host again after a reload of its own board; everyone else a viewer.
+    controlKey=controlSession&&rt()?rt().hostKeyFor(controlSession):null;
     // Only down-mode countdowns support pause — see the state-list comment
     // near `let state="ready"` above for why.
     const p=m.get("p");
@@ -391,13 +422,6 @@ function clampAdjustedRemaining(remaining,deltaMs){
 }
 function computeResumeEnd(now,remaining){
   return now+remaining;
-}
-// Not a security token — just a channel name unlikely enough to guess that
-// a stranger can't join someone else's classroom timer by chance. Good
-// enough for "control this specific link", not meant to resist a targeted
-// attacker (there's nothing sensitive on the other end of it regardless).
-function genSessionId(){
-  return Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
 }
 
 /* ---------- final-10-seconds urgency ----------
@@ -487,6 +511,12 @@ function setState(s){
   // Same "down mode, running" rule as icsBtn: a poster's whole point is a
   // fixed instant to scan towards, which a #for= setup link doesn't have yet.
   show("printPosterBtn",live&&direction==="down");
+  // Warm the QR library while nobody is waiting on it, so a tap on "Print
+  // poster" can draw and print inside the tap (see the warm-up beside
+  // qrDataUrl()). A touch screen has no hover to warm it on.
+  if(live&&$("printPosterBtn")&&typeof loadQrLib==="function"){
+    (window.requestIdleCallback||setTimeout)(()=>{loadQrLib().catch(()=>{});});
+  }
   // Laps belong to the shared stopwatch and nothing else — a countdown has no
   // splits to take. Kept alongside the other show() calls so the visibility
   // rules for every stage button live in one place.
@@ -513,6 +543,7 @@ function setState(s){
     : (formDirection==="up" ? "Start counting up" : "Start countdown");
   const st=$("stopBtn");
   if(st)st.textContent = s==="finished" ? "New timer" : "Stop";
+  syncSetupStartLabel();
   const note=$("syncMsg");
   if(note)note.textContent = s==="paused"
     ? "Paused from the controller's phone — anyone with this link sees it frozen too."
@@ -521,21 +552,45 @@ function setState(s){
     : "Press start, then share the link — every screen counts down together.";
 }
 
+/* The setup panel's own Start button. While a countdown is live it said
+   "Start countdown" exactly as if nothing were running, so it read as either
+   a no-op or a restart of the same one. It starts a separate, new countdown
+   (and a new link), and now says so. */
+/* Writing the new link into the address bar fires this page's own hashchange
+   listener, which is there for links arriving from OUTSIDE (a recent-timers
+   click, a pasted link). It couldn't tell the difference, so every Start was
+   followed by a second boot of the board it had just started, as if opened
+   from someone else's link: the hero vanished and the board jumped up the
+   page under the cursor, phone control connected twice, and the recent-timers
+   list was written twice. The listener now skips the hash this page wrote. */
+let ownHash=null;
+function setOwnHash(h){
+  ownHash="#"+h;
+  location.hash=h;
+}
+function syncSetupStartLabel(){
+  const b=$("startBtn");
+  if(!b)return;
+  const live=state==="running"||state==="paused";
+  const up=formDirection==="up";
+  b.textContent=live?(up?"Start a new stopwatch":"Start a new countdown"):(up?"Start counting up":"Start countdown");
+}
 function start(ms,lab){
-  direction="down";
-  end=Date.now()+ms;label=lab;fired=false;total=ms;prevValues=null;
+  direction="down";bootedFromLink=false;
+  end=clockNow()+ms;label=lab;fired=false;total=ms;prevValues=null;
   resetLaps(); // a new run always starts with an empty split list
   /* Tile layout (how many digit tiles are on screen) is fixed once, from the
      STARTING duration — not recomputed each tick. Otherwise an hour+ countdown
      would silently drop from 6 tiles to 4 the moment it crosses under 60
      minutes remaining, breaking the board mid-countdown. */
   mode = ms>=86400000?"days":ms>=3600000?"hms":"ms";
-  // Opt-in only (see realtime-config.js) — a new session id every time
-  // Start is pressed, never reused across separate countdowns.
+  // Opt-in only (see realtime-config.js) — a new session every time Start is
+  // pressed, never reused across separate countdowns. This tab is the host.
   const wantsControl=$("phoneControlToggle")&&$("phoneControlToggle").checked;
-  controlSession=(wantsControl&&window.CountlinkRealtime&&window.CountlinkRealtime.enabled)?genSessionId():null;
+  const sess=wantsControl&&rt()?rt().newSession():null;
+  controlSession=sess?sess.sid:null;controlKey=sess?sess.key:null;
   pausedRemaining=0;
-  location.hash=`t=${end}&l=${encodeURIComponent(label)}${controlSession?`&c=${controlSession}`:""}`;
+  setOwnHash(`t=${end}${labelParam(label)}${controlSession?`&c=${controlSession}`:""}`);
   lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce(`Countdown started: ${Math.round(ms/60e3)} minutes${label?", "+label:""}`);
   saveRecent();
@@ -548,12 +603,12 @@ function start(ms,lab){
   boardSetMethods.clear();
 }
 function startUp(lab){
-  direction="up";
-  end=Date.now();label=lab;fired=false;total=0;prevValues=null;
+  direction="up";bootedFromLink=false;
+  end=clockNow();label=lab;fired=false;total=0;prevValues=null;
   resetLaps(); // a new run always starts with an empty split list
-  controlSession=null;pausedRemaining=0; // phone control is down-mode only
+  controlSession=null;controlKey=null;pausedRemaining=0; // phone control is down-mode only
   mode="hms"; // always 6 tiles — an open-ended stopwatch can run past an hour, so never a 4-tile start
-  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=up`;
+  setOwnHash(`t=${end}${labelParam(label)}&d=up`);
   lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce("Stopwatch started"+(label?": "+label:""));
   saveRecent();
@@ -568,16 +623,16 @@ function startUp(lab){
    and "resume after a tab was backgrounded" both just work, same as every
    other mode here. */
 function startInterval(workSec,restSec,rounds,lab,longRestSec=0,longEvery=0){
-  direction="interval";
-  end=Date.now();label=lab;fired=false;prevValues=null;
+  direction="interval";bootedFromLink=false;
+  end=clockNow();label=lab;fired=false;prevValues=null;
   resetLaps(); // a new run always starts with an empty split list
-  controlSession=null;pausedRemaining=0; // phone control is down-mode only
+  controlSession=null;controlKey=null;pausedRemaining=0; // phone control is down-mode only
   ivWork=Math.max(1,workSec);ivRest=Math.max(0,restSec);ivRounds=Math.max(1,rounds);
   ivLongEvery=Math.max(0,Math.floor(longEvery||0));
   ivLongRest=ivLongEvery>0?Math.max(0,longRestSec||0):0;
   mode="ms";
   const longParam=ivLongEvery>0?`&lr=${ivLongRest}&le=${ivLongEvery}`:"";
-  location.hash=`t=${end}&l=${encodeURIComponent(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}${longParam}`;
+  setOwnHash(`t=${end}${labelParam(label)}&d=iv&w=${ivWork}&r=${ivRest}&n=${ivRounds}${longParam}`);
   lastAnnouncedMin=null;announcedFinal=false;ivPhaseKey=null;
   announce(`Interval timer started: ${ivRounds} rounds of ${ivWork}s work, ${ivRest}s rest`);
   saveRecent();
@@ -591,9 +646,12 @@ function startInterval(workSec,restSec,rounds,lab,longRestSec=0,longEvery=0){
    timer. Stopping resets THIS screen back to ready. If phone control was on,
    this also tells every other connected screen (and the controller) to stop
    too — the one exception to "stop only affects this screen", since it's an
-   explicit broadcast rather than the passive link-timestamp mechanic. */
+   explicit broadcast rather than the passive link-timestamp mechanic. Only
+   the host can send that broadcast (broadcastState() needs the key), so a
+   viewer pressing Stop stops their own screen and nobody else's — exactly
+   what Stop means on a link without phone control. */
 function stopTimer(){
-  const hadControl=!!controlSession;
+  const hadControl=!!controlKey;
   // Captured before any of the resets below — "New timer" (dismissing an
   // already-finished board) routes through this same function, and that is
   // not the same user action as cutting a running countdown short.
@@ -607,19 +665,19 @@ function stopTimer(){
   if(heads)heads.innerHTML="Stopped on this screen. A link you already shared keeps counting on other screens — the link itself is the timer.";
   if(hadControl)broadcastState("ready");
   disconnectRealtime();
-  controlSession=null;pausedRemaining=0;
+  controlSession=null;controlKey=null;pausedRemaining=0;
   updateControlLinkUI();
 }
 
 /* ---------- phone control: realtime wiring (see realtime.js, control.html) ----------
-   Deliberately symmetric rather than "board is authoritative, viewers are
-   passive": every tab open on the same controlled link — the classroom
-   projector, a student's own device, doesn't matter which — applies an
-   incoming command itself and rebroadcasts the result. Any of them
-   converges the others; there's no special tab whose disconnection breaks
-   the session. A periodic heartbeat state broadcast is what lets a
-   late-arriving tab (or one that missed a message) catch up without needing
-   Ably's paid history/rewind features. */
+   Every tab open on the same controlled link — the classroom projector, a
+   student's own device, doesn't matter which — applies an incoming command
+   itself, so every screen reacts the instant the phone sends it and no tab's
+   disconnection stops the others from responding. Only key-holders publish:
+   the host board rebroadcasts its state after each command and on a 4s
+   heartbeat, which is what lets a late-arriving tab catch up; if the host
+   board is closed, the controller carries that heartbeat instead (see
+   control.js). Viewers never publish — their tokens can't. */
 function renderPausedTiles(){
   clearInterval(tick);tick=null;
   $("evtLabel").textContent=label||"";
@@ -636,9 +694,20 @@ function renderPausedTiles(){
   const sub=$("subLine");
   if(sub)sub.innerHTML="<b>Paused</b> from the controller's phone — waiting to resume.";
 }
+/* The realtime layer, or null. Checks for the current API rather than just
+   the object: assets/*.js are cached for hours, and a browser holding the
+   pre-2026-09-26 realtime.js next to this app.js must get "no phone control",
+   not a TypeError inside start(). */
+function rt(){
+  const R=typeof window!=="undefined"?window.CountlinkRealtime:null;
+  return R&&R.enabled&&typeof R.newSession==="function"&&typeof R.credFor==="function"?R:null;
+}
+function realtimeCred(){
+  return rt()&&controlSession?rt().credFor(controlSession,controlKey):null;
+}
 function broadcastState(overrideState){
-  if(!controlSession||!window.CountlinkRealtime)return;
-  window.CountlinkRealtime.publishState(controlSession,{
+  if(!controlSession||!controlKey||!rt())return;
+  rt().publishState(realtimeCred(),{
     end:end,label:label,state:overrideState||state,pausedRemaining:pausedRemaining,
   });
 }
@@ -650,7 +719,7 @@ function broadcastState(overrideState){
    startInterval() only ever set one in down-mode) just ignores commands. */
 function applyRemoteCommand(cmd){
   if(direction!=="down"||!controlSession||!cmd)return;
-  const now=Date.now();
+  const now=clockNow();
   if(cmd.type==="pause"&&state==="running"){
     pausedRemaining=Math.max(0,end-now);
     setState("paused");
@@ -744,10 +813,15 @@ function applyRemoteState(s){
 }
 function connectRealtimeIfNeeded(){
   disconnectRealtime();
-  if(direction!=="down"||!controlSession||!window.CountlinkRealtime||!window.CountlinkRealtime.enabled)return;
-  unsubRealtimeState=window.CountlinkRealtime.subscribeState(controlSession,applyRemoteState);
-  unsubRealtimeCommands=window.CountlinkRealtime.subscribeCommands(controlSession,applyRemoteCommand);
-  realtimeHeartbeat=setInterval(()=>broadcastState(),4000);
+  if(direction!=="down"||!controlSession||!rt())return;
+  const cred=realtimeCred();
+  if(!cred)return; // a malformed or pre-2026-09-26 `c` — the countdown still runs, just unconnected
+  unsubRealtimeState=rt().subscribeState(cred,applyRemoteState);
+  unsubRealtimeCommands=rt().subscribeCommands(cred,applyRemoteCommand);
+  if(controlKey){
+    broadcastState(); // don't make a controller that's already open wait 4s to learn the state
+    realtimeHeartbeat=setInterval(()=>broadcastState(),4000);
+  }
 }
 function disconnectRealtime(){
   if(unsubRealtimeState){unsubRealtimeState();unsubRealtimeState=null;}
@@ -756,13 +830,14 @@ function disconnectRealtime(){
 }
 /* Setup-panel-only (see index.html): shows the "Copy control link" action
    next to the normal share link whenever this countdown actually has a
-   phone-control session, and hides it otherwise — including on a page
+   phone-control session AND this tab holds its key (a viewer of a controlled
+   link has nothing to offer here), and hides it otherwise — including on a page
    (like every /timers/* page) that doesn't have the checkbox/button at all,
    where every $() below is just null and this whole function no-ops. */
 function updateControlLinkUI(){
   const wrap=$("controlLinkWrap");
   if(!wrap)return;
-  wrap.style.display=controlSession?"":"none";
+  wrap.style.display=controlSession&&controlKey?"":"none";
 }
 /* Ready state: show the preset duration as static tiles so the board is never
    an empty box, without pretending anything is running. msOverride is for
@@ -794,7 +869,7 @@ function renderReady(min,lab,msOverride){
     : settable
       ? `<b>${esc(spokenDuration(boardTotal))}</b> — set it right here, or press start to get a share link`
       : (msOverride!=null
-        ? `counting to <b>${new Date(Date.now()+ms).toLocaleDateString([],{month:"short",day:"numeric"})}</b> — you'll get a share link the moment you start`
+        ? `counting to <b>${new Date(clockNow()+ms).toLocaleDateString([],{month:"short",day:"numeric"})}</b> — you'll get a share link the moment you start`
         : `<b>${min} minute${min===1?"":"s"}</b>, ready — you'll get a share link the moment you start`);
   $("barFill").style.width="0%";
   const bar=document.querySelector(".bar");if(bar)bar.style.display="";
@@ -1891,7 +1966,7 @@ function draw(){
 
   if(direction==="up"){
     document.querySelector(".bar").style.display="none"; // no fixed total for an open-ended stopwatch, so no progress line
-    const elapsed=Date.now()-end;
+    const elapsed=clockNow()-end;
     const c=charsFor(elapsed);
     const curSecond=Math.floor(elapsed/1000);
     /* Past 100 hours charsFor() hands back a plain string instead of tiles
@@ -1905,13 +1980,13 @@ function draw(){
     else updateTiles(c.tiles);
     if(lastSecond!==null&&curSecond!==lastSecond)tick_sound();
     lastSecond=curSecond;
-    $("subLine").innerHTML=`started at ${localEndHtml(end,Date.now())} — synced on every screen with this link`;
+    $("subLine").innerHTML=`started at ${localEndHtml(end,clockNow())} — synced on every screen with this link`;
     $("shareUrl").textContent=makeLink();
     return;
   }
 
   if(direction==="interval"){
-    const elapsedMs=Date.now()-end;
+    const elapsedMs=clockNow()-end;
     const ivPhaseEl=$("ivPhase");
     if(intervalPhase(ivWork,ivRest,ivRounds,elapsedMs,ivLongRest,ivLongEvery).done){
       const chars=charsFor(0,"ms").tiles;
@@ -1973,7 +2048,7 @@ function draw(){
 
   document.querySelector(".bar").style.display="";
 
-  const left=end-Date.now();
+  const left=end-clockNow();
   if(left<=0){
     if(mode==="days"||!document.querySelector(".tile")){
       $("tiles").innerHTML=`<div class="tile-day">00:00:00</div>`;
@@ -2006,7 +2081,7 @@ function draw(){
   const urgency=downUrgency(left,total);
   setUrgent(urgency.final,urgency.warn);
   announceLeft(left);
-  $("subLine").innerHTML=`ends at ${localEndHtml(end,Date.now())} — synced on every screen with this link`;
+  $("subLine").innerHTML=`ends at ${localEndHtml(end,clockNow())} — synced on every screen with this link`;
   if(total>0)$("barFill").style.width=Math.max(0,Math.min(100,(1-left/total)*100))+"%";
   $("shareUrl").textContent=makeLink();
 }
@@ -2036,7 +2111,7 @@ function renderRecent(){
   listEl.innerHTML=list.map(r=>{
     const t=new Date(r.e).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     const status=r.d==="up"?`stopwatch · started ${t}`
-      :(r.e<=Date.now()?`finished at ${t}`:`running · ends ${t}`);
+      :(r.e<=clockNow()?`finished at ${t}`:`running · ends ${t}`);
     // The label was already escaped; the URL was not, and it goes into an
     // attribute — where a bare " ends the attribute and everything after it
     // is parsed as markup. These URLs are self-produced by makeLink() and
@@ -2068,14 +2143,14 @@ document.querySelectorAll(".dir-toggle .q").forEach(b=>b.addEventListener("click
   const isUp=formDirection==="up";
   if($("durationFields"))$("durationFields").style.display=isUp?"none":"block";
   if($("countUpHint"))$("countUpHint").style.display=isUp?"block":"none";
-  $("startBtn").textContent=isUp?"Start counting up":"Start countdown";
+  syncSetupStartLabel();
   if(state!=="running")renderReady(formMinutes(),$("evtName").value);
 }));
 
 function startFromForm(){
   if(formDirection==="up"){startUp($("evtName").value);return;}
   const dirty=$("untilTime").dataset.dirty;
-  if(dirty){start(new Date($("untilTime").value)-Date.now(),$("evtName").value);return;}
+  if(dirty){start(new Date($("untilTime").value)-clockNow(),$("evtName").value);return;}
   /* A board that's been set on wins over #customMin — that's the whole point
      of setting it there. It also carries SECONDS, which the minutes-only form
      field can't express, so reading the form here would quietly round 7:30
@@ -2186,10 +2261,53 @@ if($("icsBtn"))$("icsBtn").addEventListener("click",()=>{
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
-/* Print poster: reuses the exact same QR generation call as qrBtn below (not
-   a second QR mechanism — see that handler's own comment on why this is the
-   only external request on the site), just rendered larger and printed
-   full-page instead of shown inline. Waits for the QR image to actually load
+/* QR codes are drawn here, in the browser, by a vendored copy of Kazuhiko
+   Arase's MIT-licensed qrcode-generator (assets/vendor/, version in the
+   filename so its URL is immutable). They used to come from a third-party
+   API (goqr.me), so every QR sent its link to someone else's server — fine
+   for a share link, not for a control link, which since 2026-09-26 carries
+   the key that grants control. Loaded on first use, so no page pays for it
+   until someone asks for a QR. Every link this site makes is ASCII (labels
+   are percent-encoded), which is what the library's default byte mode
+   encodes faithfully. */
+let qrLibPromise=null;
+function loadQrLib(){
+  if(window.qrcode)return Promise.resolve(window.qrcode);
+  if(!qrLibPromise){
+    qrLibPromise=new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src="/assets/vendor/qrcode-2.0.4.js";
+      s.onload=()=>window.qrcode?resolve(window.qrcode):reject(new Error("QR library missing"));
+      s.onerror=()=>{qrLibPromise=null;reject(new Error("QR library failed to load"));};
+      document.head.appendChild(s);
+    });
+  }
+  return qrLibPromise;
+}
+/* A data: URL for `text` as a QR code about `px` pixels square, with the
+   four-module quiet zone the spec asks for. Error correction M: survives a
+   smudged projector or a crumpled poster without growing the code much. */
+function qrDataUrlNow(text,px){
+  const qr=window.qrcode(0,"M");qr.addData(String(text));qr.make();
+  const quiet=4,n=qr.getModuleCount();
+  const cell=Math.max(2,Math.floor(px/(n+quiet*2)));
+  return qr.createDataURL(cell,cell*quiet);
+}
+function qrDataUrl(text,px){
+  return loadQrLib().then(()=>qrDataUrlNow(text,px));
+}
+/* Fetch the library as soon as someone reaches for a QR button, so by the
+   click it's already here and the code is drawn synchronously, inside the
+   click — the poster's print dialog then opens straight away, still within
+   the user's gesture, instead of after a script download. */
+["qrBtn","printPosterBtn","controlQrBtn"].forEach(id=>{
+  const el=$(id);
+  if(!el)return;
+  const warm=()=>{loadQrLib().catch(()=>{});};
+  ["pointerenter","pointerdown","focus"].forEach(ev=>el.addEventListener(ev,warm,{once:true,passive:true}));
+});
+/* Print poster: the same local QR as qrBtn below, just rendered larger and
+   printed full-page instead of shown inline. Waits for the QR image to actually load
    before calling print() — a browser's print dialog snapshots whatever is
    on screen the instant it's invoked, so printing immediately after setting
    .src would frequently produce a poster with a blank box where the code
@@ -2201,7 +2319,7 @@ if($("icsBtn"))$("icsBtn").addEventListener("click",()=>{
    asynchronously and would catch the class removed already. */
 if($("printPosterBtn"))$("printPosterBtn").addEventListener("click",()=>{
   if(!end)return;
-  const data=encodeURIComponent(makeLink());
+  const link=makeLink();
   const img=$("posterQr");
   $("posterLabel").textContent=label||"Countdown";
   $("posterEndsAt").textContent="Ends "+new Date(end).toLocaleString([],{dateStyle:"medium",timeStyle:"medium"});
@@ -2212,13 +2330,10 @@ if($("printPosterBtn"))$("printPosterBtn").addEventListener("click",()=>{
   };
   img.onload=()=>{img.onload=null;img.onerror=null;go();};
   img.onerror=()=>{img.onload=null;img.onerror=null;go();};
-  img.src=`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${data}`;
+  if(window.qrcode)img.src=qrDataUrlNow(link,640); // the usual case — see the warm-up above
+  else qrDataUrl(link,640).then(src=>{img.src=src;},()=>{img.onload=null;img.onerror=null;go();});
 });
-/* QR code: the one on-demand, opt-in mechanism that calls a third-party API
-   (goqr.me) — only fires when the viewer explicitly asks for it (here, or
-   via "Print poster" above, which reuses this exact same call at a larger
-   size), and only ever sends the already-public share link, never anything
-   else. */
+/* QR code for the share link — drawn locally, see qrDataUrl() above. */
 if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   // Sets the label SPAN's text, not the button's, so the icon svg markup
   // (see index.html) survives every toggle instead of being wiped by a
@@ -2226,8 +2341,7 @@ if($("qrBtn"))$("qrBtn").addEventListener("click",()=>{
   const label=$("qrBtnLabel")||$("qrBtn");
   const showing=$("qrWrap").style.display!=="none";
   if(showing){$("qrWrap").style.display="none";label.textContent="Show QR code";return;}
-  const data=encodeURIComponent(makeLink());
-  $("qrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${data}`;
+  qrDataUrl(makeLink(),320).then(src=>{$("qrImg").src=src;},()=>{$("qrImg").alt="Couldn't draw the QR code — copy the link instead";});
   $("qrWrap").style.display="block";label.textContent="Hide QR code";
 });
 /* ---- join codes: the spoken form of the share link (see encodeJoinCode) ----
@@ -2284,11 +2398,46 @@ if($("joinEntry"))$("joinEntry").addEventListener("submit",(e)=>{
 });
 
 /* Phone control (see realtime-config.js/realtime.js): the checkbox and the
-   "Copy control link" row both stay hidden — not just unused — on any site
-   that hasn't configured an Ably key, so there's nothing half-finished for
-   a visitor to notice. */
-if(window.CountlinkRealtime&&window.CountlinkRealtime.enabled&&$("phoneControlRow")){
+   "Copy control link" row both stay hidden — not just unused — whenever the
+   feature switch is off, so there's nothing half-finished for a visitor to
+   notice. */
+if(rt()&&$("phoneControlRow")){
   $("phoneControlRow").style.display="";
+}
+
+/* Clock correction note (see clock.js). Silent for the usual case — a device
+   whose clock is right, or close enough that the correction is noise — and a
+   single plain line when it's out by two seconds or more, because a room
+   comparing two screens deserves to know why this one is being trusted. */
+function renderClockNote(){
+  const C=window.CountlinkClock;
+  const anchor=document.querySelector(".sync-note");
+  if(!C||!anchor)return;
+  let el=document.getElementById("clockNote");
+  const off=C.offset();
+  if(Math.abs(off)<2000){if(el)el.remove();return;}
+  if(!el){
+    el=document.createElement("p");
+    el.id="clockNote";el.className="clock-note";
+    anchor.insertAdjacentElement("afterend",el);
+  }
+  el.textContent=`This device's clock is ${C.describe()} — corrected, so this screen still matches every other one.`;
+}
+if(window.CountlinkClock){
+  window.CountlinkClock.onChange(off=>{
+    renderClockNote();
+    /* A board opened from a link before the correction arrived sized its
+       progress bar and tile count from the uncorrected time left. Re-derive
+       both, so a 59:30 countdown on a clock two minutes slow doesn't stay
+       stuck in the hh:mm:ss layout it only needed for a quarter-second. */
+    if(bootedFromLink&&direction==="down"&&state==="running"){
+      total=end-clockNow();
+      const m=modeForHash(direction,total);
+      if(m!==mode){mode=m;prevValues=null;}
+    }
+    if(typeof gtag==="function"&&Math.abs(off)>=2000)gtag("event","clock_corrected",{offset_s:Math.round(off/1000)});
+  });
+  renderClockNote();
 }
 if($("controlLinkBtn"))$("controlLinkBtn").addEventListener("click",async e=>{
   const link=makeControlLink();
@@ -2307,7 +2456,7 @@ if($("controlQrBtn"))$("controlQrBtn").addEventListener("click",()=>{
   if(showing){$("controlQrWrap").style.display="none";lbl.textContent="Show QR code";return;}
   const link=makeControlLink();
   if(!link)return;
-  $("controlQrImg").src=`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(link)}`;
+  qrDataUrl(link,320).then(src=>{$("controlQrImg").src=src;},()=>{$("controlQrImg").alt="Couldn't draw the QR code — copy the control link instead";});
   $("controlQrWrap").style.display="block";lbl.textContent="Hide QR code";
 });
 /* "How this works" panel: read-only, built from describeLinkState() above —
@@ -2321,9 +2470,9 @@ if($("howBtn"))$("howBtn").addEventListener("click",()=>{
   $("howBody").innerHTML=info.hasTimer
     ? `<p><b>${esc(info.modeText)}</b> <b>${esc(info.whenText)}</b>${info.label?` — labeled "${esc(info.label)}"`:""}.</p>
        <p style="margin-top:8px">Raw link hash, decoded straight off the URL above: <code style="word-break:break-all">${esc(info.rawHash)}</code></p>
-       <p style="margin-top:8px">That's the whole mechanism: no account, no server request, no database. Close this tab and reopen the exact same link on a different device and it counts to the identical instant, using nothing but that device's own clock.</p>`
+       <p style="margin-top:8px">That's the whole mechanism: no account, no database, and nothing about this timer is sent anywhere. Close this tab and reopen the exact same link on a different device and it counts to the identical instant — each device checks its clock against a reference time first, so a wrong clock doesn't mean a wrong countdown.</p>`
     : `<p>No timer link is open on this page yet — set one and press start, or open a link someone shared with you, then come back here.</p>
-       <p style="margin-top:8px">Once one is running, this panel decodes it straight off the URL: no account, no server request, no database.</p>`;
+       <p style="margin-top:8px">Once one is running, this panel decodes it straight off the URL: no account, no database, nothing about the timer sent anywhere.</p>`;
   $("howWrap").style.display="block";$("howBtn").textContent="Hide how this works";
 });
 /* OBS/Twitch pages only: same link, plus ?overlay=1 so whoever pastes it into
@@ -2465,7 +2614,7 @@ function renderLaps(){
 function resetLaps(){lapMarks=[];renderLaps();}
 if($("lapBtn"))$("lapBtn").addEventListener("click",()=>{
   if(direction!=="up"||!end)return;
-  lapMarks.push(Date.now()-end);
+  lapMarks.push(clockNow()-end);
   renderLaps();
   announce(`Lap ${lapMarks.length} at ${fmtLap(lapMarks[lapMarks.length-1])}`);
 });
@@ -2533,8 +2682,9 @@ function bootFromHash(){
   // (Interval mode always renders via an explicit "ms" override in draw(),
   // so the exact value of `mode` here doesn't matter for it — set anyway
   // for consistency with every other mode.)
-  total=end-Date.now();
+  total=end-clockNow();
   mode = modeForHash(direction,total);
+  bootedFromLink=true;
   fired=false;prevValues=null;lastSecond=null;ivPhaseKey=null;
   // A recipient came for the timer, not the pitch — hide the marketing hero
   // so the board is the first thing on their screen.
@@ -2588,7 +2738,7 @@ function initMultiDashboard(){
   function renderCards(){
     let anyActive=false;
     cardsEl.innerHTML=multiTimers.map((t,i)=>{
-      const left=t.end-Date.now();
+      const left=t.end-clockNow();
       const done=left<=0;
       if(!done)anyActive=true;
       return `<div class="multi-card${done?" done":""}" data-i="${i}">
@@ -2606,7 +2756,7 @@ function initMultiDashboard(){
   if($("multiAddBtn"))$("multiAddBtn").addEventListener("click",()=>{
     const mins=Math.max(1,numOr(minutesEl.value,5));
     const label=(labelEl.value||"").trim();
-    multiTimers.push({label,end:Date.now()+mins*60000});
+    multiTimers.push({label,end:clockNow()+mins*60000});
     labelEl.value="";
     renderCards();
     persist();
@@ -2739,7 +2889,7 @@ function initAgendaDashboard(){
       </li>`).join("") || `<li class="hint" style="list-style:none">No segments yet — add one above.</li>`;
     // Show the sheet while still building, based on starting now — that is
     // what makes it useful for planning rather than only for recording.
-    renderRunSheet(agendaSegments,Date.now());
+    renderRunSheet(agendaSegments,clockNow());
   }
 
   /* Wall-clock times are rendered with the same "your time" treatment the
@@ -2764,7 +2914,7 @@ function initAgendaDashboard(){
   }
 
   function renderRunning(segments,start){
-    const {bounds,total,elapsed,idx}=computeAgendaState(segments,start,Date.now());
+    const {bounds,total,elapsed,idx}=computeAgendaState(segments,start,clockNow());
     renderRunSheet(segments,start);
 
     runningListEl.innerHTML=segments.map((seg,i)=>{
@@ -2790,7 +2940,7 @@ function initAgendaDashboard(){
       // Includes the day (e.g. "tomorrow", "Tue 8 Sep") whenever the start
       // isn't today — "starts at 09:15 your time" alone would misleadingly
       // read as later today for a start that's actually days out.
-      const when=localEndLabel(start,Date.now());
+      const when=localEndLabel(start,clockNow());
       $("agendaNowSub").textContent=`${segments.length} segment${segments.length===1?"":"s"} · starts ` +
         (when.day?when.day+" ":"")+"at "+when.time+" your time";
       return;
@@ -2849,7 +2999,7 @@ function initAgendaDashboard(){
   });
   if($("agendaStartBtn"))$("agendaStartBtn").addEventListener("click",()=>{
     if(!agendaSegments.length)return;
-    const start=Date.now();
+    const start=clockNow();
     location.hash=encodeAgendaHash(agendaSegments,start);
     bootRunning();
   });
@@ -2927,6 +3077,142 @@ if(readHash()){
     }
   }
 }
+/* ---------- WebMCP: tools for AI agents running inside the browser ----------
+   Chrome's WebMCP (document.modelContext; an origin trial from Chrome 149)
+   lets a page hand an in-browser agent a list of things it can do, with typed
+   inputs, instead of the agent screenshotting the page and guessing where to
+   click. This site's whole job is one such action — "start a shared 10-minute
+   countdown called Quiz" — so it registers that and a few around it. The
+   server-side twin is /mcp (functions/mcp.js), for assistants that aren't in
+   a browser; the two share the duration grammar ("25m", "1:30:00", "45").
+
+   Feature-detected and inert everywhere the API doesn't exist, which is
+   today almost everywhere. WEBMCP_ORIGIN_TRIAL_TOKEN turns it on for every
+   Chrome 149–156 visitor once registered (docs/webmcp.md); until then it
+   works for anyone with chrome://flags/#enable-webmcp-testing on.
+
+   The tools only ever do what the page's own buttons do, and respect the
+   same rule: a running board is sealed, so there is no tool that edits a
+   live countdown — only one that starts a new one. */
+const WEBMCP_ORIGIN_TRIAL_TOKEN="";
+function registerAgentTools(){
+  if(WEBMCP_ORIGIN_TRIAL_TOKEN){
+    const m=document.createElement("meta");
+    m.httpEquiv="origin-trial";m.content=WEBMCP_ORIGIN_TRIAL_TOKEN;
+    document.head.appendChild(m);
+  }
+  const mc=document.modelContext||navigator.modelContext;
+  if(!mc||typeof mc.registerTool!=="function"||!$("boardStartBtn")||!$("tiles"))return;
+  // Early drafts (navigator.modelContext) expected MCP-shaped results; the
+  // current API takes a plain string.
+  const mcpShaped=!document.modelContext;
+  const result=text=>mcpShaped?{content:[{type:"text",text:text}]}:text;
+
+  const statusText=()=>{
+    const live=state==="running"||state==="paused";
+    if(!live&&state!=="finished"){
+      const secs=boardTotal!=null?boardTotal:formMinutes()*60;
+      return `No countdown is running. The board is set to ${spokenDuration(secs)}; start_shared_countdown starts one.`;
+    }
+    const lines=[];
+    const lab=label?` "${label}"`:"";
+    if(state==="finished")lines.push(`The countdown${lab} has finished.`);
+    else if(direction==="up")lines.push(`A shared stopwatch${lab} is running: ${spokenDuration(Math.floor((clockNow()-end)/1000))} elapsed.`);
+    else if(direction==="interval")lines.push(`An interval timer${lab} is running.`);
+    else{
+      const left=state==="paused"?pausedRemaining:end-clockNow();
+      lines.push(`A countdown${lab} is ${state==="paused"?"paused":"running"} with ${spokenDuration(Math.max(0,Math.round(left/1000)))} left, ending at ${new Date(end).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} on this device's clock.`);
+    }
+    if(live){
+      lines.push(`Share link (everyone who opens it sees the same countdown): ${makeLink()}`);
+      const code=direction==="down"?encodeJoinCode(end):"";
+      if(code)lines.push(`Join code to read out: ${code} (countlink.app/j/${code})`);
+    }
+    return lines.join("\n");
+  };
+
+  const tools=[
+    {
+      name:"start_shared_countdown",
+      description:"Start a shared countdown on this page and get its share link. Everyone who opens the link sees the identical countdown, in sync, with no account. Replaces any countdown already on this screen (links already shared keep counting).",
+      inputSchema:{
+        type:"object",
+        properties:{
+          duration:{type:"string",description:'How long: "10m", "90s", "1h30m", "5:00", "1:30:00", or a bare number of minutes like "45".'},
+          label:{type:"string",description:'Optional name shown on every screen, e.g. "Quiz round 2". Up to 60 characters.'},
+          phone_control:{type:"boolean",description:"Also create a control link that can pause, adjust and stop it from a phone. Only on the CountLink homepage."},
+        },
+        required:["duration"],
+      },
+      annotations:{readOnlyHint:false,consequentialHint:false},
+      execute:async({duration,label:lab,phone_control})=>{
+        const secs=parsePastedDuration(String(duration==null?"":duration));
+        if(secs===null||secs<=0)throw new Error(`"${duration}" isn't a duration CountLink understands. Try "10m", "1:30:00" or "45".`);
+        const name=String(lab==null?"":lab).trim().slice(0,60);
+        if($("evtName"))$("evtName").value=name;
+        if($("phoneControlToggle"))$("phoneControlToggle").checked=!!phone_control&&!!rt();
+        if(formDirection!=="down"){const b=document.querySelector('.dir-toggle .q[data-dir="down"]');if(b)b.click();}
+        touchBoardMethod("agent");
+        start(secs*1000,name);
+        let text=statusText();
+        const ctl=makeControlLink();
+        if(ctl)text+=`\nControl link (keep it private — it can pause and stop the countdown on every screen): ${ctl}`;
+        return result(text);
+      },
+    },
+    {
+      name:"get_countdown_status",
+      description:"Read what this page's CountLink board is showing: whether a countdown is running, how long is left, and its share link and join code.",
+      inputSchema:{type:"object",properties:{}},
+      annotations:{readOnlyHint:true},
+      execute:async()=>result(statusText()),
+    },
+    {
+      name:"prepare_countdown",
+      description:"Set the board to a duration WITHOUT starting it, so the person can press Start when ready. Returns a setup link that opens the board preloaded the same way.",
+      inputSchema:{
+        type:"object",
+        properties:{
+          duration:{type:"string",description:'"10m", "1:30:00", "45" (minutes), etc.'},
+          label:{type:"string",description:"Optional name for the countdown."},
+        },
+        required:["duration"],
+      },
+      annotations:{readOnlyHint:false},
+      execute:async({duration,label:lab})=>{
+        if(state==="running"||state==="paused")throw new Error("A countdown is running on this screen, and a running board is sealed. Stop it first, or use start_shared_countdown to start a new one.");
+        const secs=parsePastedDuration(String(duration==null?"":duration));
+        if(secs===null||secs<=0)throw new Error(`"${duration}" isn't a duration CountLink understands. Try "10m", "1:30:00" or "45".`);
+        const name=String(lab==null?"":lab).trim().slice(0,60);
+        if($("evtName"))$("evtName").value=name;
+        if(formDirection!=="down"){const b=document.querySelector('.dir-toggle .q[data-dir="down"]');if(b)b.click();}
+        renderReady(0,name,secs*1000);
+        const setup=`${location.origin}${location.pathname}#for=${secs}s${labelParam(name)}`;
+        return result(`The board is set to ${spokenDuration(secs)} and waiting for Start.\nSetup link (opens the board preloaded, not started): ${setup}`);
+      },
+    },
+    {
+      name:"stop_countdown",
+      description:"Stop the countdown on this screen. A link already shared keeps counting on other screens — the link itself is the timer — unless this screen started it with phone control, in which case every connected screen stops.",
+      inputSchema:{type:"object",properties:{}},
+      annotations:{readOnlyHint:false},
+      execute:async()=>{
+        if(state==="ready")return result("Nothing is running on this screen.");
+        const everywhere=!!controlKey;
+        stopTimer();
+        return result(everywhere?"Stopped on every connected screen.":"Stopped on this screen. Anyone else with the link still sees it counting.");
+      },
+    },
+  ];
+  for(const t of tools){
+    try{
+      const r=mc.registerTool(t);
+      if(r&&typeof r.catch==="function")r.catch(()=>{});
+    }catch(e){/* an API revision we don't match: stay inert */}
+  }
+}
+try{registerAgentTools();}catch(e){/* never let agent support break the board */}
+
 renderRecent();
 /* Recent-timer links point at this same page with a different hash — no page
    load happens, so re-boot the board on hashchange. Setup links (#for=) get
@@ -2936,6 +3222,7 @@ renderRecent();
    a countdown that is already running — that would wipe a live board mid-use
    for anyone whose URL still carries a stale #for=. */
 window.addEventListener("hashchange",()=>{
+  if(ownHash!==null&&location.hash===ownHash)return; // our own write — see setOwnHash()
   if(readHash()){bootFromHash();return;}
   if(state==="running"||state==="paused")return;
   const s=parseSetupHash(location.hash);

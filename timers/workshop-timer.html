@@ -49,9 +49,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=49347cd5" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=49347cd5" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=49347cd5"></noscript>
+<link rel="preload" href="../assets/style.css?v=6f3c6804" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=6f3c6804"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -172,6 +172,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
         <button class="btn" id="fsBtn" aria-pressed="false">Fullscreen</button>
         <button class="btn" id="soundBtn" aria-pressed="true">Sound: on</button>
         <label class="alarm-tone-picker" for="alarmToneSelect">
+          <span class="tone-lbl" aria-hidden="true">Tone</span>
           <select id="alarmToneSelect" aria-label="Alarm sound">
             <option value="chime">Chime</option>
             <option value="gentle">Gentle</option>
@@ -240,7 +241,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
       <button class="btn icon-btn" id="qrBtn" style="margin-top:10px"><svg class="qr-ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><rect x="0.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="2" height="2" fill="currentColor"/><rect x="10.5" y="0.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="12" y="2" width="2" height="2" fill="currentColor"/><rect x="0.5" y="10.5" width="5" height="5" fill="none" stroke="currentColor"/><rect x="2" y="12" width="2" height="2" fill="currentColor"/><rect x="9" y="9" width="2" height="2" fill="currentColor"/><rect x="12" y="9" width="2" height="2" fill="currentColor"/><rect x="9" y="12" width="2" height="2" fill="currentColor"/><rect x="12" y="12" width="2" height="2" fill="currentColor"/></svg><span id="qrBtnLabel">Show QR code</span></button>
       <div id="qrWrap" style="display:none;margin-top:10px">
         <img id="qrImg" width="160" height="160" alt="QR code for the sync link" style="background:#fff;padding:8px;border-radius:6px">
-        <div class="hint" style="margin-top:6px">Generated on demand by a third-party QR API (goqr.me) — the only feature on this site that makes an external request. See <a href="/privacy" style="text-decoration:underline">Privacy</a>.</div>
+        <div class="hint" style="margin-top:6px">Drawn right here in your browser — the link isn't sent anywhere to make it.</div>
       </div>
       <button class="btn icon-btn" id="icsBtn" style="display:none;margin-top:10px">Add to calendar (.ics)</button>
       <button class="btn icon-btn" id="printPosterBtn" style="display:none;margin-top:10px">Print poster</button>
@@ -356,7 +357,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
     </div>
     <div class="foot-in">
       <div><div class="fb">CountLink</div>A timer you can hand to a room. · <a href="/how-it-works">How It Works</a> · <a href="/about">About</a> · <a href="/compare">Vs. ShareMyTimer &amp; Stagetimer</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Contact</a> · <a href="mailto:hello@countlink.app">hello@countlink.app</a></div>
-      <div>Sync accuracy depends on each device's clock — typically within a second.<br>No data leaves your browser; the timer lives entirely in the link.<br>
+      <div>Every screen checks its clock against a reference time and corrects it — screens agree to within a second.<br>No account, no database: the timer lives entirely in the link.<br>
       Built and maintained by <a href="https://brunofk.dev" rel="author noopener" target="_blank">Bruno FK</a>.</div>
     </div>
   </div>
@@ -378,6 +379,7 @@ gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
 </div>
 
 <script>window.COUNTLINK_DEFAULT={"minutes":15,"label":"Segment over"};</script>
-<script src="../assets/app.js?v=3c49000e" defer></script>
+<script src="../assets/clock.js?v=2d9e48f3" defer></script>
+<script src="../assets/app.js?v=f2033f47" defer></script>
 </body>
 </html>

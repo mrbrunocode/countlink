@@ -39,11 +39,25 @@ site is clean at a real 375px viewport.
 
 ## The set
 
+Recaptured 2026-09-17 — the Aug 3 originals had gone stale (hero's "00 servers
+to run this" stat was replaced by the three-screens sync illustration on
+2026-09-06; the running board was missing the "Download offline copy" button;
+nav bar was missing the Features link on all three). Always re-diff against
+the live site before an actual launch day if time has passed since capture —
+this project's shipped-feature rate means a few weeks is enough to date these.
+
 | File | Shows |
 |---|---|
-| `01-hero.png` | Headline, value proposition, "00 servers to run this", idle board at 10:00 |
-| `02-running-board.png` | Live countdown at 04:59, "synced on every screen with this link" |
+| `01-hero.png` | Headline, value proposition, the one-link/three-screens sync illustration, trust row (no signup · works on any device · share by link, QR or join code) |
+| `02-running-board.png` | Live countdown at 04:51, "ends at ... synced on every screen with this link", all 5 running-state buttons including Download offline copy |
 | `03-compare.png` | The honest comparison table (clips the Leaderboarded column — the table is wider than the viewport) |
+| `04-features.png` | New: the `/features` page — "32 things, all of them free, none of them behind an account" — added since the last capture. Strong candidate for a 4th gallery slot; scrolling further into it also reaches the MCP-server-for-AI-assistants feature, which is worth a dedicated crop given the SEO data showing AI assistants are CountLink's largest traffic channel. |
+
+To recapture any of these later, the command is unchanged (see above); for
+`02-running-board.png` specifically, build a `#t=<epoch-ms 5 min out>&l=Break%20ends`
+URL fragment rather than trying to screenshot the idle board mid-click, since
+headless Chrome can't drive the start button and wait for the hash-driven
+re-render in one pass.
 
 Product Hunt auto-pulled the site's own OG card as the lead gallery image, which
 is a stronger lead than any of these; these are the supporting slots.

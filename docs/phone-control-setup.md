@@ -1,93 +1,131 @@
-# Phone control — status: LIVE (2026-07-26)
+# Phone control — status: LIVE (since 2026-07-26; permissions reworked 2026-09-26)
 
 Closes the sharpest gap `/compare` names against Leaderboarded: "you display
-the countdown on the class board and drive it from your phone." Built and
-turned on 2026-07-26 — Bruno created the Ably account and a scoped API key
-himself (account creation isn't something the assistant does on its own),
-and the key is now live in `assets/realtime-config.js`. Verified end-to-end
-against the real Ably network: pause, resume, ±1 min, and stop all confirmed
-propagating live from a control-page tab to a board tab. `about.html`,
-`compare.html`, and `index.html`'s FAQ/JSON-LD have all been updated to
-describe it accurately.
-
-The rest of this doc is kept for reference — regenerating the key, rotating
-it, or understanding the design.
+the countdown on the class board and drive it from your phone." Bruno created
+the Ably account and a scoped API key himself (account creation isn't
+something the assistant does).
 
 ## What it is
 
-- A "Let me pause, adjust, or stop this from my phone" checkbox in the
-  setup panel. Off (and hidden) by default.
-- When checked and a countdown is started, the board gets a session id
-  (`&c=...` in the link) and a second "Copy control link" / QR action
-  appears, pointing at `/control.html`.
-- `/control.html` is a bare page — Pause/Resume, −1 min, +1 min, Stop.
-  Whatever it does updates the classroom board **and every other viewer
-  who has the same link open**, live.
-- No key configured → the checkbox and control-link UI never appear at
-  all. Nothing to half-ship, nothing for a visitor to notice.
+- A "Let me pause, adjust, or stop this from my phone" checkbox in the setup
+  panel (homepage and `/embed/`), shown when `assets/realtime-config.js` sets
+  `COUNTLINK_PHONE_CONTROL = true`.
+- With it ticked, Start gives the countdown a **session id** (`&c=` in the
+  share link) and this tab a secret **control key**. A "Copy control link" /
+  QR action appears, pointing at `/control.html#t=…&k=<key>`.
+- `/control.html`: Pause/Resume, −1 min, +1 min, Stop, and a short flash
+  message. Every change reaches the host board **and every viewer** live.
+- A viewer (anyone with the share link) sees every change as it happens and
+  **can't make any**.
+
+## Who can do what — and why it changed (2026-09-26)
+
+**The bug:** v1 put one id in every link and signed every connection with a
+single Ably key shipped in public page source. Anyone sent the share link
+could open `/control.html` with the same hash, or just keep the page open,
+since every viewer tab rebroadcast state, and pause, stop or flash text onto
+the room's projector. "Sealed when live" held for the board's own buttons and
+nothing else.
+
+**The model now:**
+
+| Value | Where it lives | What it grants |
+|---|---|---|
+| **key** — 16 random bytes, base64url | the host tab's `localStorage` (`countlink_control_keys`, pruned after 2 days) and the control link. **Never the address bar.** | publish + subscribe |
+| **sid** — first 12 bytes of `SHA-256("countlink-control-v1:" + key)`, base64url | the share link (`&c=`) | subscribe only |
+
+- **Auth:** `functions/api/realtime-token.js` holds the only Ably key (Pages
+  secret `ABLY_API_KEY`) and returns signed, one-channel, one-hour
+  TokenRequests. `{sid}` gets subscribe on `countlink:<sid>`. `{key}` gets
+  publish + subscribe on `countlink:<sha256(key)>`: the server derives the
+  channel itself, so a caller can't name one. There is no storage: the key is
+  its own proof.
+- **Hashing:** the browser uses a small synchronous SHA-256 in
+  `assets/realtime.js`, because `crypto.subtle` is async and missing on plain
+  `http://` LAN origins. The server uses `crypto.subtle`.
+  `test/realtime.test.mjs` cross-checks both against `node:crypto`.
+- **Who publishes:** the host board (heartbeat every 4s, plus after each
+  command) and the controller. Viewers apply commands they receive, so they
+  react instantly, but never publish. A viewer pressing Stop stops only their
+  own screen.
+- **Host closed:** the laptop that started it goes away. The controller,
+  which is the only other key-holder, takes over the 4s heartbeat once it has
+  heard at least one real state message and then nothing for 6s. A late joiner
+  still catches up to a pause. The controller never broadcasts an
+  *unconfirmed* guess, which could un-pause every screen.
+- **Address bar is safe to share:** the host's own URL only ever shows the
+  sid, and a reload recovers the key from `localStorage`.
+- **QR codes are drawn locally** (`assets/vendor/qrcode-2.0.4.js`). The
+  control link's QR used to be sent to goqr.me. Once that link carried a key,
+  sending it there would have leaked it.
+
+**Old links:** a control link from before 2026-09-26 carries `c=` and no key.
+`/control.html` says it's from an older version and to start again with
+phone control ticked. A current *share* link pasted into `/control.html`
+says it can watch but not control. Countdowns themselves keep working either
+way. Only phone control on a session started before the deploy stops.
+
+## Key rotation — needed once, after the 2026-09-26 deploy
+
+The key that used to sit in `assets/realtime-config.js` is in this public
+repo's git history and in cached copies of the old page. **Until it is
+revoked, someone who dug it out could still publish to a channel whose sid
+they know** (for example, from a share link). The server-side fix is complete
+and live; only this step finishes it.
+
+1. Ably dashboard → the CountLink app → **API Keys** → *Create a new API key*.
+   Capabilities: **Publish, Subscribe** (Presence isn't used) on the resource
+   `countlink:*`. Nothing else.
+2. Put it on the Pages project (production), without it ever touching a file:
+   ```bash
+   cd countlink && npx wrangler pages secret put ABLY_API_KEY --project-name countlink
+   ```
+   Paste the new key when prompted. It takes effect on the next deploy, or
+   run the Deploy workflow by hand.
+3. Back in Ably, **revoke** the old key (the one ending `…_4hOQs0o`).
+4. Check: start a countdown with phone control on countlink.app, open the
+   control link on a phone, press Pause. The board should pause.
+
+`ABLY_API_KEY` must always be the only copy. `test/realtime.test.mjs` fails
+if anything shaped like an Ably key appears in page source again.
+
+## Local development
+
+`node scripts/dev-server.mjs` runs `functions/` in-process, so
+`/api/realtime-token` answers locally. Without `ABLY_API_KEY` in the
+environment it returns 503 and phone control fails quietly, exactly as
+production does if the secret is missing. For a real end-to-end check:
+`ABLY_API_KEY=<a key> node scripts/dev-server.mjs 4175`. The e2e suite
+(`e2e/phone-control.spec.mjs`) uses a stand-in Ably that enforces token
+capabilities, plus a dummy key to sign with (`playwright.config.mjs`).
 
 ## Why Ably, and why this doesn't quietly become "yet another server-dependent timer"
 
-The countdown itself is still 100% link-is-the-timer — no account, no
-backend, works if Cloudflare Pages disappeared tomorrow. Phone control is
-a genuinely separate, optional layer on top: a pub/sub relay carries
-tiny control messages (pause/adjust/stop), nothing else. If the relay is
-down, misconfigured, or blocked by an ad blocker, the countdown keeps
-counting exactly as it always has — see `assets/realtime.js`, every method
-fails silently rather than throwing.
+The countdown itself is still link-is-the-timer. Phone control is an optional
+layer on top: a pub/sub relay carries small control messages and nothing
+else. If the relay or the token endpoint is down, misconfigured or blocked,
+the countdown keeps counting. Every method in `assets/realtime.js` fails
+silently rather than throwing.
 
-Ably's free tier (no card required at signup) is generous enough for this:
-6M messages/month, 200 concurrent connections. A single classroom session
-uses maybe a few dozen messages total.
+Ably's free tier is plenty: 6M messages/month, 200 concurrent connections. A
+classroom session uses a few dozen messages.
 
-## Setup (5 minutes, one-time)
+## Copy to keep in sync
 
-1. Go to ably.com and create a free account.
-2. In the dashboard, create a new API key scoped to **only** "Publish",
-   "Subscribe", and "Presence" capability, restricted to channels matching
-   `countlink:*`. Don't use the default root key — this key ships in
-   public page source (there's no server to hide it behind), so scoping
-   it tightly means a copy of it is only ever good for this site's
-   countdown pub/sub, never account administration.
-3. Paste the key into `assets/realtime-config.js`:
-   ```js
-   window.COUNTLINK_ABLY_KEY = "your-key-here";
-   ```
-4. Run `node scripts/bump-asset-version.mjs` (realtime-config.js itself
-   isn't version-stamped like style.css/app.js, but you're likely touching
-   other things around the same time — cheap to run regardless) and
-   deploy as normal.
-5. Verify with two devices (or two tabs): start a countdown with the
-   checkbox on, open the control link on the second device, confirm
-   Pause/Resume/±1 min/Stop all show up on the first.
+`index.html` (FAQ and its JSON-LD twin), `about.html`, `compare.html`,
+`how-it-works.html`, the `/features` inventory (`FEATURES` in
+`scripts/build-timer-pages.mjs`) and `privacy.html` (what goes to Ably, and
+the key in `localStorage`) all describe phone control. If it changes shape,
+update them together. This site's voice rests on not overclaiming.
 
-## Copy updated (2026-07-26)
+## Known limitations
 
-`compare.html`, `about.html`, and `index.html` (both the visible FAQ and its
-JSON-LD twin) all describe phone control accurately now — opt-in, not
-default, scoped to plain countdowns. If you rotate the key or the feature
-changes shape, keep those three in sync; this app's whole voice is built on
-not overclaiming, and a described-but-dark or described-but-wrong feature
-is exactly the kind of thing it calls out competitors for elsewhere on this
-site.
-
-## Known limitations (v1, worth stating plainly rather than fixing)
-
-- **Down-mode countdowns only.** Stopwatch (count-up) and interval/Tabata
-  timers don't support phone control — no clean single "remaining" value
-  to pause on a moving reference point. The checkbox and control link only
-  ever appear for a plain countdown.
-- **A hard refresh mid-pause loses the pause** on a tab that wasn't
-  connected when it happened, until the next ~4s heartbeat state broadcast
-  catches it up (see `app.js` `realtimeHeartbeat`).
-- **No "is anyone actually connected" indicator.** The controller can send
-  Pause into the void if the board tab was closed; Ably's presence API
-  could add a "display connected" status later (see the header comment
-  in `assets/realtime.js`) — deliberately left out of v1 to keep scope
-  bounded.
-- **Symmetric, not server-authoritative.** Every tab with the same link
-  applies commands and rebroadcasts state itself (see `app.js`
-  `connectRealtimeIfNeeded()`) — there's no single "board" role. Fine for
-  the realistic case (one board, one controller), but two people both
-  mashing Pause/Resume at once could very briefly flicker before
-  converging. Not worth solving for a feature this low-stakes.
+- **Down-mode countdowns only.** Stopwatch and interval timers have no single
+  "remaining" value to pause on.
+- **No presence indicator.** The controller says "waiting to hear from the
+  board" if no state arrives within 8s, but can't list connected screens.
+  Ably presence could add that later.
+- **Host and controller both closed** means no key-holder is left to
+  heartbeat. Screens already open still got every change live, but one that
+  opens the link later shows the link's original deadline until a key-holder
+  returns.
