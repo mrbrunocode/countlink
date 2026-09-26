@@ -1,6 +1,65 @@
 # CountLink — competitive SEO strategy
 
-## Status as of 2026-09-24 — read this before anything below
+## Status as of 2026-09-26 — read this before anything below
+
+### What changed on 2026-09-26 (deployed mid-AdSense-review, Bruno's call)
+
+- **Shipped:** phone-control permissions fix (the share link could drive the
+  room's screen), clock correction (`/api/now`), an offline-capable installed
+  app, local QR codes, WebMCP tools, a privacy policy that finally discloses
+  Grow, Ably and browser storage, UX fixes, and a `/mcp` fix so "10 days
+  until launch" is no longer silently capped at 99h 59m 59s. Details are in the
+  commit and in `docs/phone-control-setup.md` / `docs/webmcp.md`.
+- **Content:** only the Pomodoro guide was restructured, into question-headed,
+  directly-answered sections matching its actual queries ("pomodoro meaning",
+  "how does the pomodoro method work", pos 60–90), with no new material. **The
+  OBS page was deliberately not touched** — it is still being measured after
+  the 2026-09-20 rewrite (~mid-Oct).
+- **Clock correction is a new citable fact.** "Every screen checks its clock
+  against a reference time and corrects it" is now in the FAQ, `/how-it-works`,
+  `/features` and `llms.txt`. No competitor that syncs by link does this.
+  Watch whether assistants start repeating it.
+
+### Bing AI Performance — grounding queries (read in the dashboard 2026-09-26)
+
+**No API exists** for this report (checked 2026-09-26; `bing.py` can't pull
+it), so read it by hand monthly: Bing Webmaster → AI Performance →
+countlink.app → List by *Grounding Queries*.
+
+487 Copilot citations since July, rising: 15–31/day in the week to 24 Sep
+against single digits in August. The sampled grounding queries, with
+CountLink's **citation share** (its share of all citations for that query):
+
+| Grounding query | Citations | Share |
+|---|---|---|
+| shared timer | 40 | 25.8% |
+| twitch timer countdown | 18 | 19.4% |
+| group timer | 16 | 28.6% |
+| countdown timer for twitch | 10 | 13.7% |
+| timer link for stream | 6 | 18.8% |
+| countdown timers for twitch | 3 | 17.7% |
+
+So Copilot already treats CountLink as a main source for "shared/group timer"
+(about a quarter of all citations) and a secondary one for Twitch countdowns.
+That's the same cluster Bing ranks, and the same one the OBS page serves.
+
+### Top actions now — all need Bruno's hands
+
+1. **Submit `/mcp` to ChatGPT's plugin directory** — `docs/mcp-submission.md`
+   (identity verification, domain token, test cases all prepared). ChatGPT
+   is 492/494 AI sessions. A directory listing is a second door besides web
+   search citations.
+2. **Rotate the Ably key** — `docs/phone-control-setup.md` § Key rotation.
+   Until the old key is revoked, the permissions fix can be bypassed by
+   anyone who digs the old key out of git history.
+3. **Answer existing Reddit threads** (r/Twitch, r/obs, r/Teachers) —
+   disclosed, useful, one per thread. Drafts and the reasoning are in
+   `docs/human-required-drafts.md`. ChatGPT leans on Reddit for "which tool"
+   answers.
+4. **Register the WebMCP origin trial** — `docs/webmcp.md`. Small, early,
+   no downside.
+
+### Status as of 2026-09-24 (still current except where the above supersedes it)
 
 The July research below still has value (the competitor map, the wedge, "don't
 chase head terms"), but several of its premises have since been **disproved or

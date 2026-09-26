@@ -39,7 +39,11 @@ site is clean at a real 375px viewport.
 
 ## The set
 
-Recaptured 2026-09-17 — the Aug 3 originals had gone stale (hero's "00 servers
+Recaptured 2026-09-26 after that day's deploy (the running board lost its
+"Download offline copy" button to the share panel and gained a labelled
+alarm-tone picker; the hero is the compact short-screen layout, since
+1270×760 is under the 900px-tall breakpoint; /features now counts 34).
+Before that, recaptured 2026-09-17 — the Aug 3 originals had gone stale (hero's "00 servers
 to run this" stat was replaced by the three-screens sync illustration on
 2026-09-06; the running board was missing the "Download offline copy" button;
 nav bar was missing the Features link on all three). Always re-diff against
@@ -49,9 +53,9 @@ this project's shipped-feature rate means a few weeks is enough to date these.
 | File | Shows |
 |---|---|
 | `01-hero.png` | Headline, value proposition, the one-link/three-screens sync illustration, trust row (no signup · works on any device · share by link, QR or join code) |
-| `02-running-board.png` | Live countdown at 04:51, "ends at ... synced on every screen with this link", all 5 running-state buttons including Download offline copy |
+| `02-running-board.png` | Live countdown at 04:49 labelled "Break ends", "ends at ... synced on every screen with this link", the running-state row on one line: Copy sync link · Stop · Fullscreen · Sound · Tone |
 | `03-compare.png` | The honest comparison table (clips the Leaderboarded column — the table is wider than the viewport) |
-| `04-features.png` | New: the `/features` page — "32 things, all of them free, none of them behind an account" — added since the last capture. Strong candidate for a 4th gallery slot; scrolling further into it also reaches the MCP-server-for-AI-assistants feature, which is worth a dedicated crop given the SEO data showing AI assistants are CountLink's largest traffic channel. |
+| `04-features.png` | The `/features` page — "34 things, all of them free, none of them behind an account". Strong candidate for a 4th gallery slot; scrolling further into it also reaches the MCP-server-for-AI-assistants feature, which is worth a dedicated crop given the SEO data showing AI assistants are CountLink's largest traffic channel. |
 
 To recapture any of these later, the command is unchanged (see above); for
 `02-running-board.png` specifically, build a `#t=<epoch-ms 5 min out>&l=Break%20ends`

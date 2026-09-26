@@ -53,16 +53,14 @@ Would love feedback, especially from anyone who's dealt with the "wait, whose ti
 right?" problem in a classroom or meeting.
 
 ## Gallery / screenshots
-Recaptured live 2026-09-17 in `docs/producthunt-gallery/` (also copied to
-`~/Desktop/countlink-producthunt/` for drag-and-drop upload — the upload tool only
-accepts files shared into the session, not repo paths):
-- [x] Homepage hero (`01-hero.png`) — now shows the three-screens sync illustration, not
-      the old "00 servers" stat
-- [x] Running countdown (`02-running-board.png`) — now includes the Download offline
-      copy button
+Recaptured live 2026-09-26 in `docs/producthunt-gallery/` (see its README for the
+exact capture method), and refreshed in `~/Desktop/countlink-producthunt/` for drag-and-drop upload — the upload
+tool only accepts files shared into the session, not repo paths:
+- [x] Homepage hero (`01-hero.png`) — headline, trust row, three-screens sync illustration
+- [x] Running countdown (`02-running-board.png`) — the running row on one line, with the
+      labelled alarm-tone picker
 - [x] Comparison table (`03-compare.png`)
-- [x] Features page (`04-features.png`) — new; 32 named features, worth the 4th slot
-      since PH's own audience reads feature lists closely
+- [x] Features page (`04-features.png`) — 34 named features
 
 ## Description (long form)
 CountLink is a free, no-signup shared countdown timer. Set a duration or a target time,
