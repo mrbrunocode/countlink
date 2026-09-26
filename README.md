@@ -62,7 +62,7 @@ scripts/
 docs/
   monetization.md        step-by-step: analytics, AdSense, Pro/Stripe, growing /timers/
   perception-gap-2026-09-06.md  why assistants called this site "minimalist", and the fix
-  phone-control-setup.md pause/adjust/stop from a phone — LIVE; who may control what, and the Ably key rotation step
+  phone-control-setup.md pause/adjust/stop from a phone — LIVE; who may control what, key rotation (done 2026-09-26) and how to repeat it, Ably usage
   webmcp.md              the in-browser agent tools, and the origin-trial token step
 ads.txt                 AdSense seller-verification file — already filled in and live; AdSense approval is separate from this file existing
 robots.txt              allows crawling, points to sitemap.xml
@@ -228,8 +228,8 @@ control link, and a *session id* derived from it by SHA-256, which goes in the
 share link. `functions/api/realtime-token.js` hands a session id a
 watch-only Ably token and a key a publish token, and holds the only Ably key.
 Before that date the share link alone could pause or stop the room's screen.
-See `docs/phone-control-setup.md` for the model, the one-time key-rotation
-step, and the known limitations (down-mode only, no presence indicator).
+See `docs/phone-control-setup.md` for the model, the key rotation (done
+2026-09-26, with steps to repeat it), and the known limitations (down-mode only, no presence indicator).
 
 ## Clock correction (since 2026-09-26)
 

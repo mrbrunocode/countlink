@@ -65,29 +65,50 @@ phone control ticked. A current *share* link pasted into `/control.html`
 says it can watch but not control. Countdowns themselves keep working either
 way. Only phone control on a session started before the deploy stops.
 
-## Key rotation — needed once, after the 2026-09-26 deploy
+## Key rotation — DONE 2026-09-26
 
-The key that used to sit in `assets/realtime-config.js` is in this public
-repo's git history and in cached copies of the old page. **Until it is
-revoked, someone who dug it out could still publish to a channel whose sid
-they know** (for example, from a share link). The server-side fix is complete
-and live; only this step finishes it.
+The key that used to sit in `assets/realtime-config.js` (`countlink-control`,
+`FxZdIQ.RZbDhg`) is in this public repo's git history, so it was rotated the
+same day as the fix:
 
-1. Ably dashboard → the CountLink app → **API Keys** → *Create a new API key*.
-   Capabilities: **Publish, Subscribe** (Presence isn't used) on the resource
-   `countlink:*`. Nothing else.
-2. Put it on the Pages project (production), without it ever touching a file:
-   ```bash
-   cd countlink && npx wrangler pages secret put ABLY_API_KEY --project-name countlink
-   ```
-   Paste the new key when prompted. It takes effect on the next deploy, or
-   run the Deploy workflow by hand.
-3. Back in Ably, **revoke** the old key (the one ending `…_4hOQs0o`).
-4. Check: start a countdown with phone control on countlink.app, open the
-   control link on a phone, press Pause. The board should pause.
+- New key **`countlink-token-signing`** (`FxZdIQ.dS_0KA`): Publish +
+  Subscribe only, restricted to channels `countlink:*`. Verified against Ably
+  REST: tokens for `countlink:<sid>` are issued with exactly the requested
+  capability, and a token for any other channel is refused ("intersection of
+  key capabilities … is empty").
+- Stored only in the Pages secret `ABLY_API_KEY` (production). It went there
+  straight from the dashboard's copy button via the clipboard, so it isn't in
+  any file, commit or transcript. The clipboard was cleared after.
+- Production redeployed and checked: `/api/realtime-token` signs with
+  `dS_0KA`, and a controller → host + viewer pause round trip works over the
+  real network.
+- The old key was **revoked** in the dashboard. Ably now answers it with
+  `40131 Key revoked`.
+
+The other two keys on the app ("Subscribe only" `scK0Xg`, "Root" `Anyucw`)
+were left as they were. Neither appears anywhere in the site.
+
+**To rotate again:** Ably dashboard → CountLink → API Keys → *Create key*
+(Publish + Subscribe; Resource restrictions → Only channels → `countlink:*`)
+→ copy it → `pbpaste | npx wrangler pages secret put ABLY_API_KEY --project-name countlink`
+→ re-run the Deploy workflow → confirm `/api/realtime-token` returns the new
+`keyName` and a real pause works → then revoke the old key. Revoke last:
+revoking first breaks phone control until the deploy lands.
 
 `ABLY_API_KEY` must always be the only copy. `test/realtime.test.mjs` fails
 if anything shaped like an Ably key appears in page source again.
+
+## Usage (Ably dashboard, read 2026-09-26)
+
+This month: 6,083 inbound and 9,687 outbound messages (about 0.3% of the free
+tier's 6M), peak 16 concurrent connections (limit 200), peak 8 channels.
+Traffic is almost all in two one-hour bursts (about 3,800 messages in early
+September, 4,549 around 02:00 BST on 2026-09-26), with near-zero between. That's
+the shape of a controlled board left open with viewers attached. Before
+2026-09-26 every open tab re-broadcast state every 4s. Now only the host
+board (or the controller, as a fallback) does, so the same session costs a
+fraction of the messages. Re-check monthly beside the other stats. There's
+plenty of headroom, and a sudden rise would be the first sign of abuse.
 
 ## Local development
 

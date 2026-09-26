@@ -49,7 +49,7 @@ That's the same cluster Bing ranks, and the same one the OBS page serves.
    (identity verification, domain token, test cases all prepared). ChatGPT
    is 492/494 AI sessions. A directory listing is a second door besides web
    search citations.
-2. **Rotate the Ably key** — `docs/phone-control-setup.md` § Key rotation.
+2. ~~**Rotate the Ably key**~~ — **done 2026-09-26** (old key revoked; see `docs/phone-control-setup.md` § Key rotation).
    Until the old key is revoked, the permissions fix can be bypassed by
    anyone who digs the old key out of git history.
 3. **Answer existing Reddit threads** (r/Twitch, r/obs, r/Teachers) —
