@@ -227,7 +227,9 @@ indexed page for "obs countdown timer". It needs Bruno's forum account and
 someone to answer questions in the resource thread. Suggested order of the
 human-required list, by fit with the evidence:
 
-1. **Product Hunt launch** — 28 referring domains for Stagetimer; draft ready.
+1. **Product Hunt launch** — 28 referring domains for Stagetimer; the listing
+   is complete and ready to schedule (`docs/producthunt-draft.md`), only the
+   date and launch-day presence remain.
 2. **`obs-forum-resource`** — highest audience fit; small, low-risk post.
 3. Show HN, then the subreddits (r/Teachers last — classroom is not where the
    traffic is coming from).

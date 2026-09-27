@@ -158,8 +158,10 @@ in its first full week. **Look at the SERP before any title/meta work.**
    only channel with no authority ceiling. Streamers are the proven audience
    (ChatGPT, Copilot and Bing all converge on the OBS page). Candidate venues
    are in `docs/seo-outreach-plan.md` § 2026-09-24. Bruno posts; agents draft.
-2. **Product Hunt launch** (draft in progress, `docs/producthunt-draft.md`).
-   Gave Stagetimer 28 referring domains — still the highest-value single item.
+2. **Product Hunt launch** — the listing is done and ready to schedule
+   (`docs/producthunt-draft.md`, completed 2026-09-27); only picking a date
+   and being present on launch day remain. Gave Stagetimer 28 referring
+   domains — still the highest-value single item.
 3. ~~Microsoft Teams page~~ **Parked 2026-09-24 on evidence.** The Teams
    referral traffic is ~14 existing users over 90 days opening shared links
    inside Teams (mostly to `/`), and **zero** Google or Bing queries containing
