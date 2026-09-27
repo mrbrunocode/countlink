@@ -1313,7 +1313,7 @@ ${instrumentIndex(p.slug)}
 
 <script>window.COUNTLINK_DEFAULT=${JSON.stringify({ minutes: p.minutes, label: p.label, ...(p.direction ? { direction: p.direction } : {}), ...(p.untilMonthDay ? { untilMonthDay: p.untilMonthDay } : {}) })};</script>
 <script src="../assets/clock.js?v=2d9e48f3" defer></script>
-<script src="../assets/app.js?v=f2033f47" defer></script>
+<script src="../assets/app.js?v=1cb94c63" defer></script>
 </body>
 </html>
 `; };

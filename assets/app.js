@@ -3094,7 +3094,7 @@ if(readHash()){
    The tools only ever do what the page's own buttons do, and respect the
    same rule: a running board is sealed, so there is no tool that edits a
    live countdown — only one that starts a new one. */
-const WEBMCP_ORIGIN_TRIAL_TOKEN="";
+const WEBMCP_ORIGIN_TRIAL_TOKEN="AlMVKU6+tucFDwI/sMuInv2EXcYBzr5sZL7nDcU8hxjXT0n5hw8AgFRtwc8G7SNmz+WHNMH8V47IkIWbX0wzlwsAAABNeyJvcmlnaW4iOiJodHRwczovL2NvdW50bGluay5hcHA6NDQzIiwiZmVhdHVyZSI6IldlYk1DUCIsImV4cGlyeSI6MTc5NDg3MzYwMH0=";
 function registerAgentTools(){
   if(WEBMCP_ORIGIN_TRIAL_TOKEN){
     const m=document.createElement("meta");
