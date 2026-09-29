@@ -46,7 +46,7 @@ Checked 2026-09-29 in Chrome; none can be done without an account or payment:
 
 | Directory | Blocker | Action |
 |---|---|---|
-| uneed.best | Scrapes the URL without an account, but you must register to save | Bruno: register with hello@countlink.app, then submit (free tier is fine) |
+| uneed.best | **Done 2026-09-29**: free waiting line, launches **2027-01-15**. Needs upvote score ≥10 that day to stay published, ≥20 for do-follow; below 10 it can't rejoin the free line | Line up ~10 upvoters for Jan 15 |
 | submitmysaas.com | Sign-in required (Google/GitHub/email) | Bruno: sign up with hello@countlink.app |
 | indiehackers.com | Sign-in required | Bruno: account + product page + a build post |
 | getlatka.com | Account required to claim a profile | Bruno, low priority |
