@@ -482,7 +482,7 @@ export function buildEmbedHtml(rootHtml) {
 export const PAGES = [
   { slug: "index", minutes: 10, label: "Time's up", eyebrow: "Timer Durations",
     h1: "Shared Timer — Pick A Duration, Share The Link",
-    meta: "Free shared timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen counts down to the same second — no account, no viewer limit.",
+    meta: "Free shareable timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen stays synced to the same second — no account, no viewer limit.",
     intro: "Every duration below runs the same board you see here, and every one of them is shareable: set the length, copy the link, and anyone who opens it counts down to the identical second. Pick a quick timer in the panel below, or type any custom length.",
     setupHint: "The board above is ready at 10 minutes, and you can set it right there — click the digits and roll them with the arrows, or just type the time. These controls do the same job, plus counting down to a date.",
     extra: `

@@ -118,7 +118,7 @@ date stated on the page.
 
 ## Timers
 ### Durations
-- [Timer Durations](https://countlink.app/timers/): Free shared timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen counts down to the same second — no account, no viewer limit.
+- [Timer Durations](https://countlink.app/timers/): Free shareable timers from 1 minute to an hour, plus a shared stopwatch. Set a duration, copy the link, and every screen stays synced to the same second — no account, no viewer limit.
 
 ### Classroom & exams
 - [Exam Timer](https://countlink.app/timers/exam-timer): A shareable exam timer for classrooms and test centres. Every invigilator's screen and every student device shows the identical countdown to the second.
