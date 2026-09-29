@@ -42,10 +42,19 @@ and are built from submitted or scraped product profiles.
 
 ## Tier 2: startup directories Stagetimer/ShareMyTimer are in (free submissions)
 
-uneed.best · startups.fyi · submitmysaas.com · kicksaas.cool · submitto.io ·
-liststartup.in · indiehackers.com (product page + a build post) ·
-getlatka.com (company profile) · dev.to (a write-up of the timestamp-in-URL
-trick, which is genuinely interesting to developers)
+Checked 2026-09-29 in Chrome; none can be done without an account or payment:
+
+| Directory | Blocker | Action |
+|---|---|---|
+| uneed.best | Scrapes the URL without an account, but you must register to save | Bruno: register with hello@countlink.app, then submit (free tier is fine) |
+| submitmysaas.com | Sign-in required (Google/GitHub/email) | Bruno: sign up with hello@countlink.app |
+| indiehackers.com | Sign-in required | Bruno: account + product page + a build post |
+| getlatka.com | Account required to claim a profile | Bruno, low priority |
+| dev.to | Account required | Bruno: write-up of the timestamp-in-URL trick |
+| startups.fyi | **Paid only** ($29 featured listing) | Skip |
+| liststartup.in / trustmrr / mrrwars | Need a connected Stripe/Paddle for revenue verification; CountLink has no revenue | Skip |
+| kicksaas.cool | Curated, no submission form | Skip |
+| submitto.io | Not a directory (event file-collection SaaS that happens to link Stagetimer) | Skip |
 
 ## Tier 3: editorial roundups to pitch (human email; one line on the no-cap angle)
 
