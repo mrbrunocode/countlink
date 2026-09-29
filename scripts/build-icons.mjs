@@ -40,49 +40,50 @@ const INK = [0x1c, 0x1c, 0x1a];    // chassis dark
 const FLAP = [0xf0, 0xea, 0xd9];   // cream flap
 const AMBER = [0xe8, 0xa5, 0x3d];  // the one signal colour
 
-/* The "any" composition is favicon.svg's, verbatim: a 44-unit flap inset in a
-   rounded 64-unit tile, split by a hairline, with the signal dot riding the
-   top-right corner. */
-const ANY = { bgRadius: 14, flap: 10, flapSize: 44, split: 30, splitH: 2, dot: [47, 17, 5.5] };
+/* The mark (2026-09-29 rebrand): two screen frames interlocked like chain
+   links — one countdown, linked across screens — with the overlap, the shared
+   instant, filled amber. Painter's order, in the same 64-unit space as
+   assets/favicon.svg; keep the two in step. A frame is a rounded-rect STROKE
+   (centre-line rect + width); a "halo" is the same stroke wider and in ink,
+   which cuts the gap where one frame passes over the other.
 
-/* The maskable composition is the same mark, scaled down and re-centred.
- *
- * A maskable icon only guarantees the inner circle of 40% radius survives the
- * launcher's crop — everything outside it may be cut. The "any" flap runs
- * 10..54, so its corners sit 31.1 units from the centre (0.486 of the icon),
- * well outside that circle: a circular mask would slice both top corners off.
- * A 36-unit flap centred at 14..50 puts the corners at 25.46 (0.398) and the
- * dot's outermost point at 23.8 — both inside 25.6, with the proportions of
- * the mark itself unchanged. The background is full-bleed, no corner radius,
- * because the launcher supplies the shape.
- */
-const S = 36, O = 14; // side, offset
-const MASKABLE = {
-  bgRadius: 0,
-  flap: O,
-  flapSize: S,
-  split: O + (30 - 10) / 44 * S,
-  splitH: 2 / 44 * S,
-  dot: [O + (47 - 10) / 44 * S, O + (17 - 10) / 44 * S, 5.5 / 44 * S],
-};
+   Weave: frame B passes over A at bottom-left, A passes over B at top-right. */
+const FW = 4.6, HALO = 9;
+const A = [11, 11, 29, 29, 6], B = [24, 24, 29, 29, 6];
+const OPS = [
+  ["fill", [24, 24, 16, 16, 3], AMBER],          // the shared zone
+  ["stroke", A, FW, FLAP],
+  ["stroke", B, HALO, INK],                       // B over A (bottom-left)
+  ["stroke", B, FW, FLAP],
+  ["fill", [35.5, 17, 9, 14, 0], INK],            // A over B (top-right): halo…
+  ["fill", [40 - FW / 2, 16, FW, 16, 0], FLAP],   // …and A's edge on top
+  ["fill", [26.3, 26.3, 11.4, 11.4, 1.5], AMBER], // restore the amber the halos cut
+];
+
+/* "any": the mark on a rounded tile. "maskable": full-bleed tile (the launcher
+   supplies the shape) with the mark scaled to 0.8 about the centre, which
+   puts its farthest artwork inside the 40%-radius safe circle. */
+const ANY = { bgRadius: 14, scale: 1 };
+const MASKABLE = { bgRadius: 0, scale: 0.8 };
 
 /* ---- Rasteriser --------------------------------------------------------
-   Every shape is opaque, so there is no alpha compositing to do: a sample
-   takes the colour of the topmost shape containing it, and averaging the
-   samples in a pixel is what produces the antialiased edge. 4x4 supersampling
-   is more than enough for shapes this simple at these sizes. */
+   Every shape is opaque: a sample takes the colour of the topmost shape
+   containing it, and averaging samples per pixel gives the antialiased edge. */
 const SS = 4;
 
 const inRoundRect = (x, y, rx, ry, w, h, r) => {
   if (x < rx || y < ry || x > rx + w || y > ry + h) return false;
   if (r <= 0) return true;
-  // Only the four corner boxes need the distance test.
   const cx = x < rx + r ? rx + r : x > rx + w - r ? rx + w - r : x;
   const cy = y < ry + r ? ry + r : y > ry + h - r ? ry + h - r : y;
   if (cx === x && cy === y) return true;
   return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
 };
-const inCircle = (x, y, cx, cy, r) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
+const inStroke = (x, y, [rx, ry, w, h, r], sw) => {
+  const o = sw / 2;
+  return inRoundRect(x, y, rx - o, ry - o, w + sw, h + sw, r + o)
+    && !inRoundRect(x, y, rx + o, ry + o, w - sw, h - sw, Math.max(0, r - o));
+};
 
 function render(spec, size) {
   const px = new Uint8Array(size * size * 4);
@@ -94,26 +95,21 @@ function render(spec, size) {
         for (let sx = 0; sx < SS; sx++) {
           const x = (pxi + (sx + 0.5) / SS) * u;
           const y = (py + (sy + 0.5) / SS) * u;
-          // Outside the tile is transparent, not dark. On the rounded "any"
-          // variant that is what makes the corners actually read as rounded
-          // instead of shipping a dark square; the maskable variant has
-          // bgRadius 0, so its tile covers every sample and it stays opaque.
+          // Outside the tile is transparent, so the "any" icon's corners read
+          // as rounded rather than a dark square.
           if (!inRoundRect(x, y, 0, 0, 64, 64, spec.bgRadius)) continue;
           a++;
+          const mx = 32 + (x - 32) / spec.scale, my = 32 + (y - 32) / spec.scale;
           let c = INK;
-          if (inRoundRect(x, y, spec.flap, spec.flap, spec.flapSize, spec.flapSize, spec.flapSize * 6 / 44)) c = FLAP;
-          // The split: the flap's hairline, drawn as the ink at 35% over cream.
-          if (x >= spec.flap && x <= spec.flap + spec.flapSize && y >= spec.split && y <= spec.split + spec.splitH) {
-            c = FLAP.map((v, i) => Math.round(v + (INK[i] - v) * 0.35));
+          for (const [kind, rect, w, col] of OPS) {
+            if (kind === "fill" ? inRoundRect(mx, my, ...rect) : inStroke(mx, my, rect, w)) c = kind === "fill" ? w : col;
           }
-          if (inCircle(x, y, spec.dot[0], spec.dot[1], spec.dot[2])) c = AMBER;
           r += c[0]; g += c[1]; b += c[2];
         }
       }
       const n = SS * SS, i = (py * size + pxi) * 4;
       // Averaged over the COVERED samples, so a partly-covered edge pixel keeps
-      // the tile's real colour and carries the coverage in alpha. Averaging over
-      // all n instead would darken every edge toward black.
+      // the tile's real colour and carries the coverage in alpha.
       if (a) {
         px[i] = Math.round(r / a); px[i + 1] = Math.round(g / a); px[i + 2] = Math.round(b / a);
       }

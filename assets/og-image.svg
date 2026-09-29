@@ -8,8 +8,16 @@
     </pattern>
   </defs>
 
-  <circle cx="90" cy="90" r="10" fill="#e8a53d"/>
-  <text x="120" y="100" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="40" letter-spacing="1" fill="#f0ead9">COUNTLINK</text>
+  <g transform="translate(88,58) scale(0.875)">
+    <rect x="24" y="24" width="16" height="16" rx="3" fill="#e8a53d"/>
+    <rect x="11" y="11" width="29" height="29" rx="6" fill="none" stroke="#f0ead9" stroke-width="4.6"/>
+    <rect x="24" y="24" width="29" height="29" rx="6" fill="none" stroke="#1c1c1a" stroke-width="9"/>
+    <rect x="24" y="24" width="29" height="29" rx="6" fill="none" stroke="#f0ead9" stroke-width="4.6"/>
+    <rect x="35.5" y="17" width="9" height="14" fill="#1c1c1a"/>
+    <rect x="37.7" y="16" width="4.6" height="16" fill="#f0ead9"/>
+    <rect x="26.3" y="26.3" width="11.4" height="11.4" rx="1.5" fill="#e8a53d"/>
+  </g>
+  <text x="148" y="104" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="40" letter-spacing="1" fill="#f0ead9">COUNTLINK</text>
 
   <text x="90" y="230" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#f0ead9">ONE SHARED TIMER.</text>
   <text x="90" y="310" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="#f0ead9">EVERY SCREEN.</text>

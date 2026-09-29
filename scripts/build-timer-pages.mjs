@@ -1220,9 +1220,9 @@ if(window.__CL_OVERLAY&&location.pathname.indexOf("/embed/")!==0){
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="../assets/style.css?v=6f3c6804" as="style">
-<link rel="stylesheet" href="../assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="../assets/style.css?v=6f3c6804"></noscript>
+<link rel="preload" href="../assets/style.css?v=c30530a5" as="style">
+<link rel="stylesheet" href="../assets/style.css?v=c30530a5" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="../assets/style.css?v=c30530a5"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -1386,9 +1386,9 @@ ${canonicalPath ? `<meta property="og:url" content="${SITE_URL}${canonicalPath}"
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="${rel}assets/style.css?v=6f3c6804" as="style">
-<link rel="stylesheet" href="${rel}assets/style.css?v=6f3c6804" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=6f3c6804"></noscript>
+<link rel="preload" href="${rel}assets/style.css?v=c30530a5" as="style">
+<link rel="stylesheet" href="${rel}assets/style.css?v=c30530a5" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="${rel}assets/style.css?v=c30530a5"></noscript>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WM4M28L7Y1"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-WM4M28L7Y1');</script>
@@ -2091,7 +2091,7 @@ function chassis(currentPath) {
   const links = CHASSIS_NAV.map(([href, label]) =>
     `<a href="${href}"${href === currentPath ? ' aria-current="page"' : ""}>${label}</a>`).join("\n    ");
   return `<header class="chassis">
-  <a class="chassis-id" href="/"><span class="pip" aria-hidden="true"></span>${BRAND}</a>
+  <a class="chassis-id" href="/"><img class="mark" src="/assets/favicon.svg" alt="" width="26" height="26">${BRAND}</a>
   <nav class="chassis-nav" aria-label="Site">
     ${links}
   </nav>

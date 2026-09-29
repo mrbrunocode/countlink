@@ -123,7 +123,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{
   text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:9px;line-height:1;
   margin-right:auto;
 }
-.pip{width:9px;height:9px;background:var(--signal);flex:none}
+.mark{width:26px;height:26px;flex:none;display:block}
 .chassis-nav{display:flex;gap:22px;flex-wrap:wrap}
 .chassis-nav a,.chassis-spec{
   font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
